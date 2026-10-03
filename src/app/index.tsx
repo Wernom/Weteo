@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { StatusBar } from 'expo-status-bar';
 import {
   ActivityIndicator,
   Pressable,
@@ -11,9 +10,9 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 
-import { describeWeather, fetchForecast, Forecast } from './src/weather';
+import { describeWeather, fetchForecast, Forecast } from '../weather';
 
-export default function App() {
+export default function WeatherScreen() {
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [place, setPlace] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +49,6 @@ export default function App() {
     return (
       <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color="#fff" />
-        <StatusBar style="light" />
       </View>
     );
   }
@@ -62,7 +60,6 @@ export default function App() {
         <Pressable style={styles.button} onPress={reload}>
           <Text style={styles.buttonText}>Réessayer</Text>
         </Pressable>
-        <StatusBar style="light" />
       </View>
     );
   }
@@ -102,7 +99,6 @@ export default function App() {
           );
         })}
       </View>
-      <StatusBar style="light" />
     </ScrollView>
   );
 }

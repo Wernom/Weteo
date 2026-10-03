@@ -1,0 +1,19 @@
+# L'utilisateur passe de l'onglet Météo à l'onglet Villes et revient :
+# l'onglet actif est sélectionné. Localisation refusée pour ne pas dépendre du réseau.
+appId: com.wernom.weteo
+name: Navigation par onglets
+---
+- runFlow: localisation-refusee.yaml
+- assertVisible:
+    id: onglet-meteo
+    selected: true
+- tapOn:
+    id: onglet-villes
+- assertVisible: 'Bientôt : tes villes favorites.'
+- assertVisible:
+    id: onglet-villes
+    selected: true
+- tapOn:
+    id: onglet-meteo
+- assertVisible: 'Autorise la localisation pour voir la météo autour de toi.'
+- assertNotVisible: 'Bientôt : tes villes favorites.'

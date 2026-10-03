@@ -1,7 +1,7 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
 import * as Location from 'expo-location';
 
-import App from '../App';
+import WeatherScreen from '../src/app/index';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 
 jest.mock('expo-location', () => ({
@@ -39,7 +39,7 @@ describe('Écran Météo', () => {
     allowLocation();
     mockApi();
 
-    await render(<App />);
+    await render(<WeatherScreen />);
 
     expect(await screen.findByText('Paris')).toBeOnTheScreen();
     expect(screen.getByText('18°')).toBeOnTheScreen();
@@ -55,7 +55,7 @@ describe('Écran Météo', () => {
     location.reverseGeocodeAsync.mockRejectedValue(new Error('géocodage indisponible'));
     mockApi();
 
-    await render(<App />);
+    await render(<WeatherScreen />);
 
     expect(await screen.findByText('Ma position')).toBeOnTheScreen();
   });
@@ -66,7 +66,7 @@ describe('Écran Météo', () => {
     } as Location.LocationPermissionResponse);
     const fetchMock = mockApi();
 
-    await render(<App />);
+    await render(<WeatherScreen />);
 
     expect(
       await screen.findByText('Autorise la localisation pour voir la météo autour de toi.'),
@@ -80,7 +80,7 @@ describe('Écran Météo', () => {
     const fetchMock = mockApi({ ok: false, status: 500 });
     const user = userEvent.setup();
 
-    await render(<App />);
+    await render(<WeatherScreen />);
 
     expect(await screen.findByText('Open-Meteo a répondu 500')).toBeOnTheScreen();
 
@@ -95,7 +95,7 @@ describe('Écran Météo', () => {
     allowLocation();
     jest.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Network request failed'));
 
-    await render(<App />);
+    await render(<WeatherScreen />);
 
     expect(await screen.findByText('Network request failed')).toBeOnTheScreen();
     expect(screen.getByText('Réessayer')).toBeOnTheScreen();
