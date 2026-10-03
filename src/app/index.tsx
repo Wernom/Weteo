@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -9,43 +10,24 @@ import {
   View,
 } from 'react-native';
 import * as Location from 'expo-location';
+import { router } from 'expo-router';
 
 import { describeWeather, fetchForecast, Forecast } from '../weather';
 
 export default function WeatherScreen() {
-  const [forecast, setForecast] = useState<Forecast | null>(null);
-  const [place, setPlace] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const { data, error, isFetching, isRefetching, refetch } = useQuery({
+    queryKey: ['meteo', 'position'],
+    queryFn: loadWeather,
+  });
+  const reload = () => refetch();
+  const denied = error?.message === LOCATION_DENIED;
 
   useEffect(() => {
-    let cancelled = false;
-    loadWeather()
-      .then((result) => {
-        if (cancelled) return;
-        setForecast(result.forecast);
-        setPlace(result.place);
-        setError(null);
-      })
-      .catch((e) => {
-        if (!cancelled)
-          setError(e instanceof Error ? e.message : 'Impossible de charger la météo.');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshKey]);
+    // Sans position, on ouvre directement la recherche de ville (une seule fois).
+    if (denied) router.navigate('/villes');
+  }, [denied]);
 
-  const reload = () => {
-    setLoading(true);
-    setRefreshKey((k) => k + 1);
-  };
-
-  if (loading && !forecast) {
+  if (isFetching && !data) {
     return (
       <View style={[styles.container, styles.center]}>
         <ActivityIndicator size="large" color="#fff" />
@@ -53,10 +35,10 @@ export default function WeatherScreen() {
     );
   }
 
-  if (error && !forecast) {
+  if (!data) {
     return (
       <View style={[styles.container, styles.center]}>
-        <Text style={styles.error}>{error}</Text>
+        <Text style={styles.error}>{error?.message || 'Impossible de charger la météo.'}</Text>
         <Pressable style={styles.button} onPress={reload}>
           <Text style={styles.buttonText}>Réessayer</Text>
         </Pressable>
@@ -64,18 +46,18 @@ export default function WeatherScreen() {
     );
   }
 
-  if (!forecast) return null;
-
-  const { current, daily } = forecast;
+  const { current, daily } = data.forecast;
   const now = describeWeather(current.weatherCode, current.isDay);
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} tintColor="#fff" />}
+      refreshControl={
+        <RefreshControl refreshing={isRefetching} onRefresh={reload} tintColor="#fff" />
+      }
     >
-      <Text style={styles.place}>{place ?? 'Ma position'}</Text>
+      <Text style={styles.place}>{data.place ?? 'Ma position'}</Text>
       <Text style={styles.icon}>{now.icon}</Text>
       <Text style={styles.temp}>{Math.round(current.temperature)}°</Text>
       <Text style={styles.label}>{now.label}</Text>
@@ -103,11 +85,11 @@ export default function WeatherScreen() {
   );
 }
 
+const LOCATION_DENIED = 'Autorise la localisation pour voir la météo autour de toi.';
+
 async function loadWeather(): Promise<{ forecast: Forecast; place: string | null }> {
   const { granted } = await Location.requestForegroundPermissionsAsync();
-  if (!granted) {
-    throw new Error('Autorise la localisation pour voir la météo autour de toi.');
-  }
+  if (!granted) throw new Error(LOCATION_DENIED);
   const { coords } = await Location.getCurrentPositionAsync({
     accuracy: Location.Accuracy.Balanced,
   });

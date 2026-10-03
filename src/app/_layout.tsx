@@ -1,10 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Tabs } from 'expo-router/js-tabs';
 import { StatusBar } from 'expo-status-bar';
 
+// ponytail: pas de nouvelle tentative auto, délai et retries réseau arrivent avec US 1.12.
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 export default function TabsLayout() {
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       <StatusBar style="light" />
       <Tabs
         screenOptions={{
@@ -33,6 +37,6 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
-    </>
+    </QueryClientProvider>
   );
 }

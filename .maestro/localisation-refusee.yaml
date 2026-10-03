@@ -1,5 +1,5 @@
 # Au premier lancement, l'utilisateur refuse la localisation :
-# l'app explique quoi faire au lieu d'afficher la météo.
+# la recherche de ville s'ouvre (onglet Villes).
 appId: com.wernom.weteo
 name: Localisation refusée
 ---
@@ -12,6 +12,8 @@ name: Localisation refusée
     text: 'Don.t allow|Ne pas autoriser'
     optional: true
 - extendedWaitUntil:
-    visible: 'Autorise la localisation pour voir la météo autour de toi.'
+    visible: 'Rechercher une ville'
     timeout: 20000
-- assertVisible: 'Réessayer'
+- assertVisible:
+    id: onglet-villes
+    selected: true

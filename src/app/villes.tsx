@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function CitiesScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Villes</Text>
+      <Text style={styles.title}>Rechercher une ville</Text>
       <Text style={styles.text}>Bientôt : tes villes favorites.</Text>
     </View>
   );

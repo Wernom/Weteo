@@ -1,5 +1,7 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, userEvent } from '@testing-library/react-native';
 import * as Location from 'expo-location';
+import { router } from 'expo-router';
 
 import WeatherScreen from '../src/app/index';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
@@ -10,6 +12,8 @@ jest.mock('expo-location', () => ({
   getCurrentPositionAsync: jest.fn(),
   reverseGeocodeAsync: jest.fn(),
 }));
+
+jest.mock('expo-router', () => ({ router: { navigate: jest.fn() } }));
 
 const location = jest.mocked(Location);
 const coords = { latitude: 48.85, longitude: 2.35 };
@@ -22,6 +26,17 @@ function allowLocation() {
   location.reverseGeocodeAsync.mockResolvedValue([
     { city: 'Paris' } as Location.LocationGeocodedAddress,
   ]);
+}
+
+function renderScreen() {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <WeatherScreen />
+    </QueryClientProvider>,
+  );
 }
 
 const okForecast = { ok: true, json: async () => forecastFixture };
@@ -39,7 +54,7 @@ describe('Écran Météo', () => {
     allowLocation();
     mockApi();
 
-    await render(<WeatherScreen />);
+    await renderScreen();
 
     expect(await screen.findByText('Paris')).toBeOnTheScreen();
     expect(screen.getByText('18°')).toBeOnTheScreen();
@@ -55,23 +70,24 @@ describe('Écran Météo', () => {
     location.reverseGeocodeAsync.mockRejectedValue(new Error('géocodage indisponible'));
     mockApi();
 
-    await render(<WeatherScreen />);
+    await renderScreen();
 
     expect(await screen.findByText('Ma position')).toBeOnTheScreen();
   });
 
-  it('explique quoi faire quand la localisation est refusée', async () => {
+  it('ouvre la recherche de ville quand la localisation est refusée', async () => {
     location.requestForegroundPermissionsAsync.mockResolvedValue({
       granted: false,
     } as Location.LocationPermissionResponse);
     const fetchMock = mockApi();
 
-    await render(<WeatherScreen />);
+    await renderScreen();
 
     expect(
       await screen.findByText('Autorise la localisation pour voir la météo autour de toi.'),
     ).toBeOnTheScreen();
     expect(screen.getByText('Réessayer')).toBeOnTheScreen();
+    expect(router.navigate).toHaveBeenCalledWith('/villes');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -80,7 +96,7 @@ describe('Écran Météo', () => {
     const fetchMock = mockApi({ ok: false, status: 500 });
     const user = userEvent.setup();
 
-    await render(<WeatherScreen />);
+    await renderScreen();
 
     expect(await screen.findByText('Open-Meteo a répondu 500')).toBeOnTheScreen();
 
@@ -95,7 +111,7 @@ describe('Écran Météo', () => {
     allowLocation();
     jest.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Network request failed'));
 
-    await render(<WeatherScreen />);
+    await renderScreen();
 
     expect(await screen.findByText('Network request failed')).toBeOnTheScreen();
     expect(screen.getByText('Réessayer')).toBeOnTheScreen();
