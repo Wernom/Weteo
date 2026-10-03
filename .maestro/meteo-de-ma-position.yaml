@@ -1,0 +1,18 @@
+# L'utilisateur accepte la localisation : l'écran Météo affiche
+# la température et les prévisions sur 7 jours (vraie API Open-Meteo).
+appId: com.wernom.weteo
+name: Météo de ma position
+---
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+- extendedWaitUntil:
+    visible: 'Prévisions sur 7 jours'
+    timeout: 60000
+- assertVisible: "Aujourd'hui"
+- assertVisible:
+    text: '.*Ressenti .*Humidité .*Vent .*'

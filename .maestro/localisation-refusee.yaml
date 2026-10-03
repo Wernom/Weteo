@@ -1,0 +1,17 @@
+# Au premier lancement, l'utilisateur refuse la localisation :
+# l'app explique quoi faire au lieu d'afficher la météo.
+appId: com.wernom.weteo
+name: Localisation refusée
+---
+- launchApp:
+    clearState: true
+    permissions:
+      location: deny
+# La boîte de dialogue système peut apparaître selon la version d'Android.
+- tapOn:
+    text: 'Don.t allow|Ne pas autoriser'
+    optional: true
+- extendedWaitUntil:
+    visible: 'Autorise la localisation pour voir la météo autour de toi.'
+    timeout: 20000
+- assertVisible: 'Réessayer'
