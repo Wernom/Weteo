@@ -1,4 +1,5 @@
 import type Ionicons from '@expo/vector-icons/Ionicons';
+import { queryOptions } from '@tanstack/react-query';
 import type { ComponentProps } from 'react';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -50,6 +51,18 @@ export const WEATHER_QUERY_KEY = ['meteo', 'position'] as const;
 
 // Météo d'une ville trouvée par la recherche, `id` étant celui d'Open-Meteo Geocoding.
 export const cityQueryKey = (id: string) => ['meteo', 'ville', id] as const;
+
+// Partagée par l'écran ville et la liste des favoris : même cache.
+export const cityWeatherQuery = (id: string, name: string, latitude: number, longitude: number) =>
+  queryOptions({
+    queryKey: cityQueryKey(id),
+    queryFn: async (): Promise<WeatherData> => ({
+      forecast: await fetchForecast(latitude, longitude),
+      place: name,
+    }),
+    // ponytail: rafraîchie seulement en tirant ; le rafraîchissement auto arrive avec US 1.11.
+    staleTime: 10 * 60 * 1000,
+  });
 
 // `region` manque pour certaines villes (micro-États, territoires).
 export type City = {

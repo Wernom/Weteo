@@ -19,7 +19,8 @@ jest.mock('expo-router', () => {
 
 async function renderDay(date: string, { cached = true, ville = '' } = {}) {
   jest.mocked(useLocalSearchParams).mockReturnValue(ville ? { date, ville } : { date });
-  const client = new QueryClient();
+  // gcTime infini : sinon le cache arme un minuteur de 5 min qui retient le worker Jest.
+  const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } });
   if (cached) {
     jest
       .spyOn(globalThis, 'fetch')

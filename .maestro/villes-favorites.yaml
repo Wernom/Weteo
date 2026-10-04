@@ -1,0 +1,57 @@
+# L'utilisateur cherche « Lyon », l'ajoute aux favoris avec l'étoile : sans recherche, la ville
+# est listée sous « Ma position » avec sa météo. Elle est toujours là après redémarrage,
+# puis il la supprime (vraie API Open-Meteo).
+appId: com.wernom.weteo
+name: Villes favorites
+---
+- runFlow: localisation-refusee.yaml
+- tapOn:
+    id: recherche-ville
+# Gboard peut proposer d'essayer le stylet au premier champ touché : on ferme.
+- waitForAnimationToEnd
+- tapOn:
+    text: 'Cancel|Annuler'
+    optional: true
+- inputText: 'Lyon'
+- extendedWaitUntil:
+    visible: 'Rhône-Alpes, France'
+    timeout: 20000
+- tapOn:
+    id: etoile-0
+- assertVisible: 'Retirer Lyon des favoris'
+- eraseText
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: ma-position
+    timeout: 5000
+- assertVisible:
+    id: favori-0
+- assertVisible: 'Lyon'
+# Météo résumée de la ville.
+- extendedWaitUntil:
+    visible: '-?\d+°'
+    timeout: 20000
+
+# Redémarrage : les favoris sont conservés.
+- stopApp
+- launchApp:
+    permissions:
+      location: deny
+# La permission est redemandée au lancement selon la version d'Android.
+- tapOn:
+    text: 'Don.t allow|Ne pas autoriser'
+    optional: true
+- extendedWaitUntil:
+    visible: 'Rechercher une ville'
+    timeout: 20000
+- assertVisible:
+    id: ma-position
+- assertVisible: 'Rhône-Alpes, France'
+
+- tapOn: 'Supprimer Lyon'
+- assertNotVisible: 'Rhône-Alpes, France'
+- assertNotVisible:
+    id: favori-0
+- assertVisible:
+    id: ma-position

@@ -29,7 +29,8 @@
           "locationWhenInUsePermission": "Weteo utilise votre position pour afficher la météo locale."
         }
       ],
-      "expo-router"
+      "expo-router",
+      "expo-sqlite"
     ],
     "scheme": "weteo"
   }

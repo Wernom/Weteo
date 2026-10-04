@@ -1,26 +1,24 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { Pressable } from 'react-native';
 
-import { cityQueryKey, fetchForecast } from '../../weather';
+import { isFavorite, toggleFavorite, useFavorites } from '../../favorites';
+import { cityWeatherQuery } from '../../weather';
 import { WeatherView } from '../../WeatherView';
 
 // Météo d'une ville choisie dans la recherche : pas de localisation, ses coordonnées suffisent.
 export default function CityScreen() {
-  const { id, name, latitude, longitude } = useLocalSearchParams<{
+  const { id, name, region, country, latitude, longitude } = useLocalSearchParams<{
     id: string;
     name: string;
+    region?: string;
+    country?: string;
     latitude: string;
     longitude: string;
   }>();
-  const query = useQuery({
-    queryKey: cityQueryKey(id),
-    queryFn: async () => ({
-      forecast: await fetchForecast(Number(latitude), Number(longitude)),
-      place: name,
-    }),
-    // ponytail: rafraîchie seulement en tirant ; le rafraîchissement auto arrive avec US 1.11.
-    staleTime: 10 * 60 * 1000,
-  });
+  const query = useQuery(cityWeatherQuery(id, name, Number(latitude), Number(longitude)));
+  const favorite = isFavorite(useFavorites(), Number(id));
 
   return (
     <>
@@ -31,6 +29,28 @@ export default function CityScreen() {
           headerTransparent: true,
           headerTintColor: '#fff',
           headerBackTitle: 'Villes',
+          headerRight: () => (
+            <Pressable
+              testID="etoile-ville"
+              accessibilityRole="button"
+              accessibilityLabel={
+                favorite ? `Retirer ${name} des favoris` : `Ajouter ${name} aux favoris`
+              }
+              hitSlop={12}
+              onPress={() =>
+                toggleFavorite({
+                  id: Number(id),
+                  name,
+                  region: region || null,
+                  country: country ?? '',
+                  latitude: Number(latitude),
+                  longitude: Number(longitude),
+                })
+              }
+            >
+              <Ionicons name={favorite ? 'star' : 'star-outline'} size={24} color="#fff" />
+            </Pressable>
+          ),
         }}
       />
       <WeatherView query={query} ville={id} />

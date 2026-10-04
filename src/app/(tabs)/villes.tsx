@@ -1,7 +1,8 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { keepPreviousData, skipToken, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { ComponentProps, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -12,11 +13,21 @@ import {
   View,
 } from 'react-native';
 
-import { City, GRADIENTS, searchCities } from '../../weather';
+import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
+import {
+  City,
+  cityWeatherQuery,
+  describeWeather,
+  GRADIENTS,
+  searchCities,
+  WEATHER_QUERY_KEY,
+  WeatherData,
+} from '../../weather';
 
 export default function CitiesScreen() {
   const [text, setText] = useState('');
   const [term, setTerm] = useState('');
+  const favorites = useFavorites();
   // On attend une pause dans la frappe avant d'interroger l'API.
   useEffect(() => {
     const timer = setTimeout(() => setTerm(text.trim()), 300);
@@ -55,7 +66,16 @@ export default function CitiesScreen() {
         returnKeyType="search"
       />
       {isFetching && <ActivityIndicator color="#fff" style={styles.spinner} />}
-      {message ? (
+      {term === '' ? (
+        <FlatList
+          data={favorites}
+          keyExtractor={(city) => String(city.id)}
+          ListHeaderComponent={MyPositionRow}
+          renderItem={({ item, index }) => (
+            <FavoriteRow city={item} index={index} last={index === favorites.length - 1} />
+          )}
+        />
+      ) : message ? (
         <View style={styles.center}>
           <Text style={styles.message}>{message}</Text>
           {error && (
@@ -69,35 +89,151 @@ export default function CitiesScreen() {
           data={data}
           keyExtractor={(city) => String(city.id)}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item, index }) => <CityRow city={item} index={index} />}
+          renderItem={({ item, index }) => (
+            <CityRow city={item} index={index} favorite={isFavorite(favorites, item.id)} />
+          )}
         />
       )}
     </LinearGradient>
   );
 }
 
-function CityRow({ city, index }: { city: City; index: number }) {
-  const where = [city.region, city.country].filter(Boolean).join(', ');
+const where = (city: City) => [city.region, city.country].filter(Boolean).join(', ');
+
+function openCity(city: City) {
+  router.push({
+    pathname: '/ville/[id]',
+    params: {
+      id: String(city.id),
+      name: city.name,
+      region: city.region ?? '',
+      country: city.country,
+      latitude: String(city.latitude),
+      longitude: String(city.longitude),
+    },
+  });
+}
+
+function CityRow({ city, index, favorite }: { city: City; index: number; favorite: boolean }) {
+  return (
+    <View style={styles.row}>
+      <Pressable
+        testID={`ville-${index}`}
+        style={styles.grow}
+        accessibilityRole="button"
+        accessibilityLabel={`${city.name}, ${where(city)}`}
+        onPress={() => openCity(city)}
+      >
+        <Text style={styles.name}>{city.name}</Text>
+        <Text style={styles.where}>{where(city)}</Text>
+      </Pressable>
+      <IconButton
+        testID={`etoile-${index}`}
+        icon={favorite ? 'star' : 'star-outline'}
+        label={favorite ? `Retirer ${city.name} des favoris` : `Ajouter ${city.name} aux favoris`}
+        onPress={() => toggleFavorite(city)}
+      />
+    </View>
+  );
+}
+
+// Toujours en tête des villes ; reprend le lieu et la météo déjà chargés par l'onglet Météo,
+// sans redemander la localisation.
+function MyPositionRow() {
+  const { data } = useQuery<WeatherData>({ queryKey: WEATHER_QUERY_KEY, queryFn: skipToken });
+  const title = data?.place ? `Ma position · ${data.place}` : 'Ma position';
   return (
     <Pressable
-      testID={`ville-${index}`}
+      testID="ma-position"
       style={styles.row}
       accessibilityRole="button"
-      accessibilityLabel={`${city.name}, ${where}`}
-      onPress={() =>
-        router.push({
-          pathname: '/ville/[id]',
-          params: {
-            id: String(city.id),
-            name: city.name,
-            latitude: String(city.latitude),
-            longitude: String(city.longitude),
-          },
-        })
-      }
+      accessibilityLabel={title}
+      onPress={() => router.navigate('/')}
     >
-      <Text style={styles.name}>{city.name}</Text>
-      <Text style={styles.where}>{where}</Text>
+      <Ionicons name="navigate" size={18} color="#fff" style={styles.pin} />
+      <Text style={[styles.name, styles.grow]}>{title}</Text>
+      <WeatherSummary data={data} />
+    </Pressable>
+  );
+}
+
+function FavoriteRow({ city, index, last }: { city: City; index: number; last: boolean }) {
+  const { data } = useQuery(
+    cityWeatherQuery(String(city.id), city.name, city.latitude, city.longitude),
+  );
+  return (
+    <View style={styles.row}>
+      <Pressable
+        testID={`favori-${index}`}
+        style={[styles.row, styles.grow, styles.flat]}
+        accessibilityRole="button"
+        accessibilityLabel={`${city.name}, ${where(city)}`}
+        onPress={() => openCity(city)}
+      >
+        <View style={styles.grow}>
+          <Text style={styles.name}>{city.name}</Text>
+          <Text style={styles.where}>{where(city)}</Text>
+        </View>
+        <WeatherSummary data={data} />
+      </Pressable>
+      <IconButton
+        icon="chevron-up"
+        label={`Monter ${city.name}`}
+        disabled={index === 0}
+        onPress={() => moveFavorite(city.id, -1)}
+      />
+      <IconButton
+        icon="chevron-down"
+        label={`Descendre ${city.name}`}
+        disabled={last}
+        onPress={() => moveFavorite(city.id, 1)}
+      />
+      <IconButton
+        icon="close"
+        label={`Supprimer ${city.name}`}
+        onPress={() => toggleFavorite(city)}
+      />
+    </View>
+  );
+}
+
+// Rien tant que la météo n'est pas là (chargement, erreur, localisation refusée).
+function WeatherSummary({ data }: { data: WeatherData | undefined }) {
+  if (!data) return null;
+  const { weatherCode, isDay, temperature } = data.forecast.current;
+  return (
+    <View style={styles.summary}>
+      <Ionicons name={describeWeather(weatherCode, isDay).icon} size={22} color="#fff" />
+      <Text style={styles.temperature}>{Math.round(temperature)}°</Text>
+    </View>
+  );
+}
+
+function IconButton({
+  icon,
+  label,
+  onPress,
+  disabled,
+  testID,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+  testID?: string;
+}) {
+  return (
+    <Pressable
+      testID={testID}
+      style={[styles.iconButton, disabled && styles.disabled]}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      hitSlop={6}
+      onPress={onPress}
+    >
+      <Ionicons name={icon} size={22} color="#fff" />
     </Pressable>
   );
 }
@@ -122,7 +258,17 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.15)',
+    flexDirection: 'row',
+    alignItems: 'center',
   },
+  // Ligne dans une ligne : pas de deuxième fond ni de marge.
+  flat: { marginTop: 0, padding: 0, backgroundColor: 'transparent' },
+  grow: { flex: 1 },
+  pin: { marginRight: 8 },
+  summary: { flexDirection: 'row', alignItems: 'center', marginLeft: 8, gap: 4 },
+  temperature: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  iconButton: { padding: 6, marginLeft: 4 },
+  disabled: { opacity: 0.3 },
   name: { color: '#fff', fontSize: 18, fontWeight: '600' },
   where: { color: '#e6efff', fontSize: 15, marginTop: 2 },
   button: {
