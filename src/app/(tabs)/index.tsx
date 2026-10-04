@@ -14,25 +14,22 @@ import {
 import * as Location from 'expo-location';
 import { router, useIsFocused, useNavigation } from 'expo-router';
 
-import { DailyList } from '../DailyList';
-import { HourlyStrip } from '../HourlyStrip';
-import { describeWeather, fetchForecast, Forecast, WeatherTheme } from '../weather';
+import { DailyList } from '../../DailyList';
+import { HourlyStrip } from '../../HourlyStrip';
+import {
+  describeWeather,
+  fetchForecast,
+  GRADIENTS,
+  WEATHER_QUERY_KEY,
+  WeatherData,
+} from '../../weather';
 
 const TEN_MINUTES = 10 * 60 * 1000;
-
-// Du haut vers le bas ; le texte blanc reste lisible (contraste ≥ 4,5:1) sur chaque couleur.
-const GRADIENTS: Record<WeatherTheme, readonly [string, string]> = {
-  jour: ['#2f6cc4', '#1f4f99'],
-  nuit: ['#0f1c3f', '#1f2d5c'],
-  pluie: ['#4b5a6b', '#2c3644'],
-  neige: ['#5b7083', '#3d4f61'],
-  orage: ['#3b3456', '#1e1a2e'],
-};
 
 export default function WeatherScreen() {
   const focused = useIsFocused();
   const { data, error, isFetching, isRefetching, refetch } = useQuery({
-    queryKey: ['meteo', 'position'],
+    queryKey: WEATHER_QUERY_KEY,
     queryFn: loadWeather,
     // Hors geste, au plus un appel toutes les 10 min ; tirer (refetch) passe outre.
     staleTime: TEN_MINUTES,
@@ -80,6 +77,8 @@ export default function WeatherScreen() {
   }
 
   const { current, hourly, daily } = data.forecast;
+  // Le bandeau part de l'heure en cours (« 2026-10-05T14:00 » >= « 2026-10-05T14 »).
+  const start = hourly.findIndex((h) => h.time >= current.time.slice(0, 13));
 
   return (
     <LinearGradient testID="fond-meteo" colors={gradient} style={styles.container}>
@@ -104,7 +103,7 @@ export default function WeatherScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Heure par heure</Text>
-          <HourlyStrip hours={hourly} />
+          <HourlyStrip hours={hourly.slice(start, start + 48)} />
         </View>
 
         <View style={styles.card}>
@@ -116,9 +115,9 @@ export default function WeatherScreen() {
   );
 }
 
-const LOCATION_DENIED = 'Autorise la localisation pour voir la météo autour de toi.';
+const LOCATION_DENIED = 'Autorisez la localisation pour voir la météo autour de vous.';
 
-async function loadWeather(): Promise<{ forecast: Forecast; place: string | null }> {
+async function loadWeather(): Promise<WeatherData> {
   const { granted } = await Location.requestForegroundPermissionsAsync();
   if (!granted) throw new Error(LOCATION_DENIED);
   const { coords } = await Location.getCurrentPositionAsync({

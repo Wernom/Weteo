@@ -6,14 +6,14 @@ name: Navigation par onglets
 - runFlow: localisation-refusee.yaml
 - tapOn:
     id: onglet-meteo
-- assertVisible: 'Autorise la localisation pour voir la météo autour de toi.'
+- assertVisible: 'Autorisez la localisation pour voir la météo autour de vous.'
 - assertVisible:
     id: onglet-meteo
     selected: true
-- assertNotVisible: 'Bientôt : tes villes favorites.'
+- assertNotVisible: 'Bientôt : vos villes favorites.'
 - tapOn:
     id: onglet-villes
-- assertVisible: 'Bientôt : tes villes favorites.'
+- assertVisible: 'Bientôt : vos villes favorites.'
 - assertVisible:
     id: onglet-villes
     selected: true

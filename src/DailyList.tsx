@@ -1,35 +1,42 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { DailyForecast, describeWeather } from './weather';
 
-// Une ligne par jour ; le premier est aujourd'hui.
+// Une ligne par jour ; le premier est aujourd'hui. Toucher un jour ouvre son détail.
 export function DailyList({ days }: { days: DailyForecast[] }) {
   return (
     <>
       {days.map((day, i) => {
         const d = describeWeather(day.weatherCode);
-        const label = i === 0 ? "Aujourd'hui" : formatDay(day.date);
+        const label = dayLabel(day.date, i);
         const min = Math.round(day.min);
         const max = Math.round(day.max);
         return (
-          <View
+          <Pressable
             key={day.date}
             testID={`jour-${i}`}
             style={styles.row}
-            accessible
+            accessibilityRole="button"
             accessibilityLabel={`${label}, ${d.label}, minimum ${min}°, maximum ${max}°`}
+            onPress={() => router.push(`/jour/${day.date}`)}
           >
             <Text style={styles.day}>{label}</Text>
             <Ionicons name={d.icon} size={24} color="#fff" />
             <Text style={styles.range}>
               {min}° / {max}°
             </Text>
-          </View>
+          </Pressable>
         );
       })}
     </>
   );
+}
+
+// `index` 0 est aujourd'hui.
+export function dayLabel(isoDate: string, index: number) {
+  return index === 0 ? "Aujourd'hui" : formatDay(isoDate);
 }
 
 function formatDay(isoDate: string) {

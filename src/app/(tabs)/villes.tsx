@@ -4,7 +4,7 @@ export default function CitiesScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Rechercher une ville</Text>
-      <Text style={styles.text}>Bientôt : tes villes favorites.</Text>
+      <Text style={styles.text}>Bientôt : vos villes favorites.</Text>
     </View>
   );
 }

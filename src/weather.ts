@@ -5,7 +5,9 @@ type IconName = ComponentProps<typeof Ionicons>['name'];
 
 // Client Open-Meteo (gratuit, sans clé API) : https://open-meteo.com/en/docs
 
+// `time` est l'heure locale du lieu (« 2026-10-05T14:15 »), pas celle du téléphone.
 export type CurrentWeather = {
+  time: string;
   temperature: number;
   apparentTemperature: number;
   humidity: number;
@@ -14,11 +16,16 @@ export type CurrentWeather = {
   isDay: boolean;
 };
 
+// `sunrise` et `sunset` sont en heure locale du lieu (« 2026-10-05T07:58 »).
 export type DailyForecast = {
   date: string;
   weatherCode: number;
   min: number;
   max: number;
+  sunrise: string;
+  sunset: string;
+  precipitation: number;
+  rainChance: number;
 };
 
 // `time` est l'heure locale du lieu (« 2026-10-05T14:00 »), pas celle du téléphone.
@@ -30,11 +37,16 @@ export type HourlyForecast = {
   isDay: boolean;
 };
 
+// `hourly` couvre les 7 jours de `daily`, de 00:00 à 23:00.
 export type Forecast = {
   current: CurrentWeather;
   hourly: HourlyForecast[];
   daily: DailyForecast[];
 };
+
+export type WeatherData = { forecast: Forecast; place: string | null };
+
+export const WEATHER_QUERY_KEY = ['meteo', 'position'] as const;
 
 export async function fetchForecast(latitude: number, longitude: number): Promise<Forecast> {
   const params = new URLSearchParams({
@@ -43,9 +55,8 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
     current:
       'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day',
     hourly: 'temperature_2m,weather_code,precipitation_probability,is_day',
-    // Les heures partent de l'heure en cours.
-    forecast_hours: '48',
-    daily: 'weather_code,temperature_2m_max,temperature_2m_min',
+    daily:
+      'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,precipitation_probability_max',
     timezone: 'auto',
     forecast_days: '7',
   });
@@ -57,6 +68,7 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
 
   return {
     current: {
+      time: data.current.time,
       temperature: data.current.temperature_2m,
       apparentTemperature: data.current.apparent_temperature,
       humidity: data.current.relative_humidity_2m,
@@ -76,6 +88,10 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       weatherCode: data.daily.weather_code[i],
       min: data.daily.temperature_2m_min[i],
       max: data.daily.temperature_2m_max[i],
+      sunrise: data.daily.sunrise[i],
+      sunset: data.daily.sunset[i],
+      precipitation: data.daily.precipitation_sum[i],
+      rainChance: data.daily.precipitation_probability_max[i],
     })),
   };
 }
@@ -101,3 +117,12 @@ export function describeWeather(
 }
 
 export type WeatherTheme = 'jour' | 'nuit' | 'pluie' | 'neige' | 'orage';
+
+// Du haut vers le bas ; le texte blanc reste lisible (contraste ≥ 4,5:1) sur chaque couleur.
+export const GRADIENTS: Record<WeatherTheme, readonly [string, string]> = {
+  jour: ['#2f6cc4', '#1f4f99'],
+  nuit: ['#0f1c3f', '#1f2d5c'],
+  pluie: ['#4b5a6b', '#2c3644'],
+  neige: ['#5b7083', '#3d4f61'],
+  orage: ['#3b3456', '#1e1a2e'],
+};

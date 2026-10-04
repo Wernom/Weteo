@@ -26,7 +26,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Weteo utilise ta position pour afficher la météo locale."
+          "locationWhenInUsePermission": "Weteo utilise votre position pour afficher la météo locale."
         }
       ],
       "expo-router"

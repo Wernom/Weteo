@@ -1,0 +1,37 @@
+# L'utilisateur touche un jour de la liste 7 jours : son détail s'ouvre (courbe touchable, précipitations,
+# lever et coucher du soleil), puis le retour ramène à l'écran Météo (vraie API Open-Meteo).
+appId: com.wernom.weteo
+name: Détail d'un jour
+---
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+- extendedWaitUntil:
+    visible: 'Heure par heure'
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: 'jour-1'
+- tapOn:
+    id: 'jour-1'
+- assertVisible:
+    id: 'courbe-temperatures'
+# Toucher la courbe affiche l'heure et la température à cet endroit.
+- tapOn:
+    id: 'courbe-temperatures'
+    point: '60%, 50%'
+- assertVisible: '\d+ h · -?\d+°'
+- assertVisible: 'Précipitations .*'
+- assertVisible: 'Lever .*'
+- assertVisible: 'Coucher .*'
+- assertNotVisible:
+    id: 'onglet-meteo'
+- back
+- assertVisible: 'Prévisions sur 7 jours'
+- assertVisible:
+    id: 'onglet-meteo'
+    selected: true

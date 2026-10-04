@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { router, useIsFocused } from 'expo-router';
 import { AppState, processColor, RefreshControl } from 'react-native';
 
-import WeatherScreen from '../src/app/index';
+import WeatherScreen from '../src/app/(tabs)/index';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 
 jest.mock('expo-location', () => ({
@@ -16,7 +16,7 @@ jest.mock('expo-location', () => ({
 
 const mockNavigation = { setOptions: jest.fn() };
 jest.mock('expo-router', () => ({
-  router: { navigate: jest.fn() },
+  router: { navigate: jest.fn(), push: jest.fn() },
   useIsFocused: jest.fn(() => true),
   useNavigation: () => mockNavigation,
 }));
@@ -102,6 +102,17 @@ describe('Écran Météo', () => {
     expect(screen.queryByTestId('jour-7')).not.toBeOnTheScreen();
   });
 
+  it('toucher un jour ouvre son détail', async () => {
+    allowLocation();
+    mockApi();
+    const user = userEvent.setup();
+
+    await renderScreen();
+    await user.press(await screen.findByTestId('jour-1'));
+
+    expect(router.push).toHaveBeenCalledWith('/jour/2026-10-06');
+  });
+
   it('affiche les 48 prochaines heures en commençant par maintenant', async () => {
     allowLocation();
     mockApi();
@@ -172,7 +183,7 @@ describe('Écran Météo', () => {
     await renderScreen();
 
     expect(
-      await screen.findByText('Autorise la localisation pour voir la météo autour de toi.'),
+      await screen.findByText('Autorisez la localisation pour voir la météo autour de vous.'),
     ).toBeOnTheScreen();
     expect(screen.getByText('Réessayer')).toBeOnTheScreen();
     expect(router.navigate).toHaveBeenCalledWith('/villes');

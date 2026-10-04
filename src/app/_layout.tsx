@@ -1,6 +1,5 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Tabs } from 'expo-router/js-tabs';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState } from 'react-native';
 
@@ -13,37 +12,12 @@ focusManager.setEventListener((setFocused) => {
   return () => sub.remove();
 });
 
-export default function TabsLayout() {
+// Les écrans de détail s'empilent au-dessus des onglets.
+export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <StatusBar style="light" />
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarActiveTintColor: '#fff',
-          tabBarInactiveTintColor: '#a9c4f0',
-          tabBarStyle: { backgroundColor: '#2c64b8', borderTopWidth: 0 },
-        }}
-      >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Météo',
-            tabBarButtonTestID: 'onglet-meteo',
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="partly-sunny" color={color} size={size} />
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="villes"
-          options={{
-            title: 'Villes',
-            tabBarButtonTestID: 'onglet-villes',
-            tabBarIcon: ({ color, size }) => <Ionicons name="list" color={color} size={size} />,
-          }}
-        />
-      </Tabs>
+      <Stack screenOptions={{ headerShown: false }} />
     </QueryClientProvider>
   );
 }
