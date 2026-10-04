@@ -23,7 +23,7 @@ name: Rechercher une ville
     timeout: 20000
 - tapOn: 'Rhône-Alpes, France'
 - extendedWaitUntil:
-    visible: 'Prévisions sur 7 jours'
+    visible: 'Ressenti .*'
     timeout: 60000
 - assertVisible: 'Lyon'
 - assertNotVisible:

@@ -25,5 +25,5 @@ onFlowComplete:
     commands:
       - tapOn: 'Réessayer'
       - extendedWaitUntil:
-          visible: 'Prévisions sur 7 jours'
+          visible: 'Ressenti .*'
           timeout: 20000

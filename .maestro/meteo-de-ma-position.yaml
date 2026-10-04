@@ -11,9 +11,14 @@ name: Météo de ma position
     permissions:
       location: allow
 - extendedWaitUntil:
-    visible: 'Prévisions sur 7 jours'
+    visible: 'Ressenti .*'
     timeout: 60000
-- assertVisible: "Aujourd'hui"
-- assertVisible: 'Ressenti .*'
 - assertVisible: 'Humidité .*'
 - assertVisible: 'Vent .*'
+# Sur un petit écran, les prévisions sont sous le bandeau horaire.
+- scrollUntilVisible:
+    element:
+      text: 'Prévisions sur 7 jours'
+- scrollUntilVisible:
+    element:
+      text: "Aujourd'hui"
