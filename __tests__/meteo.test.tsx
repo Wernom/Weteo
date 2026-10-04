@@ -1,10 +1,27 @@
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, render, screen, userEvent, waitFor, within } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  userEvent,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import * as Location from 'expo-location';
 import { router, useIsFocused } from 'expo-router';
-import { AppState, processColor, RefreshControl } from 'react-native';
+import Storage from 'expo-sqlite/kv-store';
+import {
+  AppState,
+  Dimensions,
+  FlatList,
+  processColor,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 
 import WeatherScreen from '../src/app/(tabs)/index';
+import { toggleFavorite } from '../src/favorites';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 
 jest.mock('expo-location', () => ({
@@ -15,9 +32,11 @@ jest.mock('expo-location', () => ({
 }));
 
 const mockNavigation = { setOptions: jest.fn() };
+let mockParams: { page?: string } = {};
 jest.mock('expo-router', () => ({
-  router: { navigate: jest.fn(), push: jest.fn() },
+  router: { navigate: jest.fn(), push: jest.fn(), setParams: jest.fn() },
   useIsFocused: jest.fn(() => true),
+  useLocalSearchParams: () => mockParams,
   useNavigation: () => mockNavigation,
 }));
 
@@ -76,6 +95,9 @@ describe('Écran Météo', () => {
     await renderScreen();
 
     expect(await screen.findByText('Paris')).toBeOnTheScreen();
+    expect(
+      within(screen.getByTestId('mention-position')).getByText('Ma position'),
+    ).toBeOnTheScreen();
     expect(screen.getByText('18°')).toBeOnTheScreen();
     expect(screen.getByText('Pluie')).toBeOnTheScreen();
     expect(screen.getByText('Ressenti 17°')).toBeOnTheScreen();
@@ -303,6 +325,137 @@ describe('Écran Météo', () => {
       makeDataOlderThanTenMinutes(client);
       await reopenApp();
       await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    });
+  });
+
+  describe("passer d'une ville à l'autre", () => {
+    const LYON = { id: 2996944, name: 'Lyon', region: 'Rhône-Alpes', country: 'France' };
+    const NICE = { id: 2990440, name: 'Nice', region: 'PACA', country: 'France' };
+
+    // Paris sous la pluie (fixture), Lyon de nuit par ciel dégagé, Nice comme Paris.
+    async function renderWithFavorites() {
+      Storage.setItemSync(
+        'favoris',
+        JSON.stringify([
+          { ...LYON, latitude: 45.75, longitude: 4.85 },
+          { ...NICE, latitude: 43.7, longitude: 7.27 },
+        ]),
+      );
+      allowLocation();
+      jest.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
+        const lyon = String(url).includes('latitude=45.75');
+        const current = { ...forecastFixture.current, weather_code: 0, is_day: 0 };
+        const json = lyon ? { ...forecastFixture, current } : forecastFixture;
+        return { ok: true, json: async () => json } as Response;
+      });
+      await renderScreen();
+      await screen.findByText('Paris');
+      await screen.findAllByText('18°');
+    }
+
+    afterEach(() => {
+      Storage.clearSync();
+      mockParams = {};
+    });
+
+    it('les pages suivent ma position puis les favoris, dans leur ordre', async () => {
+      await renderWithFavorites();
+
+      const places = screen.getAllByText(/^(Paris|Lyon|Nice)$/);
+      expect(places.map((place) => place.props.children)).toEqual(['Paris', 'Lyon', 'Nice']);
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 1 sur 3');
+    });
+
+    it('seule la page de ma position le précise, même si un favori est la même ville', async () => {
+      Storage.setItemSync(
+        'favoris',
+        JSON.stringify([{ id: 2988507, name: 'Paris', region: null, country: 'France' }]),
+      );
+      allowLocation();
+      mockApi();
+
+      await renderScreen();
+
+      expect(await screen.findAllByText('Paris')).toHaveLength(2);
+      expect(screen.getAllByTestId('mention-position')).toHaveLength(1);
+      const [positionPage] = screen.getAllByTestId('fond-meteo');
+      expect(within(positionPage).getByText('Ma position')).toBeOnTheScreen();
+    });
+
+    it('balayer affiche la ville suivante : indicateur et barre d’onglets suivent', async () => {
+      await renderWithFavorites();
+      const { width } = Dimensions.get('window');
+
+      await fireEvent(screen.getByTestId('pages-meteo'), 'momentumScrollEnd', {
+        nativeEvent: { contentOffset: { x: width, y: 0 } },
+      });
+
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 3');
+      await waitFor(() =>
+        expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
+          tabBarStyle: { backgroundColor: '#1f2d5c', borderTopWidth: 0 },
+        }),
+      );
+    });
+
+    it('supprimer le favori affiché recule sur la dernière page au lieu d’une page blanche', async () => {
+      await renderWithFavorites();
+      const { width } = Dimensions.get('window');
+      const scrollToIndex = jest.spyOn(FlatList.prototype, 'scrollToIndex');
+      await fireEvent(screen.getByTestId('pages-meteo'), 'momentumScrollEnd', {
+        nativeEvent: { contentOffset: { x: 2 * width, y: 0 } },
+      });
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 3 sur 3');
+
+      // Suppression de Nice depuis l'onglet Villes, resté monté à côté.
+      await act(async () => toggleFavorite({ ...NICE, latitude: 43.7, longitude: 7.27 }));
+
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 2');
+      expect(scrollToIndex).toHaveBeenLastCalledWith({ index: 1, animated: false });
+    });
+
+    it('toutes les pages gardent le même défilement vertical', async () => {
+      await renderWithFavorites();
+      const scrollTo = jest.mocked(ScrollView.prototype.scrollTo);
+      scrollTo.mockClear();
+
+      // Défilement de la page affichée (ma position), puis début d'un balayage.
+      await fireEvent.scroll(screen.getAllByText('Paris')[0], {
+        nativeEvent: { contentOffset: { x: 0, y: 300 } },
+      });
+      await fireEvent(screen.getByTestId('pages-meteo'), 'scrollBeginDrag');
+
+      const aligned = scrollTo.mock.calls.filter(([to]) => (to as { y: number }).y === 300);
+      expect(aligned).toHaveLength(3);
+      expect(aligned[0][0]).toEqual({ y: 300, animated: false });
+    });
+
+    it("s'ouvre sur la page demandée depuis l'onglet Villes", async () => {
+      mockParams = { page: '2' };
+
+      await renderWithFavorites();
+
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 3 sur 3');
+      expect(router.setParams).toHaveBeenCalledWith({ page: undefined });
+    });
+
+    it("toucher un jour d'une ville ouvre le détail de cette ville", async () => {
+      const user = userEvent.setup();
+      await renderWithFavorites();
+
+      await user.press(screen.getAllByTestId('jour-1')[1]);
+
+      expect(router.push).toHaveBeenCalledWith('/jour/2026-10-06?ville=2996944');
+    });
+
+    it("sans favori, pas d'indicateur", async () => {
+      allowLocation();
+      mockApi();
+
+      await renderScreen();
+      await screen.findByText('Paris');
+
+      expect(screen.queryByTestId('indicateur')).not.toBeOnTheScreen();
     });
   });
 });

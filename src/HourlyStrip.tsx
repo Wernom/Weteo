@@ -9,6 +9,8 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
     <ScrollView
       testID="bandeau-horaire"
       horizontal
+      // Android : sans ça, le balayage entre villes (onglet Météo) vole le geste au bandeau.
+      nestedScrollEnabled
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.strip}
     >

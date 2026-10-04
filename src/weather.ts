@@ -60,7 +60,6 @@ export const cityWeatherQuery = (id: string, name: string, latitude: number, lon
       forecast: await fetchForecast(latitude, longitude),
       place: name,
     }),
-    // ponytail: rafraîchie seulement en tirant ; le rafraîchissement auto arrive avec US 1.11.
     staleTime: 10 * 60 * 1000,
   });
 

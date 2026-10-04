@@ -208,7 +208,18 @@ describe('Villes favorites', () => {
     expect(within(row).getByText('18°')).toBeOnTheScreen();
 
     await user.press(row);
-    expect(router.navigate).toHaveBeenCalledWith('/');
+    expect(router.navigate).toHaveBeenCalledWith({ pathname: '/', params: { page: '0' } });
+  });
+
+  it('toucher un favori ouvre sa page dans l’onglet Météo', async () => {
+    mockBothApis();
+    Storage.setItemSync('favoris', JSON.stringify([LYON, NICE]));
+    const user = userEvent.setup();
+    await renderScreen();
+
+    await user.press(screen.getByTestId('favori-1'));
+
+    expect(router.navigate).toHaveBeenCalledWith({ pathname: '/', params: { page: '2' } });
   });
 
   it('sans météo chargée, « Ma position » reste seule sans demander la localisation', async () => {

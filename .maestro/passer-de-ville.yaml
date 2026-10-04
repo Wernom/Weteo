@@ -1,0 +1,61 @@
+# L'utilisateur ajoute Lyon puis Nice aux favoris, balaie l'écran Météo de ma position à Lyon
+# puis à Nice (l'indicateur suit), et toucher Lyon dans Villes rouvre sa page (vraie API Open-Meteo).
+appId: com.wernom.weteo
+name: Passer d'une ville à l'autre
+---
+- runFlow: localisation-refusee.yaml
+- tapOn:
+    id: recherche-ville
+# Gboard peut proposer d'essayer le stylet au premier champ touché : on ferme.
+- waitForAnimationToEnd
+- tapOn:
+    text: 'Cancel|Annuler'
+    optional: true
+- inputText: 'Lyon'
+- extendedWaitUntil:
+    visible: 'Rhône-Alpes, France'
+    timeout: 20000
+- tapOn:
+    id: etoile-0
+- eraseText
+- inputText: 'Nice'
+- extendedWaitUntil:
+    visible: 'Retirer Nice des favoris|Ajouter Nice aux favoris'
+    timeout: 20000
+- tapOn:
+    id: etoile-0
+- assertVisible: 'Retirer Nice des favoris'
+- eraseText
+- hideKeyboard
+
+- tapOn:
+    id: onglet-meteo
+- assertVisible: 'Page 1 sur 3'
+- assertVisible: 'Autorisez la localisation pour voir la météo autour de vous.'
+- swipe:
+    direction: LEFT
+- extendedWaitUntil:
+    visible: 'Page 2 sur 3'
+    timeout: 5000
+- extendedWaitUntil:
+    visible: 'Lyon'
+    timeout: 20000
+- swipe:
+    direction: LEFT
+- extendedWaitUntil:
+    visible: 'Page 3 sur 3'
+    timeout: 5000
+- extendedWaitUntil:
+    visible: 'Nice'
+    timeout: 20000
+
+# Toucher un favori dans Villes ouvre sa page dans l'onglet Météo.
+- tapOn:
+    id: onglet-villes
+- tapOn:
+    id: favori-0
+- assertVisible:
+    id: onglet-meteo
+    selected: true
+- assertVisible: 'Page 2 sur 3'
+- assertVisible: 'Lyon'

@@ -1,11 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
+import type { Ref } from 'react';
 import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
+  ScrollViewProps,
   StyleSheet,
   Text,
   View,
@@ -23,12 +25,20 @@ export function gradientFor(data: WeatherData | undefined) {
 
 // Météo d'un lieu (ma position ou une ville) : chargement, erreur avec « Réessayer », puis le détail.
 // `ville` est passé au détail d'un jour pour qu'il lise la météo de la bonne ville.
+// `position` signale ma position, pour ne pas la confondre avec un favori de la même ville.
+// `scrollRef` et `onScroll` laissent l'écran Météo aligner le défilement de ses pages.
 export function WeatherView({
   query: { data, error, isFetching, isRefetching, refetch },
   ville,
+  position,
+  scrollRef,
+  onScroll,
 }: {
   query: UseQueryResult<WeatherData>;
   ville?: string;
+  position?: boolean;
+  scrollRef?: Ref<ScrollView>;
+  onScroll?: ScrollViewProps['onScroll'];
 }) {
   const reload = () => refetch();
   const gradient = gradientFor(data);
@@ -58,11 +68,20 @@ export function WeatherView({
   return (
     <LinearGradient testID="fond-meteo" colors={gradient} style={styles.container}>
       <ScrollView
+        ref={scrollRef}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={reload} tintColor="#fff" />
         }
       >
+        {position && data.place && (
+          <View testID="mention-position" style={styles.position}>
+            <Ionicons name="navigate" size={14} color="#e6efff" accessible={false} />
+            <Text style={styles.positionText}>Ma position</Text>
+          </View>
+        )}
         <Text style={styles.place}>{data.place ?? 'Ma position'}</Text>
         <Ionicons name={now.icon} size={80} color="#fff" style={styles.icon} accessible={false} />
         <Text style={styles.temp} maxFontSizeMultiplier={1.5}>
@@ -103,6 +122,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 40,
   },
+  position: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
+  positionText: { color: '#e6efff', fontSize: 15, fontWeight: '600', textTransform: 'uppercase' },
   place: { color: '#fff', fontSize: 28, fontWeight: '600', textAlign: 'center' },
   icon: { marginTop: 16 },
   temp: { color: '#fff', fontSize: 96, fontWeight: '200' },

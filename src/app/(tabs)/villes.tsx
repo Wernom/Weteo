@@ -114,6 +114,10 @@ function openCity(city: City) {
   });
 }
 
+// Page de l'onglet Météo : 0 pour ma position, puis les favoris dans l'ordre.
+const openPage = (page: number) =>
+  router.navigate({ pathname: '/', params: { page: String(page) } });
+
 function CityRow({ city, index, favorite }: { city: City; index: number; favorite: boolean }) {
   return (
     <View style={styles.row}>
@@ -148,7 +152,7 @@ function MyPositionRow() {
       style={styles.row}
       accessibilityRole="button"
       accessibilityLabel={title}
-      onPress={() => router.navigate('/')}
+      onPress={() => openPage(0)}
     >
       <Ionicons name="navigate" size={18} color="#fff" style={styles.pin} />
       <Text style={[styles.name, styles.grow]}>{title}</Text>
@@ -168,7 +172,7 @@ function FavoriteRow({ city, index, last }: { city: City; index: number; last: b
         style={[styles.row, styles.grow, styles.flat]}
         accessibilityRole="button"
         accessibilityLabel={`${city.name}, ${where(city)}`}
-        onPress={() => openCity(city)}
+        onPress={() => openPage(index + 1)}
       >
         <View style={styles.grow}>
           <Text style={styles.name}>{city.name}</Text>
