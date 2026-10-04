@@ -1,0 +1,36 @@
+# L'utilisateur cherche une ville : un nom inconnu donne un message clair, « Lyon » liste
+# les villes avec région et pays ; en toucher une ouvre sa météo (vraie API Open-Meteo).
+# Localisation refusée : la météo de la ville ne dépend pas de la position.
+appId: com.wernom.weteo
+name: Rechercher une ville
+---
+- runFlow: localisation-refusee.yaml
+- tapOn:
+    id: recherche-ville
+# Gboard peut proposer d'essayer le stylet au premier champ touché : on ferme.
+- waitForAnimationToEnd
+- tapOn:
+    text: 'Cancel|Annuler'
+    optional: true
+- inputText: 'zzqxwv'
+- extendedWaitUntil:
+    visible: 'Aucune ville trouvée pour .*'
+    timeout: 20000
+- eraseText
+- inputText: 'Lyon'
+- extendedWaitUntil:
+    visible: 'Rhône-Alpes, France'
+    timeout: 20000
+- tapOn: 'Rhône-Alpes, France'
+- extendedWaitUntil:
+    visible: 'Prévisions sur 7 jours'
+    timeout: 60000
+- assertVisible: 'Lyon'
+- assertNotVisible:
+    id: onglet-villes
+- back
+# L'onglet reste monté : la recherche est toujours là.
+- assertVisible: 'Rhône-Alpes, France'
+- assertVisible:
+    id: onglet-villes
+    selected: true

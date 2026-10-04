@@ -6,12 +6,19 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { dayLabel } from '../../DailyList';
 import { TemperatureChart } from '../../TemperatureChart';
-import { describeWeather, GRADIENTS, WEATHER_QUERY_KEY, WeatherData } from '../../weather';
+import {
+  cityQueryKey,
+  describeWeather,
+  GRADIENTS,
+  WEATHER_QUERY_KEY,
+  WeatherData,
+} from '../../weather';
 
 export default function DayScreen() {
-  const { date } = useLocalSearchParams<{ date: string }>();
-  // On arrive depuis la liste 7 jours : la météo est déjà en cache.
-  const forecast = useQueryClient().getQueryData<WeatherData>(WEATHER_QUERY_KEY)?.forecast;
+  const { date, ville } = useLocalSearchParams<{ date: string; ville?: string }>();
+  // On arrive depuis la liste 7 jours de ma position ou d'une ville : sa météo est déjà en cache.
+  const key = ville ? cityQueryKey(ville) : WEATHER_QUERY_KEY;
+  const forecast = useQueryClient().getQueryData<WeatherData>(key)?.forecast;
   const index = forecast?.daily.findIndex((d) => d.date === date) ?? -1;
   if (!forecast || index === -1) return <Redirect href="/" />;
 

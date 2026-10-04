@@ -10,10 +10,12 @@ name: Navigation par onglets
 - assertVisible:
     id: onglet-meteo
     selected: true
-- assertNotVisible: 'Bientôt : vos villes favorites.'
+- assertNotVisible:
+    id: recherche-ville
 - tapOn:
     id: onglet-villes
-- assertVisible: 'Bientôt : vos villes favorites.'
+- assertVisible:
+    id: recherche-ville
 - assertVisible:
     id: onglet-villes
     selected: true

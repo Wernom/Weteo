@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useLocalSearchParams } from 'expo-router';
 
 import DayScreen from '../src/app/jour/[date]';
-import { fetchForecast, WEATHER_QUERY_KEY } from '../src/weather';
+import { cityQueryKey, fetchForecast, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 
 jest.mock('expo-router', () => {
@@ -17,14 +17,14 @@ jest.mock('expo-router', () => {
   };
 });
 
-async function renderDay(date: string, { cached = true } = {}) {
-  jest.mocked(useLocalSearchParams).mockReturnValue({ date });
+async function renderDay(date: string, { cached = true, ville = '' } = {}) {
+  jest.mocked(useLocalSearchParams).mockReturnValue(ville ? { date, ville } : { date });
   const client = new QueryClient();
   if (cached) {
     jest
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue({ ok: true, json: async () => forecastFixture } as Response);
-    client.setQueryData(WEATHER_QUERY_KEY, {
+    client.setQueryData(ville ? cityQueryKey(ville) : WEATHER_QUERY_KEY, {
       forecast: await fetchForecast(48.85, 2.35),
       place: 'Paris',
     });
@@ -95,6 +95,13 @@ describe('Écran Détail du jour', () => {
 
     expect(screen.getByText("Aujourd'hui")).toBeOnTheScreen();
     expect(screen.getByText('Précipitations 2,4 mm · 80 %')).toBeOnTheScreen();
+  });
+
+  it("lit la météo de la ville quand on vient de l'écran d'une ville", async () => {
+    await renderDay('2026-10-06', { ville: '2996944' });
+
+    expect(screen.getByText('Mardi')).toBeOnTheScreen();
+    expect(screen.getByText('10° / 17°')).toBeOnTheScreen();
   });
 
   it("revient à l'écran Météo sans météo en cache", async () => {

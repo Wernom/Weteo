@@ -4,8 +4,9 @@ import { Pressable, StyleSheet, Text } from 'react-native';
 
 import { DailyForecast, describeWeather } from './weather';
 
-// Une ligne par jour ; le premier est aujourd'hui. Toucher un jour ouvre son détail.
-export function DailyList({ days }: { days: DailyForecast[] }) {
+// Une ligne par jour ; le premier est aujourd'hui. Toucher un jour ouvre son détail,
+// celui de la ville `ville` si elle est donnée, sinon celui de ma position.
+export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: string }) {
   return (
     <>
       {days.map((day, i) => {
@@ -20,7 +21,7 @@ export function DailyList({ days }: { days: DailyForecast[] }) {
             style={styles.row}
             accessibilityRole="button"
             accessibilityLabel={`${label}, ${d.label}, minimum ${min}°, maximum ${max}°`}
-            onPress={() => router.push(`/jour/${day.date}`)}
+            onPress={() => router.push(`/jour/${day.date}${ville ? `?ville=${ville}` : ''}`)}
           >
             <Text style={styles.day}>{label}</Text>
             <Ionicons name={d.icon} size={24} color="#fff" />

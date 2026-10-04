@@ -18,7 +18,7 @@ describe('Navigation par onglets', () => {
 
     await user.press(screen.getByTestId('onglet-villes'));
 
-    expect(await screen.findByText('Bientôt : vos villes favorites.')).toBeOnTheScreen();
+    expect(await screen.findByLabelText('Nom de la ville')).toBeOnTheScreen();
     expect(screen.getByTestId('onglet-villes')).toBeSelected();
     expect(screen.getByTestId('onglet-meteo')).not.toBeSelected();
   });

@@ -48,6 +48,38 @@ export type WeatherData = { forecast: Forecast; place: string | null };
 
 export const WEATHER_QUERY_KEY = ['meteo', 'position'] as const;
 
+// Météo d'une ville trouvée par la recherche, `id` étant celui d'Open-Meteo Geocoding.
+export const cityQueryKey = (id: string) => ['meteo', 'ville', id] as const;
+
+// `region` manque pour certaines villes (micro-États, territoires).
+export type City = {
+  id: number;
+  name: string;
+  region: string | null;
+  country: string;
+  latitude: number;
+  longitude: number;
+};
+
+// API Geocoding d'Open-Meteo : https://open-meteo.com/en/docs/geocoding-api
+export async function searchCities(name: string): Promise<City[]> {
+  const params = new URLSearchParams({ name, count: '10', language: 'fr' });
+  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params}`);
+  if (!res.ok) {
+    throw new Error(`Open-Meteo a répondu ${res.status}`);
+  }
+  const data = await res.json();
+  // Sans résultat, la réponse n'a pas de clé `results`.
+  return (data.results ?? []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    region: r.admin1 ?? null,
+    country: r.country ?? '',
+    latitude: r.latitude,
+    longitude: r.longitude,
+  }));
+}
+
 export async function fetchForecast(latitude: number, longitude: number): Promise<Forecast> {
   const params = new URLSearchParams({
     latitude: String(latitude),
