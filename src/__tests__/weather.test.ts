@@ -38,18 +38,22 @@ describe('fetchForecast', () => {
 
 describe('describeWeather', () => {
   it.each([
-    [0, true, 'Ciel dégagé', '☀️'],
-    [0, false, 'Ciel dégagé', '🌙'],
-    [2, true, 'Peu nuageux', '🌤️'],
-    [3, true, 'Couvert', '☁️'],
-    [45, true, 'Brouillard', '🌫️'],
-    [53, true, 'Bruine', '🌦️'],
-    [63, true, 'Pluie', '🌧️'],
-    [73, true, 'Neige', '🌨️'],
-    [81, true, 'Averses', '🌦️'],
-    [85, true, 'Averses de neige', '🌨️'],
-    [95, true, 'Orage', '⛈️'],
-  ])('code %i (jour : %s) → %s', (code, isDay, label, icon) => {
-    expect(describeWeather(code, isDay)).toEqual({ label, icon });
+    [0, true, 'Ciel dégagé', 'sunny', 'jour'],
+    [0, false, 'Ciel dégagé', 'moon', 'nuit'],
+    [2, true, 'Peu nuageux', 'partly-sunny', 'jour'],
+    [2, false, 'Peu nuageux', 'cloudy-night', 'nuit'],
+    [3, true, 'Couvert', 'cloudy', 'jour'],
+    [3, false, 'Couvert', 'cloudy', 'nuit'],
+    [45, true, 'Brouillard', 'cloud-outline', 'jour'],
+    [53, true, 'Bruine', 'rainy-outline', 'pluie'],
+    [63, false, 'Pluie', 'rainy', 'pluie'],
+    [73, true, 'Neige', 'snow', 'neige'],
+    [77, false, 'Neige', 'snow', 'neige'],
+    [81, true, 'Averses', 'rainy', 'pluie'],
+    [85, true, 'Averses de neige', 'snow', 'neige'],
+    [95, true, 'Orage', 'thunderstorm', 'orage'],
+    [99, false, 'Orage', 'thunderstorm', 'orage'],
+  ])('code %i (jour : %s) → %s', (code, isDay, label, icon, theme) => {
+    expect(describeWeather(code, isDay)).toEqual({ label, icon, theme });
   });
 });

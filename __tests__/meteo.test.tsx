@@ -2,7 +2,7 @@ import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-
 import { act, render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import * as Location from 'expo-location';
 import { router, useIsFocused } from 'expo-router';
-import { AppState, RefreshControl } from 'react-native';
+import { AppState, processColor, RefreshControl } from 'react-native';
 
 import WeatherScreen from '../src/app/index';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
@@ -14,9 +14,11 @@ jest.mock('expo-location', () => ({
   reverseGeocodeAsync: jest.fn(),
 }));
 
+const mockNavigation = { setOptions: jest.fn() };
 jest.mock('expo-router', () => ({
   router: { navigate: jest.fn() },
   useIsFocused: jest.fn(() => true),
+  useNavigation: () => mockNavigation,
 }));
 
 const location = jest.mocked(Location);
@@ -76,10 +78,45 @@ describe('Écran Météo', () => {
     expect(await screen.findByText('Paris')).toBeOnTheScreen();
     expect(screen.getByText('18°')).toBeOnTheScreen();
     expect(screen.getByText('Pluie')).toBeOnTheScreen();
-    expect(screen.getByText(/Ressenti 17° · Humidité 72% · Vent 14 km\/h/)).toBeOnTheScreen();
+    expect(screen.getByText('Ressenti 17°')).toBeOnTheScreen();
+    expect(screen.getByText('Humidité 72%')).toBeOnTheScreen();
+    expect(screen.getByText('Vent 14 km/h')).toBeOnTheScreen();
     expect(screen.getByText('Prévisions sur 7 jours')).toBeOnTheScreen();
     expect(screen.getByText("Aujourd'hui")).toBeOnTheScreen();
     expect(screen.getByText('-2° / 4°')).toBeOnTheScreen();
+  });
+
+  it('affiche le fond et la barre d’onglets du temps actuel', async () => {
+    allowLocation();
+    mockApi({
+      ok: true,
+      json: async () => ({
+        ...forecastFixture,
+        current: { ...forecastFixture.current, weather_code: 0, is_day: 0 },
+      }),
+    });
+
+    await renderScreen();
+
+    expect(await screen.findByTestId('fond-meteo')).toHaveProp(
+      'colors',
+      ['#0f1c3f', '#1f2d5c'].map(processColor),
+    );
+    expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
+      tabBarStyle: { backgroundColor: '#1f2d5c', borderTopWidth: 0 },
+    });
+  });
+
+  it('la pluie prime sur le jour pour le fond', async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    expect(await screen.findByTestId('fond-meteo')).toHaveProp(
+      'colors',
+      ['#4b5a6b', '#2c3644'].map(processColor),
+    );
   });
 
   it("affiche « Ma position » quand la ville n'est pas trouvée", async () => {

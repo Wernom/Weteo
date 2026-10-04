@@ -14,5 +14,6 @@ name: Météo de ma position
     visible: 'Prévisions sur 7 jours'
     timeout: 60000
 - assertVisible: "Aujourd'hui"
-- assertVisible:
-    text: '.*Ressenti .*Humidité .*Vent .*'
+- assertVisible: 'Ressenti .*'
+- assertVisible: 'Humidité .*'
+- assertVisible: 'Vent .*'

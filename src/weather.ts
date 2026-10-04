@@ -1,3 +1,8 @@
+import type Ionicons from '@expo/vector-icons/Ionicons';
+import type { ComponentProps } from 'react';
+
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
 // Client Open-Meteo (gratuit, sans clé API) : https://open-meteo.com/en/docs
 
 export type CurrentWeather = {
@@ -56,15 +61,23 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
 }
 
 // Codes météo WMO : https://open-meteo.com/en/docs#weathervariables
-export function describeWeather(code: number, isDay = true): { label: string; icon: string } {
-  if (code === 0) return { label: 'Ciel dégagé', icon: isDay ? '☀️' : '🌙' };
-  if (code <= 2) return { label: 'Peu nuageux', icon: isDay ? '🌤️' : '☁️' };
-  if (code === 3) return { label: 'Couvert', icon: '☁️' };
-  if (code <= 48) return { label: 'Brouillard', icon: '🌫️' };
-  if (code <= 57) return { label: 'Bruine', icon: '🌦️' };
-  if (code <= 67) return { label: 'Pluie', icon: '🌧️' };
-  if (code <= 77) return { label: 'Neige', icon: '🌨️' };
-  if (code <= 82) return { label: 'Averses', icon: '🌦️' };
-  if (code <= 86) return { label: 'Averses de neige', icon: '🌨️' };
-  return { label: 'Orage', icon: '⛈️' };
+// Le temps prime sur l'heure pour le thème : de la pluie la nuit garde le fond pluie.
+export function describeWeather(
+  code: number,
+  isDay = true,
+): { label: string; icon: IconName; theme: WeatherTheme } {
+  const sky = isDay ? 'jour' : 'nuit';
+  if (code === 0) return { label: 'Ciel dégagé', icon: isDay ? 'sunny' : 'moon', theme: sky };
+  if (code <= 2)
+    return { label: 'Peu nuageux', icon: isDay ? 'partly-sunny' : 'cloudy-night', theme: sky };
+  if (code === 3) return { label: 'Couvert', icon: 'cloudy', theme: sky };
+  if (code <= 48) return { label: 'Brouillard', icon: 'cloud-outline', theme: sky };
+  if (code <= 57) return { label: 'Bruine', icon: 'rainy-outline', theme: 'pluie' };
+  if (code <= 67) return { label: 'Pluie', icon: 'rainy', theme: 'pluie' };
+  if (code <= 77) return { label: 'Neige', icon: 'snow', theme: 'neige' };
+  if (code <= 82) return { label: 'Averses', icon: 'rainy', theme: 'pluie' };
+  if (code <= 86) return { label: 'Averses de neige', icon: 'snow', theme: 'neige' };
+  return { label: 'Orage', icon: 'thunderstorm', theme: 'orage' };
 }
+
+export type WeatherTheme = 'jour' | 'nuit' | 'pluie' | 'neige' | 'orage';
