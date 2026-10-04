@@ -19,6 +19,7 @@ import {
   cityQueryKey,
   cityWeatherQuery,
   fetchForecast,
+  TEN_MINUTES,
   WEATHER_QUERY_KEY,
   WeatherData,
 } from '../../weather';
@@ -26,15 +27,12 @@ import { gradientFor, WeatherView } from '../../WeatherView';
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
-const TEN_MINUTES = 10 * 60 * 1000;
-
 // Une page par lieu : ma position, puis les favoris dans l'ordre de la liste. On balaie pour changer.
 export default function WeatherScreen() {
   const focused = useIsFocused();
   const query = useQuery({
     queryKey: WEATHER_QUERY_KEY,
     queryFn: loadWeather,
-    // Hors geste, au plus un appel toutes les 10 min ; tirer (refetch) passe outre.
     staleTime: TEN_MINUTES,
     // Les onglets restent montés : se réabonner au retour sur l'onglet relance l'appel si périmé,
     // sans purger le cache pendant l'absence.
@@ -103,7 +101,6 @@ export default function WeatherScreen() {
   const cityData = useQuery<WeatherData>({
     queryKey: cityQueryKey(String(city?.id)),
     queryFn: skipToken,
-    enabled: page > 0,
   }).data;
   const gradient = gradientFor(page > 0 ? cityData : query.data);
 
@@ -136,7 +133,7 @@ export default function WeatherScreen() {
             {item ? (
               <CityPage city={item} focused={focused} {...pageScroll(index)} />
             ) : (
-              <WeatherView query={query} position {...pageScroll(index)} />
+              <WeatherView query={query} {...pageScroll(index)} />
             )}
           </View>
         )}
@@ -155,13 +152,12 @@ function CityPage({
   ComponentProps<typeof WeatherView>,
   'scrollRef' | 'onScroll'
 >) {
-  const id = String(city.id);
   const query = useQuery({
-    ...cityWeatherQuery(id, city.name, city.latitude, city.longitude),
+    ...cityWeatherQuery(city),
     subscribed: focused,
     gcTime: Infinity,
   });
-  return <WeatherView query={query} ville={id} {...scroll} />;
+  return <WeatherView query={query} ville={String(city.id)} {...scroll} />;
 }
 
 // Flèche pour ma position, puis un point par favori ; celui de la page affichée est plein.

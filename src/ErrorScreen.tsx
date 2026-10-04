@@ -9,10 +9,16 @@ export function ErrorScreen({ message, onRetry }: { message: string; onRetry: ()
   return (
     <LinearGradient colors={GRADIENTS.jour} style={styles.container}>
       <Text style={styles.message}>{message}</Text>
-      <Pressable style={styles.button} accessibilityRole="button" onPress={onRetry}>
-        <Text style={styles.buttonText}>Réessayer</Text>
-      </Pressable>
+      <RetryButton onPress={onRetry} />
     </LinearGradient>
+  );
+}
+
+export function RetryButton({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable style={styles.button} accessibilityRole="button" onPress={onPress}>
+      <Text style={styles.buttonText}>Réessayer</Text>
+    </Pressable>
   );
 }
 

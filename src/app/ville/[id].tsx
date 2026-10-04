@@ -4,7 +4,7 @@ import { Stack, useLocalSearchParams } from 'expo-router';
 import { Pressable } from 'react-native';
 
 import { isFavorite, toggleFavorite, useFavorites } from '../../favorites';
-import { cityWeatherQuery } from '../../weather';
+import { City, cityWeatherQuery } from '../../weather';
 import { WeatherView } from '../../WeatherView';
 
 export { ErrorBoundary } from '../../ErrorScreen';
@@ -19,8 +19,16 @@ export default function CityScreen() {
     latitude: string;
     longitude: string;
   }>();
-  const query = useQuery(cityWeatherQuery(id, name, Number(latitude), Number(longitude)));
-  const favorite = isFavorite(useFavorites(), Number(id));
+  const city: City = {
+    id: Number(id),
+    name,
+    region: region || null,
+    country: country ?? '',
+    latitude: Number(latitude),
+    longitude: Number(longitude),
+  };
+  const query = useQuery(cityWeatherQuery(city));
+  const favorite = isFavorite(useFavorites(), city.id);
 
   return (
     <>
@@ -39,23 +47,14 @@ export default function CityScreen() {
                 favorite ? `Retirer ${name} des favoris` : `Ajouter ${name} aux favoris`
               }
               hitSlop={12}
-              onPress={() =>
-                toggleFavorite({
-                  id: Number(id),
-                  name,
-                  region: region || null,
-                  country: country ?? '',
-                  latitude: Number(latitude),
-                  longitude: Number(longitude),
-                })
-              }
+              onPress={() => toggleFavorite(city)}
             >
               <Ionicons name={favorite ? 'star' : 'star-outline'} size={24} color="#fff" />
             </Pressable>
           ),
         }}
       />
-      <WeatherView query={query} ville={id} />
+      <WeatherView query={query} ville={String(city.id)} />
     </>
   );
 }

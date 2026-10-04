@@ -16,8 +16,7 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
     >
       {hours.map((hour, i) => {
         const d = describeWeather(hour.weatherCode, hour.isDay);
-        // L'heure est lue telle quelle : c'est l'heure locale du lieu, pas celle du téléphone.
-        const label = i === 0 ? 'Maintenant' : `${Number(hour.time.slice(11, 13))} h`;
+        const label = i === 0 ? 'Maintenant' : hourLabel(hour.time);
         const temperature = `${Math.round(hour.temperature)}°`;
         return (
           <View
@@ -39,6 +38,9 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
     </ScrollView>
   );
 }
+
+// « 2026-10-05T14:00 » → « 14 h », lue telle quelle : l'heure locale du lieu, pas du téléphone.
+export const hourLabel = (time: string) => `${Number(time.slice(11, 13))} h`;
 
 const styles = StyleSheet.create({
   strip: { gap: 4 },

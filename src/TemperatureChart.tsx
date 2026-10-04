@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Polyline, Text as SvgText } from 'react-native-svg';
 
+import { hourLabel } from './HourlyStrip';
 import { HourlyForecast } from './weather';
 
 const BAND = 30; // bande de la bulle, au-dessus de la courbe : elle ne la cache jamais
@@ -48,17 +49,18 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
   const [selected, setSelected] = useState<number | null>(null);
 
   const temps = hours.map((h) => h.temperature);
-  const ticks = axisTicks(Math.min(...temps), Math.max(...temps));
+  const min = Math.min(...temps);
+  const max = Math.max(...temps);
+  const ticks = axisTicks(min, max);
   const lo = ticks[0];
   const hi = ticks[ticks.length - 1];
   const plotWidth = Math.max(width - AXIS - RIGHT, 0);
   const step = plotWidth / Math.max(hours.length - 1, 1);
   const y = (t: number) => PLOT_HEIGHT - ((t - lo) / (hi - lo)) * PLOT_HEIGHT;
 
-  const hourLabel = (h: HourlyForecast) => `${Number(h.time.slice(11, 13))} h`;
-  const describe = (h: HourlyForecast) => `${Math.round(h.temperature)}° à ${hourLabel(h)}`;
-  const coldest = hours[temps.indexOf(Math.min(...temps))];
-  const warmest = hours[temps.indexOf(Math.max(...temps))];
+  const describe = (h: HourlyForecast) => `${Math.round(h.temperature)}° à ${hourLabel(h.time)}`;
+  const coldest = hours[temps.indexOf(min)];
+  const warmest = hours[temps.indexOf(max)];
 
   const select = (x: number) => {
     if (step > 0)
@@ -74,7 +76,9 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
         accessibilityRole="adjustable"
         accessibilityLabel={`Minimum ${describe(coldest)}, maximum ${describe(warmest)}`}
         accessibilityValue={
-          point ? { text: `${hourLabel(point)}, ${Math.round(point.temperature)}°` } : undefined
+          point
+            ? { text: `${hourLabel(point.time)}, ${Math.round(point.temperature)}°` }
+            : undefined
         }
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
         onAccessibilityAction={(e) => {
@@ -162,7 +166,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
             ]}
           >
             <Text style={styles.bubbleText}>
-              {hourLabel(point)} · {Math.round(point.temperature)}°
+              {hourLabel(point.time)} · {Math.round(point.temperature)}°
             </Text>
           </View>
         )}

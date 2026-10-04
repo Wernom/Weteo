@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 
+import { RetryButton } from '../../ErrorScreen';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import {
   City,
@@ -43,6 +44,8 @@ export default function CitiesScreen() {
     queryFn: () => searchCities(term),
     enabled,
     placeholderData: keepPreviousData,
+    // Les villes ne changent pas : une recherche encore en cache n'est pas relancée.
+    staleTime: Infinity,
   });
 
   let message: string | null = null;
@@ -80,11 +83,7 @@ export default function CitiesScreen() {
       ) : message ? (
         <View style={styles.center}>
           <Text style={styles.message}>{message}</Text>
-          {error && (
-            <Pressable style={styles.button} onPress={() => refetch()}>
-              <Text style={styles.buttonText}>Réessayer</Text>
-            </Pressable>
-          )}
+          {error && <RetryButton onPress={() => refetch()} />}
         </View>
       ) : (
         <FlatList
@@ -164,14 +163,12 @@ function MyPositionRow() {
 }
 
 function FavoriteRow({ city, index, last }: { city: City; index: number; last: boolean }) {
-  const { data } = useQuery(
-    cityWeatherQuery(String(city.id), city.name, city.latitude, city.longitude),
-  );
+  const { data } = useQuery(cityWeatherQuery(city));
   return (
     <View style={styles.row}>
       <Pressable
         testID={`favori-${index}`}
-        style={[styles.row, styles.grow, styles.flat]}
+        style={styles.inner}
         accessibilityRole="button"
         accessibilityLabel={`${city.name}, ${where(city)}`}
         onPress={() => openPage(index + 1)}
@@ -257,7 +254,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
   },
   spinner: { marginTop: 16 },
-  center: { alignItems: 'center', marginTop: 24 },
+  center: { alignItems: 'center', marginTop: 24, gap: 16 },
   message: { color: '#e6efff', fontSize: 17, textAlign: 'center' },
   row: {
     marginTop: 12,
@@ -268,7 +265,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   // Ligne dans une ligne : pas de deuxième fond ni de marge.
-  flat: { marginTop: 0, padding: 0, backgroundColor: 'transparent' },
+  inner: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   grow: { flex: 1 },
   pin: { marginRight: 8 },
   summary: { flexDirection: 'row', alignItems: 'center', marginLeft: 8, gap: 4 },
@@ -277,12 +274,4 @@ const styles = StyleSheet.create({
   disabled: { opacity: 0.3 },
   name: { color: '#fff', fontSize: 18, fontWeight: '600' },
   where: { color: '#e6efff', fontSize: 15, marginTop: 2 },
-  button: {
-    marginTop: 16,
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  buttonText: { color: GRADIENTS.jour[1], fontSize: 16, fontWeight: '600' },
 });

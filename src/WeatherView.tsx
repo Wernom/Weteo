@@ -24,19 +24,17 @@ export function gradientFor(data: WeatherData | undefined) {
 }
 
 // Météo d'un lieu (ma position ou une ville) : chargement, erreur avec « Réessayer », puis le détail.
-// `ville` est passé au détail d'un jour pour qu'il lise la météo de la bonne ville.
-// `position` signale ma position, pour ne pas la confondre avec un favori de la même ville.
+// `ville` est passé au détail d'un jour pour qu'il lise la météo de la bonne ville ; sans `ville`,
+// c'est ma position, signalée pour ne pas la confondre avec un favori de la même ville.
 // `scrollRef` et `onScroll` laissent l'écran Météo aligner le défilement de ses pages.
 export function WeatherView({
   query: { data, error, isFetching, isRefetching, refetch },
   ville,
-  position,
   scrollRef,
   onScroll,
 }: {
   query: UseQueryResult<WeatherData>;
   ville?: string;
-  position?: boolean;
   scrollRef?: Ref<ScrollView>;
   onScroll?: ScrollViewProps['onScroll'];
 }) {
@@ -72,7 +70,7 @@ export function WeatherView({
           <RefreshControl refreshing={isRefetching} onRefresh={reload} tintColor="#fff" />
         }
       >
-        {position && data.place && (
+        {!ville && data.place && (
           <View testID="mention-position" style={styles.position}>
             <Ionicons name="navigate" size={14} color="#e6efff" accessible={false} />
             <Text style={styles.positionText}>Ma position</Text>
@@ -85,19 +83,19 @@ export function WeatherView({
         </Text>
         <Text style={styles.label}>{now.label}</Text>
 
-        <View style={[styles.card, styles.details]}>
-          <Text style={styles.detail}>Ressenti {Math.round(current.apparentTemperature)}°</Text>
-          <Text style={styles.detail}>Humidité {current.humidity}%</Text>
-          <Text style={styles.detail}>Vent {Math.round(current.windSpeed)} km/h</Text>
+        <View style={[cardStyles.card, cardStyles.details]}>
+          <Text style={cardStyles.detail}>Ressenti {Math.round(current.apparentTemperature)}°</Text>
+          <Text style={cardStyles.detail}>Humidité {current.humidity}%</Text>
+          <Text style={cardStyles.detail}>Vent {Math.round(current.windSpeed)} km/h</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Heure par heure</Text>
+        <View style={cardStyles.card}>
+          <Text style={cardStyles.cardTitle}>Heure par heure</Text>
           <HourlyStrip hours={hourly.slice(start, start + 48)} />
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Prévisions sur 7 jours</Text>
+        <View style={cardStyles.card}>
+          <Text style={cardStyles.cardTitle}>Prévisions sur 7 jours</Text>
           <DailyList days={daily} ville={ville} />
         </View>
       </ScrollView>
@@ -124,6 +122,10 @@ const styles = StyleSheet.create({
   icon: { marginTop: 16 },
   temp: { color: '#fff', fontSize: 96, fontWeight: '200' },
   label: { color: '#fff', fontSize: 22, textAlign: 'center' },
+});
+
+// Cartes translucides sur le dégradé, reprises par le détail d'un jour.
+export const cardStyles = StyleSheet.create({
   card: {
     alignSelf: 'stretch',
     marginTop: 24,

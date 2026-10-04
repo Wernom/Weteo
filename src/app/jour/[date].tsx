@@ -6,6 +6,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { dayLabel } from '../../DailyList';
 import { TemperatureChart } from '../../TemperatureChart';
+import { cardStyles } from '../../WeatherView';
 import {
   cityQueryKey,
   describeWeather,
@@ -50,17 +51,17 @@ export default function DayScreen() {
           {Math.round(day.min)}° / {Math.round(day.max)}°
         </Text>
 
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Températures</Text>
+        <View style={cardStyles.card}>
+          <Text style={cardStyles.cardTitle}>Températures</Text>
           <TemperatureChart hours={hours} />
         </View>
 
-        <View style={[styles.card, styles.details]}>
-          <Text style={styles.detail}>
+        <View style={[cardStyles.card, cardStyles.details]}>
+          <Text style={cardStyles.detail}>
             Précipitations {precipitation} mm · {day.rainChance} %
           </Text>
-          <Text style={styles.detail}>Lever {clock(day.sunrise)}</Text>
-          <Text style={styles.detail}>Coucher {clock(day.sunset)}</Text>
+          <Text style={cardStyles.detail}>Lever {clock(day.sunrise)}</Text>
+          <Text style={cardStyles.detail}>Coucher {clock(day.sunset)}</Text>
         </View>
       </ScrollView>
     </LinearGradient>
@@ -77,14 +78,4 @@ const styles = StyleSheet.create({
   },
   label: { color: '#fff', fontSize: 22, textAlign: 'center', marginTop: 8 },
   range: { color: '#fff', fontSize: 28, fontWeight: '300', marginTop: 4 },
-  card: {
-    alignSelf: 'stretch',
-    marginTop: 24,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-  },
-  details: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: 8 },
-  detail: { color: '#fff', fontSize: 15 },
-  cardTitle: { color: '#e6efff', fontSize: 14, marginBottom: 8, textTransform: 'uppercase' },
 });

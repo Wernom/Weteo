@@ -53,15 +53,18 @@ export const WEATHER_QUERY_KEY = ['meteo', 'position'] as const;
 // Météo d'une ville trouvée par la recherche, `id` étant celui d'Open-Meteo Geocoding.
 export const cityQueryKey = (id: string) => ['meteo', 'ville', id] as const;
 
+// Hors geste, au plus un appel météo toutes les 10 min ; tirer (refetch) passe outre.
+export const TEN_MINUTES = 10 * 60 * 1000;
+
 // Partagée par l'écran ville et la liste des favoris : même cache.
-export const cityWeatherQuery = (id: string, name: string, latitude: number, longitude: number) =>
+export const cityWeatherQuery = (city: City) =>
   queryOptions({
-    queryKey: cityQueryKey(id),
+    queryKey: cityQueryKey(String(city.id)),
     queryFn: async (): Promise<WeatherData> => ({
-      forecast: await fetchForecast(latitude, longitude),
-      place: name,
+      forecast: await fetchForecast(city.latitude, city.longitude),
+      place: city.name,
     }),
-    staleTime: 10 * 60 * 1000,
+    staleTime: TEN_MINUTES,
   });
 
 // `region` manque pour certaines villes (micro-États, territoires).
@@ -182,7 +185,7 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       time,
       weatherCode: data.hourly.weather_code[i],
       temperature: data.hourly.temperature_2m[i],
-      rainChance: data.hourly.precipitation_probability[i] ?? 0,
+      rainChance: data.hourly.precipitation_probability[i],
       isDay: data.hourly.is_day[i] === 1,
     })),
     daily: data.daily.time.map((date, i) => ({
@@ -192,15 +195,20 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       max: data.daily.temperature_2m_max[i],
       sunrise: data.daily.sunrise[i],
       sunset: data.daily.sunset[i],
-      precipitation: data.daily.precipitation_sum[i] ?? 0,
-      rainChance: data.daily.precipitation_probability_max[i] ?? 0,
+      precipitation: data.daily.precipitation_sum[i],
+      rainChance: data.daily.precipitation_probability_max[i],
     })),
   };
 }
 
-// Les précipitations peuvent manquer (`null`) sur certaines heures ou certains lieux.
+// Les précipitations peuvent manquer (`null`) sur certaines heures ou certains lieux : 0.
 const numbers = z.array(z.number());
-const maybeNumbers = z.array(z.number().nullable());
+const maybeNumbers = z.array(
+  z
+    .number()
+    .nullable()
+    .transform((n) => n ?? 0),
+);
 const strings = z.array(z.string());
 const forecastSchema = z.object({
   current: z.object({

@@ -22,6 +22,7 @@ import {
 
 import WeatherScreen from '../src/app/(tabs)/index';
 import { toggleFavorite } from '../src/favorites';
+import { TEN_MINUTES, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 
 jest.mock('expo-location', () => ({
@@ -71,8 +72,8 @@ function renderScreen(client = newClient()) {
 
 // Fait comme si la météo en cache avait été chargée il y a un peu plus de 10 minutes.
 function makeDataOlderThanTenMinutes(client: QueryClient) {
-  client.setQueryData(['meteo', 'position'], (data) => data, {
-    updatedAt: Date.now() - 10 * 60 * 1000 - 1,
+  client.setQueryData(WEATHER_QUERY_KEY, (data) => data, {
+    updatedAt: Date.now() - TEN_MINUTES - 1,
   });
 }
 
