@@ -108,7 +108,9 @@ describe('Écran Villes', () => {
     const fetchMock = mockApi({ ok: false, status: 503 });
 
     const user = await search('Lyon');
-    expect(await screen.findByText('Open-Meteo a répondu 503')).toBeOnTheScreen();
+    expect(
+      await screen.findByText('Le service météo est indisponible pour le moment.'),
+    ).toBeOnTheScreen();
 
     fetchMock.mockResolvedValue({ ok: true, json: async () => geocodingFixture } as Response);
     await user.press(screen.getByText('Réessayer'));

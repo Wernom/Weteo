@@ -14,6 +14,8 @@ import {
   WeatherData,
 } from '../../weather';
 
+export { ErrorBoundary } from '../../ErrorScreen';
+
 export default function DayScreen() {
   const { date, ville } = useLocalSearchParams<{ date: string; ville?: string }>();
   // On arrive depuis la liste 7 jours de ma position ou d'une ville : sa météo est déjà en cache.

@@ -24,6 +24,8 @@ import {
 } from '../../weather';
 import { gradientFor, WeatherView } from '../../WeatherView';
 
+export { ErrorBoundary } from '../../ErrorScreen';
+
 const TEN_MINUTES = 10 * 60 * 1000;
 
 // Une page par lieu : ma position, puis les favoris dans l'ordre de la liste. On balaie pour changer.

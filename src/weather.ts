@@ -1,6 +1,7 @@
 import type Ionicons from '@expo/vector-icons/Ionicons';
 import { queryOptions } from '@tanstack/react-query';
 import type { ComponentProps } from 'react';
+import { z } from 'zod';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
@@ -73,16 +74,77 @@ export type City = {
   longitude: number;
 };
 
+export type ApiErrorKind = 'reseau' | 'http' | 'delai' | 'donnees';
+
+const API_MESSAGES: Record<ApiErrorKind, string> = {
+  reseau: 'Pas de connexion internet. Vérifiez votre réseau.',
+  http: 'Le service météo est indisponible pour le moment.',
+  delai: 'Le service météo met trop de temps à répondre.',
+  donnees: 'Les données météo reçues sont invalides.',
+};
+
+// Le message s'affiche tel quel à l'utilisateur ; `status` n'existe que pour `http`.
+export class ApiError extends Error {
+  constructor(
+    readonly kind: ApiErrorKind,
+    readonly status?: number,
+  ) {
+    super(API_MESSAGES[kind]);
+  }
+}
+
+const TIMEOUT = 10_000;
+
+// Seul point d'accès au réseau : délai maximum, réponse validée, erreur classée.
+async function getJson<T>(url: string, schema: z.ZodType<T>): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT);
+  // Après notre abort, fetch et json() rejettent : c'est le délai, pas le réseau ni les données.
+  const fail = (kind: ApiErrorKind) => () => {
+    throw new ApiError(controller.signal.aborted ? 'delai' : kind);
+  };
+  try {
+    const res = await fetch(url, { signal: controller.signal }).catch(fail('reseau'));
+    if (!res.ok) throw new ApiError('http', res.status);
+    const parsed = schema.safeParse(await res.json().catch(fail('donnees')));
+    if (!parsed.success) throw new ApiError('donnees');
+    return parsed.data;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Pannes passagères seulement, deux fois au plus : ni le refus de localisation ni des données
+// invalides ne s'arrangent en réessayant.
+export const shouldRetry = (failureCount: number, error: Error) =>
+  failureCount < 2 &&
+  error instanceof ApiError &&
+  (error.kind === 'reseau' || error.kind === 'delai' || (error.status ?? 0) >= 500);
+
+// Sans résultat, la réponse n'a pas de clé `results`.
+const geocodingSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        id: z.number(),
+        name: z.string(),
+        admin1: z.string().optional(),
+        country: z.string().optional(),
+        latitude: z.number(),
+        longitude: z.number(),
+      }),
+    )
+    .optional(),
+});
+
 // API Geocoding d'Open-Meteo : https://open-meteo.com/en/docs/geocoding-api
 export async function searchCities(name: string): Promise<City[]> {
   const params = new URLSearchParams({ name, count: '10', language: 'fr' });
-  const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params}`);
-  if (!res.ok) {
-    throw new Error(`Open-Meteo a répondu ${res.status}`);
-  }
-  const data = await res.json();
-  // Sans résultat, la réponse n'a pas de clé `results`.
-  return (data.results ?? []).map((r: any) => ({
+  const data = await getJson(
+    `https://geocoding-api.open-meteo.com/v1/search?${params}`,
+    geocodingSchema,
+  );
+  return (data.results ?? []).map((r) => ({
     id: r.id,
     name: r.name,
     region: r.admin1 ?? null,
@@ -104,11 +166,7 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
     timezone: 'auto',
     forecast_days: '7',
   });
-  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  if (!res.ok) {
-    throw new Error(`Open-Meteo a répondu ${res.status}`);
-  }
-  const data = await res.json();
+  const data = await getJson(`https://api.open-meteo.com/v1/forecast?${params}`, forecastSchema);
 
   return {
     current: {
@@ -120,25 +178,58 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       weatherCode: data.current.weather_code,
       isDay: data.current.is_day === 1,
     },
-    hourly: data.hourly.time.map((time: string, i: number) => ({
+    hourly: data.hourly.time.map((time, i) => ({
       time,
       weatherCode: data.hourly.weather_code[i],
       temperature: data.hourly.temperature_2m[i],
-      rainChance: data.hourly.precipitation_probability[i],
+      rainChance: data.hourly.precipitation_probability[i] ?? 0,
       isDay: data.hourly.is_day[i] === 1,
     })),
-    daily: data.daily.time.map((date: string, i: number) => ({
+    daily: data.daily.time.map((date, i) => ({
       date,
       weatherCode: data.daily.weather_code[i],
       min: data.daily.temperature_2m_min[i],
       max: data.daily.temperature_2m_max[i],
       sunrise: data.daily.sunrise[i],
       sunset: data.daily.sunset[i],
-      precipitation: data.daily.precipitation_sum[i],
-      rainChance: data.daily.precipitation_probability_max[i],
+      precipitation: data.daily.precipitation_sum[i] ?? 0,
+      rainChance: data.daily.precipitation_probability_max[i] ?? 0,
     })),
   };
 }
+
+// Les précipitations peuvent manquer (`null`) sur certaines heures ou certains lieux.
+const numbers = z.array(z.number());
+const maybeNumbers = z.array(z.number().nullable());
+const strings = z.array(z.string());
+const forecastSchema = z.object({
+  current: z.object({
+    time: z.string(),
+    temperature_2m: z.number(),
+    apparent_temperature: z.number(),
+    relative_humidity_2m: z.number(),
+    wind_speed_10m: z.number(),
+    weather_code: z.number(),
+    is_day: z.number(),
+  }),
+  hourly: z.object({
+    time: strings,
+    temperature_2m: numbers,
+    weather_code: numbers,
+    precipitation_probability: maybeNumbers,
+    is_day: numbers,
+  }),
+  daily: z.object({
+    time: strings,
+    weather_code: numbers,
+    temperature_2m_max: numbers,
+    temperature_2m_min: numbers,
+    sunrise: strings,
+    sunset: strings,
+    precipitation_sum: maybeNumbers,
+    precipitation_probability_max: maybeNumbers,
+  }),
+});
 
 // Codes météo WMO : https://open-meteo.com/en/docs#weathervariables
 // Le temps prime sur l'heure pour le thème : de la pluie la nuit garde le fond pluie.

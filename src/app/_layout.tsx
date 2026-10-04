@@ -3,8 +3,18 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState } from 'react-native';
 
-// ponytail: pas de nouvelle tentative auto, délai et retries réseau arrivent avec US 1.12.
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+import { shouldRetry } from '../weather';
+
+export { ErrorBoundary } from '../ErrorScreen';
+
+const queryClient = new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } });
+
+// Erreurs hors rendu (gestes, minuteries) : en développement LogBox les journalise,
+// en production l'app ne plante pas. Rien n'est envoyé à un service externe.
+const defaultHandler = ErrorUtils.getGlobalHandler();
+ErrorUtils.setGlobalHandler((error, isFatal) => {
+  if (__DEV__) defaultHandler(error, isFatal);
+});
 
 // L'app revient au premier plan → react-query relance les requêtes périmées.
 focusManager.setEventListener((setFocused) => {

@@ -1,6 +1,6 @@
 import forecastFixture from '../../__fixtures__/open-meteo-forecast.json';
 import { axisTicks, chartPoints } from '../TemperatureChart';
-import { describeWeather, fetchForecast } from '../weather';
+import { ApiError, ApiErrorKind, describeWeather, fetchForecast, shouldRetry } from '../weather';
 
 describe('fetchForecast', () => {
   afterEach(() => {
@@ -59,10 +59,79 @@ describe('fetchForecast', () => {
     });
   });
 
-  it("lève une erreur quand l'API répond en erreur", async () => {
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 503 } as Response);
+  it('remplace les précipitations manquantes (null) par 0', async () => {
+    const data = JSON.parse(JSON.stringify(forecastFixture));
+    data.hourly.precipitation_probability[0] = null;
+    data.daily.precipitation_sum[0] = null;
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue({ ok: true, json: async () => data } as Response);
 
-    await expect(fetchForecast(48.85, 2.35)).rejects.toThrow('Open-Meteo a répondu 503');
+    const forecast = await fetchForecast(48.85, 2.35);
+
+    expect(forecast.hourly[0].rainChance).toBe(0);
+    expect(forecast.daily[0].precipitation).toBe(0);
+  });
+});
+
+describe("erreurs de l'API", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+  });
+
+  const failsWith = async (kind: ApiErrorKind, message: string, status?: number) => {
+    const error = await fetchForecast(48.85, 2.35).catch((e) => e);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({ kind, message, status });
+  };
+
+  it('sans réseau', async () => {
+    jest.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Network request failed'));
+    await failsWith('reseau', 'Pas de connexion internet. Vérifiez votre réseau.');
+  });
+
+  it("quand l'API répond en erreur", async () => {
+    jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 503 } as Response);
+    await failsWith('http', 'Le service météo est indisponible pour le moment.', 503);
+  });
+
+  it('quand la réponse dépasse 10 s', async () => {
+    jest.useFakeTimers();
+    // Comme le vrai fetch : ne répond jamais, rejette quand on l'annule.
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(
+        (_, init) =>
+          new Promise((_, reject) =>
+            init!.signal!.addEventListener('abort', () => reject(new Error('Aborted'))),
+          ),
+      );
+    const result = failsWith('delai', 'Le service météo met trop de temps à répondre.');
+    jest.advanceTimersByTime(10_000);
+    await result;
+  });
+
+  it.each([
+    ['incomplètes', async () => ({ current: {} })],
+    ['qui ne sont pas du JSON', async () => Promise.reject(new SyntaxError('JSON Parse error'))],
+  ])('quand les données sont %s', async (_, json) => {
+    jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json } as unknown as Response);
+    await failsWith('donnees', 'Les données météo reçues sont invalides.');
+  });
+});
+
+describe('shouldRetry', () => {
+  it.each([
+    ['réseau', new ApiError('reseau'), 0, true],
+    ['délai', new ApiError('delai'), 1, true],
+    ['HTTP 503', new ApiError('http', 503), 0, true],
+    ['réseau, déjà relancée deux fois', new ApiError('reseau'), 2, false],
+    ['HTTP 404', new ApiError('http', 404), 0, false],
+    ['données invalides', new ApiError('donnees'), 0, false],
+    ['localisation refusée', new Error('Autorisez la localisation'), 0, false],
+  ])('%s → %s', (_, error, failureCount, expected) => {
+    expect(shouldRetry(failureCount, error)).toBe(expected);
   });
 });
 

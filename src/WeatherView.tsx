@@ -4,7 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { Ref } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   RefreshControl,
   ScrollView,
   ScrollViewProps,
@@ -14,6 +13,7 @@ import {
 } from 'react-native';
 
 import { DailyList } from './DailyList';
+import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
 import { describeWeather, GRADIENTS, WeatherData } from './weather';
 
@@ -43,19 +43,15 @@ export function WeatherView({
   const reload = () => refetch();
   const gradient = gradientFor(data);
 
+  if (!data && !isFetching) {
+    return (
+      <ErrorScreen message={error?.message || 'Impossible de charger la météo.'} onRetry={reload} />
+    );
+  }
   if (!data) {
     return (
       <LinearGradient colors={gradient} style={[styles.container, styles.center]}>
-        {isFetching ? (
-          <ActivityIndicator size="large" color="#fff" />
-        ) : (
-          <>
-            <Text style={styles.error}>{error?.message || 'Impossible de charger la météo.'}</Text>
-            <Pressable style={styles.button} onPress={reload}>
-              <Text style={styles.buttonText}>Réessayer</Text>
-            </Pressable>
-          </>
-        )}
+        <ActivityIndicator size="large" color="#fff" />
       </LinearGradient>
     );
   }
@@ -138,12 +134,4 @@ const styles = StyleSheet.create({
   details: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: 8 },
   detail: { color: '#fff', fontSize: 15 },
   cardTitle: { color: '#e6efff', fontSize: 14, marginBottom: 8, textTransform: 'uppercase' },
-  error: { color: '#fff', fontSize: 18, textAlign: 'center', marginBottom: 16 },
-  button: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 999,
-  },
-  buttonText: { color: GRADIENTS.jour[1], fontSize: 16, fontWeight: '600' },
 });

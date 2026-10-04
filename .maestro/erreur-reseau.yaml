@@ -1,0 +1,29 @@
+# Sans réseau (mode avion), l'écran Météo affiche un message clair et « Réessayer »
+# après les nouvelles tentatives automatiques ; le réseau revenu, « Réessayer » charge la météo.
+appId: com.wernom.weteo
+name: Erreur réseau puis Réessayer
+# Rétablit le réseau même si le flow échoue, pour ne pas casser les suivants.
+onFlowComplete:
+  - setAirplaneMode: disabled
+---
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
+- setAirplaneMode: enabled
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+- extendedWaitUntil:
+    visible: 'Pas de connexion internet.*'
+    timeout: 30000
+- assertVisible: 'Réessayer'
+- setAirplaneMode: disabled
+# Le réseau peut mettre quelques secondes à revenir : on réessaie jusqu'à voir la météo.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn: 'Réessayer'
+      - extendedWaitUntil:
+          visible: 'Prévisions sur 7 jours'
+          timeout: 20000

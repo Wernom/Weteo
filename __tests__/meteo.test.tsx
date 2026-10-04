@@ -235,7 +235,9 @@ describe('Écran Météo', () => {
 
     await renderScreen();
 
-    expect(await screen.findByText('Open-Meteo a répondu 500')).toBeOnTheScreen();
+    expect(
+      await screen.findByText('Le service météo est indisponible pour le moment.'),
+    ).toBeOnTheScreen();
 
     fetchMock.mockResolvedValue(okForecast as Response);
     await user.press(screen.getByText('Réessayer'));
@@ -250,7 +252,9 @@ describe('Écran Météo', () => {
 
     await renderScreen();
 
-    expect(await screen.findByText('Network request failed')).toBeOnTheScreen();
+    expect(
+      await screen.findByText('Pas de connexion internet. Vérifiez votre réseau.'),
+    ).toBeOnTheScreen();
     expect(screen.getByText('Réessayer')).toBeOnTheScreen();
   });
 

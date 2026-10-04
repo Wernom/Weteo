@@ -24,6 +24,8 @@ import {
   WeatherData,
 } from '../../weather';
 
+export { ErrorBoundary } from '../../ErrorScreen';
+
 export default function CitiesScreen() {
   const [text, setText] = useState('');
   const [term, setTerm] = useState('');

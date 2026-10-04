@@ -7,6 +7,8 @@ import { isFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import { cityWeatherQuery } from '../../weather';
 import { WeatherView } from '../../WeatherView';
 
+export { ErrorBoundary } from '../../ErrorScreen';
+
 // Météo d'une ville choisie dans la recherche : pas de localisation, ses coordonnées suffisent.
 export default function CityScreen() {
   const { id, name, region, country, latitude, longitude } = useLocalSearchParams<{
