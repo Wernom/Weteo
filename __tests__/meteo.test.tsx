@@ -81,9 +81,25 @@ describe('Écran Météo', () => {
     expect(screen.getByText('Ressenti 17°')).toBeOnTheScreen();
     expect(screen.getByText('Humidité 72%')).toBeOnTheScreen();
     expect(screen.getByText('Vent 14 km/h')).toBeOnTheScreen();
-    expect(screen.getByText('Prévisions sur 7 jours')).toBeOnTheScreen();
-    expect(screen.getByText("Aujourd'hui")).toBeOnTheScreen();
-    expect(screen.getByText('-2° / 4°')).toBeOnTheScreen();
+  });
+
+  it('affiche les 7 prochains jours avec icône, minimum et maximum', async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    expect(await screen.findByText('Prévisions sur 7 jours')).toBeOnTheScreen();
+    const today = within(screen.getByTestId('jour-0'));
+    expect(today.getByText("Aujourd'hui")).toBeOnTheScreen();
+    expect(today.getByText('11° / 19°')).toBeOnTheScreen();
+    expect(screen.getByTestId('jour-1')).toHaveAccessibleName(
+      'Mardi, Couvert, minimum 10°, maximum 17°',
+    );
+    expect(screen.getByTestId('jour-6')).toHaveAccessibleName(
+      'Dimanche, Neige, minimum -2°, maximum 4°',
+    );
+    expect(screen.queryByTestId('jour-7')).not.toBeOnTheScreen();
   });
 
   it('affiche les 48 prochaines heures en commençant par maintenant', async () => {

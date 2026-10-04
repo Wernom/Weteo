@@ -14,6 +14,7 @@ import {
 import * as Location from 'expo-location';
 import { router, useIsFocused, useNavigation } from 'expo-router';
 
+import { DailyList } from '../DailyList';
 import { HourlyStrip } from '../HourlyStrip';
 import { describeWeather, fetchForecast, Forecast, WeatherTheme } from '../weather';
 
@@ -108,18 +109,7 @@ export default function WeatherScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Prévisions sur 7 jours</Text>
-          {daily.map((day, i) => {
-            const d = describeWeather(day.weatherCode);
-            return (
-              <View key={day.date} style={styles.row}>
-                <Text style={styles.day}>{i === 0 ? "Aujourd'hui" : formatDay(day.date)}</Text>
-                <Ionicons name={d.icon} size={24} color="#fff" accessibilityLabel={d.label} />
-                <Text style={styles.range}>
-                  {Math.round(day.min)}° / {Math.round(day.max)}°
-                </Text>
-              </View>
-            );
-          })}
+          <DailyList days={daily} />
         </View>
       </ScrollView>
     </LinearGradient>
@@ -139,11 +129,6 @@ async function loadWeather(): Promise<{ forecast: Forecast; place: string | null
     Location.reverseGeocodeAsync(coords).catch(() => []),
   ]);
   return { forecast, place: address[0]?.city ?? address[0]?.region ?? null };
-}
-
-function formatDay(isoDate: string) {
-  const label = new Date(`${isoDate}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long' });
-  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 const styles = StyleSheet.create({
@@ -173,9 +158,6 @@ const styles = StyleSheet.create({
   details: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: 8 },
   detail: { color: '#fff', fontSize: 15 },
   cardTitle: { color: '#e6efff', fontSize: 14, marginBottom: 8, textTransform: 'uppercase' },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  day: { flex: 1, color: '#fff', fontSize: 17 },
-  range: { color: '#fff', fontSize: 17, minWidth: 90, textAlign: 'right' },
   error: { color: '#fff', fontSize: 18, textAlign: 'center', marginBottom: 16 },
   button: {
     backgroundColor: '#fff',

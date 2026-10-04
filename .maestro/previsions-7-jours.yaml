@@ -1,0 +1,25 @@
+# L'utilisateur descend jusqu'aux prévisions sur 7 jours : une ligne par jour,
+# d'aujourd'hui au 7e jour (vraie API Open-Meteo).
+appId: com.wernom.weteo
+name: Prévisions sur 7 jours
+---
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+- extendedWaitUntil:
+    visible: 'Heure par heure'
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: 'jour-0'
+- assertVisible: 'Prévisions sur 7 jours'
+- assertVisible: "Aujourd'hui"
+- scrollUntilVisible:
+    element:
+      id: 'jour-6'
+- assertNotVisible:
+    id: 'jour-7'
