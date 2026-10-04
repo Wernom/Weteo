@@ -1,7 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, userEvent } from '@testing-library/react-native';
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
+import { AppState, RefreshControl } from 'react-native';
 
 import WeatherScreen from '../src/app/index';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
@@ -13,7 +14,10 @@ jest.mock('expo-location', () => ({
   reverseGeocodeAsync: jest.fn(),
 }));
 
-jest.mock('expo-router', () => ({ router: { navigate: jest.fn() } }));
+jest.mock('expo-router', () => ({
+  router: { navigate: jest.fn() },
+  useIsFocused: jest.fn(() => true),
+}));
 
 const location = jest.mocked(Location);
 const coords = { latitude: 48.85, longitude: 2.35 };
@@ -28,15 +32,27 @@ function allowLocation() {
   ]);
 }
 
-function renderScreen() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
-  });
-  return render(
+function newClient() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
+}
+
+function screenTree(client: QueryClient) {
+  return (
     <QueryClientProvider client={client}>
       <WeatherScreen />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+}
+
+function renderScreen(client = newClient()) {
+  return render(screenTree(client));
+}
+
+// Fait comme si la météo en cache avait été chargée il y a un peu plus de 10 minutes.
+function makeDataOlderThanTenMinutes(client: QueryClient) {
+  client.setQueryData(['meteo', 'position'], (data) => data, {
+    updatedAt: Date.now() - 10 * 60 * 1000 - 1,
+  });
 }
 
 const okForecast = { ok: true, json: async () => forecastFixture };
@@ -48,6 +64,7 @@ function mockApi(response: Partial<Response> = okForecast) {
 describe('Écran Météo', () => {
   afterEach(() => {
     jest.restoreAllMocks();
+    focusManager.setFocused(undefined);
   });
 
   it('affiche la météo de ma position', async () => {
@@ -91,6 +108,22 @@ describe('Écran Météo', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("ne redemande pas la localisation refusée au retour sur l'app", async () => {
+    location.requestForegroundPermissionsAsync.mockResolvedValue({
+      granted: false,
+    } as Location.LocationPermissionResponse);
+
+    await renderScreen();
+    await screen.findByText('Réessayer');
+    location.requestForegroundPermissionsAsync.mockClear();
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    expect(location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
+  });
+
   it("propose de réessayer quand l'API est en erreur, puis affiche la météo", async () => {
     allowLocation();
     const fetchMock = mockApi({ ok: false, status: 500 });
@@ -115,5 +148,79 @@ describe('Écran Météo', () => {
 
     expect(await screen.findByText('Network request failed')).toBeOnTheScreen();
     expect(screen.getByText('Réessayer')).toBeOnTheScreen();
+  });
+
+  describe('rafraîchissement', () => {
+    async function loadOnce() {
+      const client = newClient();
+      allowLocation();
+      const fetchMock = mockApi();
+      const view = await renderScreen(client);
+      await screen.findByText('Paris');
+      return { fetchMock, view, client };
+    }
+
+    it('tirer vers le bas relance toujours un appel, même dans les 10 minutes', async () => {
+      const { fetchMock } = await loadOnce();
+
+      // Le mock RN de RefreshControl n'expose rien d'autre que sa dernière instance.
+      const pull = (RefreshControl as unknown as { latestRef: RefreshControl }).latestRef;
+      await act(async () => pull.props.onRefresh?.());
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    });
+
+    it("revenir sur l'écran dans les 10 minutes ne relance pas d'appel", async () => {
+      const { fetchMock, view, client } = await loadOnce();
+
+      await view.unmount();
+      await renderScreen(client);
+
+      expect(await screen.findByText('Paris')).toBeOnTheScreen();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+
+    it("revenir sur l'écran après 10 minutes relance un appel", async () => {
+      const { fetchMock, view, client } = await loadOnce();
+
+      await view.unmount();
+      makeDataOlderThanTenMinutes(client);
+      await renderScreen(client);
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    });
+
+    it("revenir sur l'onglet après 10 minutes relance un appel", async () => {
+      const { fetchMock, view, client } = await loadOnce();
+      const focused = jest.mocked(useIsFocused);
+
+      focused.mockReturnValue(false);
+      await view.rerender(screenTree(client));
+      makeDataOlderThanTenMinutes(client);
+      focused.mockReturnValue(true);
+      await view.rerender(screenTree(client));
+
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    });
+
+    it("rouvrir l'app relance un appel seulement après 10 minutes", async () => {
+      const { fetchMock, client } = await loadOnce();
+      // Passe par le vrai branchement AppState → focusManager du layout.
+      const addListener = jest.spyOn(AppState, 'addEventListener');
+      require('../src/app/_layout');
+      const onAppStateChange = addListener.mock.calls[0][1];
+      const reopenApp = () =>
+        act(async () => {
+          onAppStateChange('background');
+          onAppStateChange('active');
+        });
+
+      await reopenApp();
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+
+      makeDataOlderThanTenMinutes(client);
+      await reopenApp();
+      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    });
   });
 });

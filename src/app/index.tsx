@@ -10,14 +10,27 @@ import {
   View,
 } from 'react-native';
 import * as Location from 'expo-location';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 
 import { describeWeather, fetchForecast, Forecast } from '../weather';
 
+const TEN_MINUTES = 10 * 60 * 1000;
+
 export default function WeatherScreen() {
+  const focused = useIsFocused();
   const { data, error, isFetching, isRefetching, refetch } = useQuery({
     queryKey: ['meteo', 'position'],
     queryFn: loadWeather,
+    // Hors geste, au plus un appel toutes les 10 min ; tirer (refetch) passe outre.
+    staleTime: TEN_MINUTES,
+    // Les onglets restent montés : se réabonner au retour sur l'onglet relance l'appel si périmé,
+    // sans purger le cache pendant l'absence.
+    subscribed: focused,
+    gcTime: Infinity,
+    // Une erreur (dont le refus de localisation) ne se relance qu'à la main :
+    // sinon la permission serait redemandée à chaque retour sur l'app ou l'onglet.
+    retryOnMount: false,
+    refetchOnWindowFocus: (query) => query.state.data !== undefined,
   });
   const reload = () => refetch();
   const denied = error?.message === LOCATION_DENIED;
