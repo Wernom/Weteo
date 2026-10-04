@@ -17,6 +17,10 @@ describe('fetchForecast', () => {
     expect(url.origin + url.pathname).toBe('https://api.open-meteo.com/v1/forecast');
     expect(url.searchParams.get('latitude')).toBe('48.85');
     expect(url.searchParams.get('longitude')).toBe('2.35');
+    expect(url.searchParams.get('hourly')).toBe(
+      'temperature_2m,weather_code,precipitation_probability,is_day',
+    );
+    expect(url.searchParams.get('forecast_hours')).toBe('48');
     expect(forecast.current).toEqual({
       temperature: 18.4,
       apparentTemperature: 16.6,
@@ -25,6 +29,15 @@ describe('fetchForecast', () => {
       weatherCode: 61,
       isDay: true,
     });
+    expect(forecast.hourly).toHaveLength(48);
+    expect(forecast.hourly[0]).toEqual({
+      time: '2026-10-05T14:00',
+      weatherCode: 61,
+      temperature: 15.9,
+      rainChance: 80,
+      isDay: true,
+    });
+    expect(forecast.hourly[10]).toMatchObject({ time: '2026-10-06T00:00', isDay: false });
     expect(forecast.daily).toHaveLength(7);
     expect(forecast.daily[6]).toEqual({ date: '2026-10-11', weatherCode: 71, min: -1.6, max: 4.4 });
   });

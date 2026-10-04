@@ -1,5 +1,5 @@
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, render, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { act, render, screen, userEvent, waitFor, within } from '@testing-library/react-native';
 import * as Location from 'expo-location';
 import { router, useIsFocused } from 'expo-router';
 import { AppState, processColor, RefreshControl } from 'react-native';
@@ -84,6 +84,24 @@ describe('Écran Météo', () => {
     expect(screen.getByText('Prévisions sur 7 jours')).toBeOnTheScreen();
     expect(screen.getByText("Aujourd'hui")).toBeOnTheScreen();
     expect(screen.getByText('-2° / 4°')).toBeOnTheScreen();
+  });
+
+  it('affiche les 48 prochaines heures en commençant par maintenant', async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    expect(await screen.findByText('Heure par heure')).toBeOnTheScreen();
+    const now = within(screen.getByTestId('heure-0'));
+    expect(now.getByText('Maintenant')).toBeOnTheScreen();
+    expect(now.getByText('16°')).toBeOnTheScreen();
+    expect(now.getByText(/80 %/)).toBeOnTheScreen();
+    expect(screen.getByTestId('heure-1')).toHaveAccessibleName('15 h, Pluie, 16°, pluie 70 %');
+    expect(screen.getByTestId('heure-47')).toHaveAccessibleName(
+      '13 h, Ciel dégagé, 16°, pluie 0 %',
+    );
+    expect(screen.queryByTestId('heure-48')).not.toBeOnTheScreen();
   });
 
   it('affiche le fond et la barre d’onglets du temps actuel', async () => {

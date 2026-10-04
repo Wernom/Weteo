@@ -14,6 +14,7 @@ import {
 import * as Location from 'expo-location';
 import { router, useIsFocused, useNavigation } from 'expo-router';
 
+import { HourlyStrip } from '../HourlyStrip';
 import { describeWeather, fetchForecast, Forecast, WeatherTheme } from '../weather';
 
 const TEN_MINUTES = 10 * 60 * 1000;
@@ -77,7 +78,7 @@ export default function WeatherScreen() {
     );
   }
 
-  const { current, daily } = data.forecast;
+  const { current, hourly, daily } = data.forecast;
 
   return (
     <LinearGradient testID="fond-meteo" colors={gradient} style={styles.container}>
@@ -98,6 +99,11 @@ export default function WeatherScreen() {
           <Text style={styles.detail}>Ressenti {Math.round(current.apparentTemperature)}°</Text>
           <Text style={styles.detail}>Humidité {current.humidity}%</Text>
           <Text style={styles.detail}>Vent {Math.round(current.windSpeed)} km/h</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Heure par heure</Text>
+          <HourlyStrip hours={hourly} />
         </View>
 
         <View style={styles.card}>

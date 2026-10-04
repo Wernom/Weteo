@@ -1,0 +1,34 @@
+# L'utilisateur fait défiler le bandeau horaire : il commence à l'heure en cours
+# et va jusqu'à la 48e heure (vraie API Open-Meteo).
+appId: com.wernom.weteo
+name: Prévisions heure par heure
+---
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+- extendedWaitUntil:
+    visible: 'Heure par heure'
+    timeout: 60000
+- scrollUntilVisible:
+    element:
+      id: 'heure-0'
+- assertVisible: 'Maintenant'
+# scrollUntilVisible glisse au centre de l'écran : on glisse sur le bandeau lui-même.
+- repeat:
+    times: 20
+    while:
+      notVisible:
+        id: 'heure-47'
+    commands:
+      - swipe:
+          from:
+            id: 'bandeau-horaire'
+            point: '90%, 50%'
+          direction: LEFT
+- assertVisible:
+    id: 'heure-47'
+- assertNotVisible: 'Maintenant'
