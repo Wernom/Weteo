@@ -20,10 +20,13 @@ onFlowComplete:
 - assertVisible: 'Réessayer'
 - setAirplaneMode: disabled
 # Le réseau peut mettre quelques secondes à revenir : on réessaie jusqu'à voir la météo.
+# Pendant un chargement (jusqu'à 3 essais de 10 s), « Réessayer » est masqué : on attend la fin.
 - retry:
     maxRetries: 3
     commands:
-      - tapOn: 'Réessayer'
+      - tapOn:
+          text: 'Réessayer'
+          optional: true
       - extendedWaitUntil:
           visible: 'Ressenti .*'
-          timeout: 20000
+          timeout: 45000
