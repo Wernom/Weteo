@@ -28,10 +28,10 @@ name: Villes favorites
 - assertVisible:
     id: favori-0
 - assertVisible: 'Lyon'
-# Météo résumée de la ville.
+# Météo résumée de la ville : l'API peut être lente en CI (jusqu'à 3 essais de 10 s).
 - extendedWaitUntil:
     visible: '-?\d+°'
-    timeout: 20000
+    timeout: 60000
 
 # Redémarrage : les favoris sont conservés.
 - stopApp
