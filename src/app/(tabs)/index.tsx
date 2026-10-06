@@ -107,7 +107,7 @@ export default function WeatherScreen() {
   // La barre d'onglets prolonge le bas du dégradé.
   const navigation = useNavigation();
   useLayoutEffect(() => {
-    navigation.setOptions({ tabBarStyle: { backgroundColor: gradient[1], borderTopWidth: 0 } });
+    navigation.setOptions({ tabBarStyle: { backgroundColor: gradient[2], borderTopWidth: 0 } });
   }, [navigation, gradient]);
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import {
   cityQueryKey,
   describeWeather,
   GRADIENTS,
+  iconColor,
   WEATHER_QUERY_KEY,
   WeatherData,
 } from '../../weather';
@@ -45,7 +46,7 @@ export default function DayScreen() {
         }}
       />
       <ScrollView contentContainerStyle={styles.content}>
-        <Ionicons name={d.icon} size={64} color="#fff" accessible={false} />
+        <Ionicons name={d.icon} size={64} color={iconColor(d.icon)} accessible={false} />
         <Text style={styles.label}>{d.label}</Text>
         <Text style={styles.range}>
           {Math.round(day.min)}° / {Math.round(day.max)}°

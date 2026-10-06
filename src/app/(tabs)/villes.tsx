@@ -2,7 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { keepPreviousData, skipToken, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ComponentProps, useEffect, useState } from 'react';
+import { ComponentProps, ReactNode, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -14,12 +14,14 @@ import {
 } from 'react-native';
 
 import { RetryButton } from '../../ErrorScreen';
+import { gradientFor } from '../../WeatherView';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import {
   City,
   cityWeatherQuery,
   describeWeather,
   GRADIENTS,
+  iconColor,
   searchCities,
   WEATHER_QUERY_KEY,
   WeatherData,
@@ -148,24 +150,26 @@ function MyPositionRow() {
   const { data } = useQuery<WeatherData>({ queryKey: WEATHER_QUERY_KEY, queryFn: skipToken });
   const title = data?.place ? `Ma position · ${data.place}` : 'Ma position';
   return (
-    <Pressable
-      testID="ma-position"
-      style={styles.row}
-      accessibilityRole="button"
-      accessibilityLabel={title}
-      onPress={() => openPage(0)}
-    >
-      <Ionicons name="navigate" size={18} color="#fff" style={styles.pin} />
-      <Text style={[styles.name, styles.grow]}>{title}</Text>
-      <WeatherSummary data={data} />
-    </Pressable>
+    <WeatherCard data={data}>
+      <Pressable
+        testID="ma-position"
+        style={styles.inner}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        onPress={() => openPage(0)}
+      >
+        <Ionicons name="navigate" size={18} color="#fff" style={styles.pin} />
+        <Text style={[styles.name, styles.grow]}>{title}</Text>
+        <WeatherSummary data={data} />
+      </Pressable>
+    </WeatherCard>
   );
 }
 
 function FavoriteRow({ city, index, last }: { city: City; index: number; last: boolean }) {
   const { data } = useQuery(cityWeatherQuery(city));
   return (
-    <View style={styles.row}>
+    <WeatherCard data={data}>
       <Pressable
         testID={`favori-${index}`}
         style={styles.inner}
@@ -196,17 +200,33 @@ function FavoriteRow({ city, index, last }: { city: City; index: number; last: b
         label={`Supprimer ${city.name}`}
         onPress={() => toggleFavorite(city)}
       />
-    </View>
+    </WeatherCard>
   );
 }
+
+// Ligne aux couleurs de la météo de son lieu ; translucide tant qu'elle n'est pas chargée.
+function WeatherCard({ data, children }: { data: WeatherData | undefined; children: ReactNode }) {
+  return (
+    <LinearGradient
+      colors={data ? gradientFor(data) : TRANSLUCENT}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.row, styles.card]}
+    >
+      {children}
+    </LinearGradient>
+  );
+}
+const TRANSLUCENT = ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.15)'] as const;
 
 // Rien tant que la météo n'est pas là (chargement, erreur, localisation refusée).
 function WeatherSummary({ data }: { data: WeatherData | undefined }) {
   if (!data) return null;
   const { weatherCode, isDay, temperature } = data.forecast.current;
+  const { icon } = describeWeather(weatherCode, isDay);
   return (
     <View style={styles.summary}>
-      <Ionicons name={describeWeather(weatherCode, isDay).icon} size={22} color="#fff" />
+      <Ionicons name={icon} size={26} color={iconColor(icon)} />
       <Text style={styles.temperature}>{Math.round(temperature)}°</Text>
     </View>
   );
@@ -269,7 +289,12 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   pin: { marginRight: 8 },
   summary: { flexDirection: 'row', alignItems: 'center', marginLeft: 8, gap: 4 },
-  temperature: { color: '#fff', fontSize: 18, fontWeight: '600' },
+  temperature: { color: '#fff', fontSize: 26, fontWeight: '300' },
+  card: {
+    paddingVertical: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
   iconButton: { padding: 6, marginLeft: 4 },
   disabled: { opacity: 0.3 },
   name: { color: '#fff', fontSize: 18, fontWeight: '600' },

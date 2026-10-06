@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { describeWeather, HourlyForecast } from './weather';
+import { describeWeather, HourlyForecast, iconColor } from './weather';
 
 // Bandeau horizontal des prochaines heures ; la première est l'heure en cours.
 export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
@@ -27,7 +27,7 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
             accessibilityLabel={`${label}, ${d.label}, ${temperature}, pluie ${hour.rainChance} %`}
           >
             <Text style={styles.time}>{label}</Text>
-            <Ionicons name={d.icon} size={28} color="#fff" />
+            <Ionicons name={d.icon} size={28} color={iconColor(d.icon)} />
             <Text style={styles.temp}>{temperature}</Text>
             <Text style={styles.rain}>
               <Ionicons name="water" size={12} color="#cfe3ff" /> {hour.rainChance} %

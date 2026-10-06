@@ -15,7 +15,7 @@ import {
 import { DailyList } from './DailyList';
 import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
-import { describeWeather, GRADIENTS, WeatherData } from './weather';
+import { describeWeather, GRADIENTS, iconColor, WeatherData } from './weather';
 
 // Fond du temps actuel, ou du jour tant que la météo n'est pas chargée.
 export function gradientFor(data: WeatherData | undefined) {
@@ -56,6 +56,7 @@ export function WeatherView({
 
   const { current, hourly, daily } = data.forecast;
   const now = describeWeather(current.weatherCode, current.isDay);
+  const today = daily[0];
   // Le bandeau part de l'heure en cours (« 2026-10-05T14:00 » >= « 2026-10-05T14 »).
   const start = hourly.findIndex((h) => h.time >= current.time.slice(0, 13));
 
@@ -77,11 +78,22 @@ export function WeatherView({
           </View>
         )}
         <Text style={styles.place}>{data.place ?? 'Ma position'}</Text>
-        <Ionicons name={now.icon} size={80} color="#fff" style={styles.icon} accessible={false} />
+        <Ionicons
+          name={now.icon}
+          size={72}
+          color={iconColor(now.icon)}
+          style={styles.icon}
+          accessible={false}
+        />
         <Text style={styles.temp} maxFontSizeMultiplier={1.5}>
           {Math.round(current.temperature)}°
         </Text>
         <Text style={styles.label}>{now.label}</Text>
+        {today && (
+          <Text style={styles.range}>
+            Max {Math.round(today.max)}° · Min {Math.round(today.min)}°
+          </Text>
+        )}
 
         <View style={[cardStyles.card, cardStyles.details]}>
           <Text style={cardStyles.detail}>Ressenti {Math.round(current.apparentTemperature)}°</Text>
@@ -112,28 +124,46 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-    paddingTop: 80,
+    paddingTop: 64,
     paddingHorizontal: 16,
     paddingBottom: 40,
   },
   position: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
   positionText: { color: '#e6efff', fontSize: 15, fontWeight: '600', textTransform: 'uppercase' },
   place: { color: '#fff', fontSize: 28, fontWeight: '600', textAlign: 'center' },
-  icon: { marginTop: 16 },
-  temp: { color: '#fff', fontSize: 96, fontWeight: '200' },
-  label: { color: '#fff', fontSize: 22, textAlign: 'center' },
+  icon: { marginTop: 8 },
+  temp: {
+    color: '#fff',
+    fontSize: 112,
+    fontWeight: '200',
+    lineHeight: 120,
+    textShadowColor: 'rgba(0,0,0,0.25)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 12,
+  },
+  label: { color: '#fff', fontSize: 22, fontWeight: '500', textAlign: 'center' },
+  range: { color: '#e6efff', fontSize: 17, marginTop: 4 },
 });
 
 // Cartes translucides sur le dégradé, reprises par le détail d'un jour.
 export const cardStyles = StyleSheet.create({
   card: {
     alignSelf: 'stretch',
-    marginTop: 24,
+    marginTop: 20,
     padding: 16,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
   details: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: 8 },
-  detail: { color: '#fff', fontSize: 15 },
-  cardTitle: { color: '#e6efff', fontSize: 14, marginBottom: 8, textTransform: 'uppercase' },
+  detail: { color: '#fff', fontSize: 15, fontWeight: '500' },
+  cardTitle: {
+    color: '#e6efff',
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
 });

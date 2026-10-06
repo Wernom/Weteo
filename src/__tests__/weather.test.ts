@@ -1,6 +1,13 @@
 import forecastFixture from '../../__fixtures__/open-meteo-forecast.json';
 import { axisTicks, chartPoints } from '../TemperatureChart';
-import { ApiError, ApiErrorKind, describeWeather, fetchForecast, shouldRetry } from '../weather';
+import {
+  ApiError,
+  ApiErrorKind,
+  describeWeather,
+  fetchForecast,
+  shouldRetry,
+  temperatureBar,
+} from '../weather';
 
 describe('fetchForecast', () => {
   afterEach(() => {
@@ -154,6 +161,15 @@ describe('describeWeather', () => {
     [99, false, 'Orage', 'thunderstorm', 'orage'],
   ])('code %i (jour : %s) → %s', (code, isDay, label, icon, theme) => {
     expect(describeWeather(code, isDay)).toEqual({ label, icon, theme });
+  });
+});
+
+describe('temperatureBar', () => {
+  it("place la barre du jour sur l'échelle de la semaine", () => {
+    expect(temperatureBar(10, 20, 0, 40)).toEqual({ left: 25, width: 25 });
+    expect(temperatureBar(-2, 4, -2, 4)).toEqual({ left: 0, width: 100 });
+    // Semaine à température constante : pas de division par zéro.
+    expect(temperatureBar(5, 5, 5, 5)).toEqual({ left: 0, width: 0 });
   });
 });
 

@@ -262,10 +262,40 @@ export function describeWeather(
 export type WeatherTheme = 'jour' | 'nuit' | 'pluie' | 'neige' | 'orage';
 
 // Du haut vers le bas ; le texte blanc reste lisible (contraste ≥ 4,5:1) sur chaque couleur.
-export const GRADIENTS: Record<WeatherTheme, readonly [string, string]> = {
-  jour: ['#2f6cc4', '#1f4f99'],
-  nuit: ['#0f1c3f', '#1f2d5c'],
-  pluie: ['#4b5a6b', '#2c3644'],
-  neige: ['#5b7083', '#3d4f61'],
-  orage: ['#3b3456', '#1e1a2e'],
+// Le texte secondaire (#e6efff) aussi.
+export const GRADIENTS: Record<WeatherTheme, readonly [string, string, string]> = {
+  jour: ['#0a5fd6', '#1565d8', '#3b49c4'],
+  nuit: ['#0b1026', '#1e1b4b', '#33307f'],
+  pluie: ['#3a4b63', '#465a73', '#1f2a3c'],
+  neige: ['#4a6584', '#536782', '#36475e'],
+  orage: ['#3b1470', '#5a2aa0', '#1c1840'],
 };
+
+// Icônes en couleur, assez claires pour ressortir sur tous les fonds ; blanc par défaut.
+const ICON_COLORS: Partial<Record<IconName, string>> = {
+  sunny: '#fcd34d',
+  'partly-sunny': '#fde68a',
+  moon: '#e0e7ff',
+  'cloudy-night': '#c7d2fe',
+  cloudy: '#e5e7eb',
+  'cloud-outline': '#e5e7eb',
+  rainy: '#93c5fd',
+  'rainy-outline': '#93c5fd',
+  thunderstorm: '#fde047',
+};
+export const iconColor = (icon: IconName) => ICON_COLORS[icon] ?? '#fff';
+
+// Du froid (bleu) au chaud (rouge), pour les barres des 7 jours.
+export function temperatureColor(t: number) {
+  if (t < 0) return '#93c5fd';
+  if (t < 10) return '#67e8f9';
+  if (t < 20) return '#a3e635';
+  if (t < 28) return '#fbbf24';
+  return '#f87171';
+}
+
+// Place de la barre min–max d'un jour sur l'échelle de la semaine [lo, hi], en %.
+export function temperatureBar(min: number, max: number, lo: number, hi: number) {
+  const span = hi - lo || 1;
+  return { left: ((min - lo) / span) * 100, width: ((max - min) / span) * 100 };
+}

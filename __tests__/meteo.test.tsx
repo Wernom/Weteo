@@ -115,7 +115,8 @@ describe('Écran Météo', () => {
     expect(await screen.findByText('Prévisions sur 7 jours')).toBeOnTheScreen();
     const today = within(screen.getByTestId('jour-0'));
     expect(today.getByText("Aujourd'hui")).toBeOnTheScreen();
-    expect(today.getByText('11° / 19°')).toBeOnTheScreen();
+    expect(today.getByText('11°')).toBeOnTheScreen();
+    expect(today.getByText('19°')).toBeOnTheScreen();
     expect(screen.getByTestId('jour-1')).toHaveAccessibleName(
       'Mardi, Couvert, minimum 10°, maximum 17°',
     );
@@ -168,10 +169,10 @@ describe('Écran Météo', () => {
 
     expect(await screen.findByTestId('fond-meteo')).toHaveProp(
       'colors',
-      ['#0f1c3f', '#1f2d5c'].map(processColor),
+      ['#0b1026', '#1e1b4b', '#33307f'].map(processColor),
     );
     expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
-      tabBarStyle: { backgroundColor: '#1f2d5c', borderTopWidth: 0 },
+      tabBarStyle: { backgroundColor: '#33307f', borderTopWidth: 0 },
     });
   });
 
@@ -183,7 +184,7 @@ describe('Écran Météo', () => {
 
     expect(await screen.findByTestId('fond-meteo')).toHaveProp(
       'colors',
-      ['#4b5a6b', '#2c3644'].map(processColor),
+      ['#3a4b63', '#465a73', '#1f2a3c'].map(processColor),
     );
   });
 
@@ -316,7 +317,7 @@ describe('Écran Météo', () => {
       const { fetchMock, client } = await loadOnce();
       // Passe par le vrai branchement AppState → focusManager du layout.
       const addListener = jest.spyOn(AppState, 'addEventListener');
-      require('../src/app/_layout');
+      jest.requireActual('../src/app/_layout');
       const onAppStateChange = addListener.mock.calls[0][1];
       const reopenApp = () =>
         act(async () => {
@@ -398,7 +399,7 @@ describe('Écran Météo', () => {
       expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 3');
       await waitFor(() =>
         expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
-          tabBarStyle: { backgroundColor: '#1f2d5c', borderTopWidth: 0 },
+          tabBarStyle: { backgroundColor: '#33307f', borderTopWidth: 0 },
         }),
       );
     });
