@@ -22,4 +22,15 @@ describe('Navigation par onglets', () => {
     expect(screen.getByTestId('onglet-villes')).toBeSelected();
     expect(screen.getByTestId('onglet-meteo')).not.toBeSelected();
   });
+
+  it("passe à l'onglet Réglages", async () => {
+    const user = userEvent.setup();
+    await renderRouter('./src/app');
+
+    await user.press(await screen.findByTestId('onglet-reglages'));
+
+    expect(await screen.findByText('Aucun réglage pour le moment.')).toBeOnTheScreen();
+    expect(screen.getByTestId('onglet-reglages')).toBeSelected();
+    expect(screen.getByTestId('onglet-meteo')).not.toBeSelected();
+  });
 });

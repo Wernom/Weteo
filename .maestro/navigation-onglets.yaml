@@ -1,4 +1,4 @@
-# L'utilisateur passe de l'onglet Villes à l'onglet Météo et revient :
+# L'utilisateur passe de l'onglet Villes à l'onglet Météo, revient, puis va dans Réglages :
 # l'onglet actif est sélectionné. Localisation refusée pour ne pas dépendre du réseau.
 appId: com.wernom.weteo
 name: Navigation par onglets
@@ -18,4 +18,10 @@ name: Navigation par onglets
     id: recherche-ville
 - assertVisible:
     id: onglet-villes
+    selected: true
+- tapOn:
+    id: onglet-reglages
+- assertVisible: 'Aucun réglage pour le moment.'
+- assertVisible:
+    id: onglet-reglages
     selected: true
