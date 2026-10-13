@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { keepPreviousData, skipToken, useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ComponentProps, ReactNode, useEffect, useState } from 'react';
@@ -24,6 +24,7 @@ import {
   describeWeather,
   GRADIENTS,
   iconColor,
+  loadWeather,
   searchCities,
   WEATHER_QUERY_KEY,
   WeatherData,
@@ -153,7 +154,12 @@ function CityRow({ city, index, favorite }: { city: City; index: number; favorit
 // sans redemander la localisation.
 function MyPositionRow() {
   const { t } = useTranslation();
-  const { data } = useQuery<WeatherData>({ queryKey: WEATHER_QUERY_KEY, queryFn: skipToken });
+  // Pas de skipToken : il remplacerait loadWeather pour un nouvel essai en cours (voir l'onglet Météo).
+  const { data } = useQuery<WeatherData>({
+    queryKey: WEATHER_QUERY_KEY,
+    queryFn: loadWeather,
+    enabled: false,
+  });
   const title = data?.place
     ? t('meteo.maPositionLieu', { place: data.place })
     : t('meteo.maPosition');

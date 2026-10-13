@@ -1,7 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import { ComponentProps, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import * as Location from 'expo-location';
 import { useTranslation } from 'react-i18next';
 import { router, useIsFocused, useLocalSearchParams, useNavigation } from 'expo-router';
 import {
@@ -19,10 +18,10 @@ import {
   City,
   cityQueryKey,
   cityWeatherQuery,
-  fetchForecast,
+  loadWeather,
+  LOCATION_DENIED,
   TEN_MINUTES,
   WEATHER_QUERY_KEY,
-  WeatherData,
 } from '../../weather';
 import { gradientFor, WeatherView } from '../../WeatherView';
 
@@ -99,9 +98,12 @@ export default function WeatherScreen() {
 
   // Fond de la page affichée, lu dans le cache de sa ville.
   const city = favorites[page - 1];
-  const cityData = useQuery<WeatherData>({
+  // Pas de skipToken : ces options remplacent celles de la requête, et un nouvel essai
+  // de la page en cours échouerait (« Missing queryFn »). `enabled: false` suffit à ne rien appeler.
+  const cityData = useQuery({
     queryKey: cityQueryKey(String(city?.id)),
-    queryFn: skipToken,
+    queryFn: city ? cityWeatherQuery(city).queryFn : skipToken,
+    enabled: false,
   }).data;
   const gradient = gradientFor(page > 0 ? cityData : query.data);
 
@@ -179,22 +181,6 @@ function PageDots({ count, current }: { count: number; current: number }) {
       ))}
     </View>
   );
-}
-
-// Clé de traduction, comme les messages d'ApiError.
-const LOCATION_DENIED = 'erreurs.localisation';
-
-async function loadWeather(): Promise<WeatherData> {
-  const { granted } = await Location.requestForegroundPermissionsAsync();
-  if (!granted) throw new Error(LOCATION_DENIED);
-  const { coords } = await Location.getCurrentPositionAsync({
-    accuracy: Location.Accuracy.Balanced,
-  });
-  const [forecast, address] = await Promise.all([
-    fetchForecast(coords.latitude, coords.longitude),
-    Location.reverseGeocodeAsync(coords).catch(() => []),
-  ]);
-  return { forecast, place: address[0]?.city ?? address[0]?.region ?? null };
 }
 
 const styles = StyleSheet.create({

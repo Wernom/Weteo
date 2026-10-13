@@ -1,5 +1,6 @@
 import type Ionicons from '@expo/vector-icons/Ionicons';
 import { queryOptions } from '@tanstack/react-query';
+import * as Location from 'expo-location';
 import type { ComponentProps } from 'react';
 import { z } from 'zod';
 
@@ -52,6 +53,22 @@ export type Forecast = {
 export type WeatherData = { forecast: Forecast; place: string | null };
 
 export const WEATHER_QUERY_KEY = ['meteo', 'position'] as const;
+
+// Clé de traduction, comme les messages d'ApiError.
+export const LOCATION_DENIED = 'erreurs.localisation';
+
+export async function loadWeather(): Promise<WeatherData> {
+  const { granted } = await Location.requestForegroundPermissionsAsync();
+  if (!granted) throw new Error(LOCATION_DENIED);
+  const { coords } = await Location.getCurrentPositionAsync({
+    accuracy: Location.Accuracy.Balanced,
+  });
+  const [forecast, address] = await Promise.all([
+    fetchForecast(coords.latitude, coords.longitude),
+    Location.reverseGeocodeAsync(coords).catch(() => []),
+  ]);
+  return { forecast, place: address[0]?.city ?? address[0]?.region ?? null };
+}
 
 // Météo d'une ville trouvée par la recherche, `id` étant celui d'Open-Meteo Geocoding.
 export const cityQueryKey = (id: string) => ['meteo', 'ville', id] as const;
