@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery } from '@tanstack/react-query';
 import { Stack, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { Pressable } from 'react-native';
 
 import { isFavorite, toggleFavorite, useFavorites } from '../../favorites';
@@ -11,6 +12,7 @@ export { ErrorBoundary } from '../../ErrorScreen';
 
 // Météo d'une ville choisie dans la recherche : pas de localisation, ses coordonnées suffisent.
 export default function CityScreen() {
+  const { t } = useTranslation();
   const { id, name, region, country, latitude, longitude } = useLocalSearchParams<{
     id: string;
     name: string;
@@ -38,14 +40,12 @@ export default function CityScreen() {
           title: '',
           headerTransparent: true,
           headerTintColor: '#fff',
-          headerBackTitle: 'Villes',
+          headerBackTitle: t('onglets.villes'),
           headerRight: () => (
             <Pressable
               testID="etoile-ville"
               accessibilityRole="button"
-              accessibilityLabel={
-                favorite ? `Retirer ${name} des favoris` : `Ajouter ${name} aux favoris`
-              }
+              accessibilityLabel={t(favorite ? 'villes.retirer' : 'villes.ajouter', { name })}
               hitSlop={12}
               onPress={() => toggleFavorite(city)}
             >

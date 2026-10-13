@@ -1,10 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { formatHour } from './i18n';
 import { describeWeather, HourlyForecast, iconColor } from './weather';
 
 // Bandeau horizontal des prochaines heures ; la première est l'heure en cours.
 export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
+  const { t } = useTranslation();
   return (
     <ScrollView
       testID="bandeau-horaire"
@@ -16,7 +19,7 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
     >
       {hours.map((hour, i) => {
         const d = describeWeather(hour.weatherCode, hour.isDay);
-        const label = i === 0 ? 'Maintenant' : hourLabel(hour.time);
+        const label = i === 0 ? t('meteo.maintenant') : formatHour(hour.time);
         const temperature = `${Math.round(hour.temperature)}°`;
         return (
           <View
@@ -24,7 +27,12 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
             testID={`heure-${i}`}
             style={styles.hour}
             accessible
-            accessibilityLabel={`${label}, ${d.label}, ${temperature}, pluie ${hour.rainChance} %`}
+            accessibilityLabel={t('meteo.heureDetail', {
+              hour: label,
+              weather: d.label,
+              temperature,
+              rain: hour.rainChance,
+            })}
           >
             <Text style={styles.time}>{label}</Text>
             <Ionicons name={d.icon} size={28} color={iconColor(d.icon)} />
@@ -38,9 +46,6 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
     </ScrollView>
   );
 }
-
-// « 2026-10-05T14:00 » → « 14 h », lue telle quelle : l'heure locale du lieu, pas du téléphone.
-export const hourLabel = (time: string) => `${Number(time.slice(11, 13))} h`;
 
 const styles = StyleSheet.create({
   strip: { gap: 4 },

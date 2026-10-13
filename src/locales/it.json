@@ -1,0 +1,62 @@
+{
+  "onglets": { "meteo": "Meteo", "villes": "Città", "reglages": "Impostazioni" },
+  "meteo": {
+    "maPosition": "La mia posizione",
+    "maPositionLieu": "La mia posizione · {{place}}",
+    "maxMin": "Max {{max}}° · Min {{min}}°",
+    "ressenti": "Percepita {{temperature}}°",
+    "humidite": "Umidità {{humidity}}%",
+    "vent": "Vento {{speed}} km/h",
+    "heureParHeure": "Ora per ora",
+    "septJours": "Previsioni a 7 giorni",
+    "page": "Pagina {{current}} di {{total}}",
+    "maintenant": "Adesso",
+    "aujourdhui": "Oggi",
+    "jourDetail": "{{day}}, {{weather}}, minima {{min}}°, massima {{max}}°",
+    "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, pioggia {{rain}}%"
+  },
+  "jour": {
+    "temperatures": "Temperature",
+    "precipitations": "Precipitazioni {{amount}} mm · {{chance}}%",
+    "lever": "Alba {{time}}",
+    "coucher": "Tramonto {{time}}",
+    "courbe": "Minima {{coldest}}, massima {{warmest}}",
+    "temperatureA": "{{temperature}}° alle {{hour}}",
+    "astuce": "Tocca la curva per i dettagli ora per ora."
+  },
+  "villes": {
+    "titre": "Cerca una città",
+    "champ": "Nome della città",
+    "exemple": "Roma, Milano, Napoli…",
+    "deuxLettres": "Digita almeno 2 lettere.",
+    "aucune": "Nessuna città trovata per «{{term}}». Controlla l'ortografia.",
+    "ajouter": "Aggiungi {{name}} ai preferiti",
+    "retirer": "Rimuovi {{name}} dai preferiti",
+    "monter": "Sposta su {{name}}",
+    "descendre": "Sposta giù {{name}}",
+    "supprimer": "Elimina {{name}}"
+  },
+  "reglages": { "titre": "Impostazioni", "langue": "Lingua" },
+  "temps": {
+    "degage": "Sereno",
+    "peuNuageux": "Poco nuvoloso",
+    "couvert": "Coperto",
+    "brouillard": "Nebbia",
+    "bruine": "Pioviggine",
+    "pluie": "Pioggia",
+    "neige": "Neve",
+    "averses": "Rovesci",
+    "aversesNeige": "Rovesci di neve",
+    "orage": "Temporale"
+  },
+  "erreurs": {
+    "reseau": "Nessuna connessione a internet. Controlla la rete.",
+    "http": "Il servizio meteo non è disponibile al momento.",
+    "delai": "Il servizio meteo impiega troppo tempo a rispondere.",
+    "donnees": "I dati meteo ricevuti non sono validi.",
+    "localisation": "Consenti l'accesso alla posizione per vedere il meteo intorno a te.",
+    "chargement": "Impossibile caricare il meteo.",
+    "inattendue": "Si è verificato un errore imprevisto.",
+    "reessayer": "Riprova"
+  }
+}

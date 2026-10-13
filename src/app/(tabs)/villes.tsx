@@ -3,6 +3,7 @@ import { keepPreviousData, skipToken, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ComponentProps, ReactNode, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,6 +17,7 @@ import {
 import { RetryButton } from '../../ErrorScreen';
 import { gradientFor } from '../../WeatherView';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
+import { useSettings } from '../../settings';
 import {
   City,
   cityWeatherQuery,
@@ -30,6 +32,8 @@ import {
 export { ErrorBoundary } from '../../ErrorScreen';
 
 export default function CitiesScreen() {
+  const { t } = useTranslation();
+  const { language } = useSettings();
   const [text, setText] = useState('');
   const [term, setTerm] = useState('');
   const favorites = useFavorites();
@@ -42,8 +46,9 @@ export default function CitiesScreen() {
   // Avec une seule lettre, l'API ne renvoie jamais rien : inutile de l'appeler.
   const enabled = term.length >= 2;
   const { data, error, isFetching, refetch } = useQuery({
-    queryKey: ['villes', term],
-    queryFn: () => searchCities(term),
+    // Une recherche faite dans une autre langue n'est pas resservie.
+    queryKey: ['villes', language, term],
+    queryFn: () => searchCities(term, language),
     enabled,
     placeholderData: keepPreviousData,
     // Les villes ne changent pas : une recherche encore en cache n'est pas relancée.
@@ -51,20 +56,19 @@ export default function CitiesScreen() {
   });
 
   let message: string | null = null;
-  if (!enabled) message = 'Tapez au moins 2 lettres.';
-  else if (error) message = error.message;
-  else if (data?.length === 0)
-    message = `Aucune ville trouvée pour « ${term} ». Vérifiez l'orthographe.`;
+  if (!enabled) message = t('villes.deuxLettres');
+  else if (error) message = t(error.message);
+  else if (data?.length === 0) message = t('villes.aucune', { term });
 
   return (
     <LinearGradient colors={GRADIENTS.jour} style={styles.container}>
       <Text style={styles.title} accessibilityRole="header">
-        Rechercher une ville
+        {t('villes.titre')}
       </Text>
       <TextInput
         testID="recherche-ville"
-        accessibilityLabel="Nom de la ville"
-        placeholder="Paris, Lyon, Montréal…"
+        accessibilityLabel={t('villes.champ')}
+        placeholder={t('villes.exemple')}
         placeholderTextColor="#c4d6f5"
         style={styles.input}
         value={text}
@@ -122,6 +126,7 @@ const openPage = (page: number) =>
   router.navigate({ pathname: '/', params: { page: String(page) } });
 
 function CityRow({ city, index, favorite }: { city: City; index: number; favorite: boolean }) {
+  const { t } = useTranslation();
   return (
     <View style={styles.row}>
       <Pressable
@@ -137,7 +142,7 @@ function CityRow({ city, index, favorite }: { city: City; index: number; favorit
       <IconButton
         testID={`etoile-${index}`}
         icon={favorite ? 'star' : 'star-outline'}
-        label={favorite ? `Retirer ${city.name} des favoris` : `Ajouter ${city.name} aux favoris`}
+        label={t(favorite ? 'villes.retirer' : 'villes.ajouter', { name: city.name })}
         onPress={() => toggleFavorite(city)}
       />
     </View>
@@ -147,8 +152,11 @@ function CityRow({ city, index, favorite }: { city: City; index: number; favorit
 // Toujours en tête des villes ; reprend le lieu et la météo déjà chargés par l'onglet Météo,
 // sans redemander la localisation.
 function MyPositionRow() {
+  const { t } = useTranslation();
   const { data } = useQuery<WeatherData>({ queryKey: WEATHER_QUERY_KEY, queryFn: skipToken });
-  const title = data?.place ? `Ma position · ${data.place}` : 'Ma position';
+  const title = data?.place
+    ? t('meteo.maPositionLieu', { place: data.place })
+    : t('meteo.maPosition');
   return (
     <WeatherCard data={data}>
       <Pressable
@@ -167,6 +175,7 @@ function MyPositionRow() {
 }
 
 function FavoriteRow({ city, index, last }: { city: City; index: number; last: boolean }) {
+  const { t } = useTranslation();
   const { data } = useQuery(cityWeatherQuery(city));
   return (
     <WeatherCard data={data}>
@@ -185,19 +194,19 @@ function FavoriteRow({ city, index, last }: { city: City; index: number; last: b
       </Pressable>
       <IconButton
         icon="chevron-up"
-        label={`Monter ${city.name}`}
+        label={t('villes.monter', { name: city.name })}
         disabled={index === 0}
         onPress={() => moveFavorite(city.id, -1)}
       />
       <IconButton
         icon="chevron-down"
-        label={`Descendre ${city.name}`}
+        label={t('villes.descendre', { name: city.name })}
         disabled={last}
         onPress={() => moveFavorite(city.id, 1)}
       />
       <IconButton
         icon="close"
-        label={`Supprimer ${city.name}`}
+        label={t('villes.supprimer', { name: city.name })}
         onPress={() => toggleFavorite(city)}
       />
     </WeatherCard>

@@ -29,7 +29,7 @@ describe('Navigation par onglets', () => {
 
     await user.press(await screen.findByTestId('onglet-reglages'));
 
-    expect(await screen.findByText('Aucun réglage pour le moment.')).toBeOnTheScreen();
+    expect(await screen.findByText('Langue')).toBeOnTheScreen();
     expect(screen.getByTestId('onglet-reglages')).toBeSelected();
     expect(screen.getByTestId('onglet-meteo')).not.toBeSelected();
   });

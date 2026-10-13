@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { skipToken, useQuery } from '@tanstack/react-query';
 import { ComponentProps, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import * as Location from 'expo-location';
+import { useTranslation } from 'react-i18next';
 import { router, useIsFocused, useLocalSearchParams, useNavigation } from 'expo-router';
 import {
   FlatList,
@@ -162,6 +163,7 @@ function CityPage({
 
 // Flèche pour ma position, puis un point par favori ; celui de la page affichée est plein.
 function PageDots({ count, current }: { count: number; current: number }) {
+  const { t } = useTranslation();
   const color = (i: number) => (i === current ? '#fff' : 'rgba(255,255,255,0.4)');
   return (
     <View
@@ -169,7 +171,7 @@ function PageDots({ count, current }: { count: number; current: number }) {
       style={styles.dots}
       pointerEvents="none"
       accessible
-      accessibilityLabel={`Page ${current + 1} sur ${count}`}
+      accessibilityLabel={t('meteo.page', { current: current + 1, total: count })}
     >
       <Ionicons name="navigate" size={10} color={color(0)} />
       {Array.from({ length: count - 1 }, (_, i) => (
@@ -179,7 +181,8 @@ function PageDots({ count, current }: { count: number; current: number }) {
   );
 }
 
-const LOCATION_DENIED = 'Autorisez la localisation pour voir la météo autour de vous.';
+// Clé de traduction, comme les messages d'ApiError.
+const LOCATION_DENIED = 'erreurs.localisation';
 
 async function loadWeather(): Promise<WeatherData> {
   const { granted } = await Location.requestForegroundPermissionsAsync();

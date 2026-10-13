@@ -3,6 +3,9 @@ import { queryOptions } from '@tanstack/react-query';
 import type { ComponentProps } from 'react';
 import { z } from 'zod';
 
+import i18n from './i18n';
+import type { Language } from './settings';
+
 type IconName = ComponentProps<typeof Ionicons>['name'];
 
 // Client Open-Meteo (gratuit, sans clé API) : https://open-meteo.com/en/docs
@@ -65,6 +68,8 @@ export const cityWeatherQuery = (city: City) =>
       place: city.name,
     }),
     staleTime: TEN_MINUTES,
+    // Le nom suit le favori, retraduit au changement de langue, sans attendre un nouvel appel.
+    select: (data) => ({ ...data, place: city.name }),
   });
 
 // `region` manque pour certaines villes (micro-États, territoires).
@@ -79,20 +84,14 @@ export type City = {
 
 export type ApiErrorKind = 'reseau' | 'http' | 'delai' | 'donnees';
 
-const API_MESSAGES: Record<ApiErrorKind, string> = {
-  reseau: 'Pas de connexion internet. Vérifiez votre réseau.',
-  http: 'Le service météo est indisponible pour le moment.',
-  delai: 'Le service météo met trop de temps à répondre.',
-  donnees: 'Les données météo reçues sont invalides.',
-};
-
-// Le message s'affiche tel quel à l'utilisateur ; `status` n'existe que pour `http`.
+// Le message est une clé de traduction (« erreurs.reseau »), traduite à l'affichage : une erreur
+// déjà affichée change de langue avec l'app. `status` n'existe que pour `http`.
 export class ApiError extends Error {
   constructor(
     readonly kind: ApiErrorKind,
     readonly status?: number,
   ) {
-    super(API_MESSAGES[kind]);
+    super(`erreurs.${kind}`);
   }
 }
 
@@ -124,37 +123,40 @@ export const shouldRetry = (failureCount: number, error: Error) =>
   error instanceof ApiError &&
   (error.kind === 'reseau' || error.kind === 'delai' || (error.status ?? 0) >= 500);
 
+const placeSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  admin1: z.string().optional(),
+  country: z.string().optional(),
+  latitude: z.number(),
+  longitude: z.number(),
+});
 // Sans résultat, la réponse n'a pas de clé `results`.
-const geocodingSchema = z.object({
-  results: z
-    .array(
-      z.object({
-        id: z.number(),
-        name: z.string(),
-        admin1: z.string().optional(),
-        country: z.string().optional(),
-        latitude: z.number(),
-        longitude: z.number(),
-      }),
-    )
-    .optional(),
+const geocodingSchema = z.object({ results: z.array(placeSchema).optional() });
+
+const toCity = (r: z.infer<typeof placeSchema>): City => ({
+  id: r.id,
+  name: r.name,
+  region: r.admin1 ?? null,
+  country: r.country ?? '',
+  latitude: r.latitude,
+  longitude: r.longitude,
 });
 
 // API Geocoding d'Open-Meteo : https://open-meteo.com/en/docs/geocoding-api
-export async function searchCities(name: string): Promise<City[]> {
-  const params = new URLSearchParams({ name, count: '10', language: 'fr' });
-  const data = await getJson(
-    `https://geocoding-api.open-meteo.com/v1/search?${params}`,
-    geocodingSchema,
-  );
-  return (data.results ?? []).map((r) => ({
-    id: r.id,
-    name: r.name,
-    region: r.admin1 ?? null,
-    country: r.country ?? '',
-    latitude: r.latitude,
-    longitude: r.longitude,
-  }));
+// Noms de ville, de région et de pays dans `language` quand l'API les connaît.
+const GEOCODING = 'https://geocoding-api.open-meteo.com/v1';
+
+export async function searchCities(name: string, language: Language): Promise<City[]> {
+  const params = new URLSearchParams({ name, count: '10', language });
+  const data = await getJson(`${GEOCODING}/search?${params}`, geocodingSchema);
+  return (data.results ?? []).map(toCity);
+}
+
+// Une ville par son `id`, pour retraduire un favori.
+export async function getCity(id: number, language: Language): Promise<City> {
+  const params = new URLSearchParams({ id: String(id), language });
+  return toCity(await getJson(`${GEOCODING}/get?${params}`, placeSchema));
 }
 
 export async function fetchForecast(latitude: number, longitude: number): Promise<Forecast> {
@@ -246,17 +248,21 @@ export function describeWeather(
   isDay = true,
 ): { label: string; icon: IconName; theme: WeatherTheme } {
   const sky = isDay ? 'jour' : 'nuit';
-  if (code === 0) return { label: 'Ciel dégagé', icon: isDay ? 'sunny' : 'moon', theme: sky };
-  if (code <= 2)
-    return { label: 'Peu nuageux', icon: isDay ? 'partly-sunny' : 'cloudy-night', theme: sky };
-  if (code === 3) return { label: 'Couvert', icon: 'cloudy', theme: sky };
-  if (code <= 48) return { label: 'Brouillard', icon: 'cloud-outline', theme: sky };
-  if (code <= 57) return { label: 'Bruine', icon: 'rainy-outline', theme: 'pluie' };
-  if (code <= 67) return { label: 'Pluie', icon: 'rainy', theme: 'pluie' };
-  if (code <= 77) return { label: 'Neige', icon: 'snow', theme: 'neige' };
-  if (code <= 82) return { label: 'Averses', icon: 'rainy', theme: 'pluie' };
-  if (code <= 86) return { label: 'Averses de neige', icon: 'snow', theme: 'neige' };
-  return { label: 'Orage', icon: 'thunderstorm', theme: 'orage' };
+  const weather = (key: string, icon: IconName, theme: WeatherTheme) => ({
+    label: i18n.t(`temps.${key}`),
+    icon,
+    theme,
+  });
+  if (code === 0) return weather('degage', isDay ? 'sunny' : 'moon', sky);
+  if (code <= 2) return weather('peuNuageux', isDay ? 'partly-sunny' : 'cloudy-night', sky);
+  if (code === 3) return weather('couvert', 'cloudy', sky);
+  if (code <= 48) return weather('brouillard', 'cloud-outline', sky);
+  if (code <= 57) return weather('bruine', 'rainy-outline', 'pluie');
+  if (code <= 67) return weather('pluie', 'rainy', 'pluie');
+  if (code <= 77) return weather('neige', 'snow', 'neige');
+  if (code <= 82) return weather('averses', 'rainy', 'pluie');
+  if (code <= 86) return weather('aversesNeige', 'snow', 'neige');
+  return weather('orage', 'thunderstorm', 'orage');
 }
 
 export type WeatherTheme = 'jour' | 'nuit' | 'pluie' | 'neige' | 'orage';

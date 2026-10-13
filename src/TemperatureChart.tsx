@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Polyline, Text as SvgText } from 'react-native-svg';
 
-import { hourLabel } from './HourlyStrip';
+import { formatHour } from './i18n';
 import { HourlyForecast } from './weather';
 
 const BAND = 30; // bande de la bulle, au-dessus de la courbe : elle ne la cache jamais
@@ -45,6 +46,7 @@ export function chartPoints(
 // Courbe des températures heure par heure d'une journée (00:00 → 23:00, heure locale du lieu).
 // Toucher ou glisser sur la courbe affiche l'heure et la température à cet endroit.
 export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
+  const { t } = useTranslation();
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
 
@@ -58,7 +60,8 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
   const step = plotWidth / Math.max(hours.length - 1, 1);
   const y = (t: number) => PLOT_HEIGHT - ((t - lo) / (hi - lo)) * PLOT_HEIGHT;
 
-  const describe = (h: HourlyForecast) => `${Math.round(h.temperature)}° à ${hourLabel(h.time)}`;
+  const describe = (h: HourlyForecast) =>
+    t('jour.temperatureA', { temperature: Math.round(h.temperature), hour: formatHour(h.time) });
   const coldest = hours[temps.indexOf(min)];
   const warmest = hours[temps.indexOf(max)];
 
@@ -74,10 +77,13 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
         testID="courbe-temperatures"
         accessible
         accessibilityRole="adjustable"
-        accessibilityLabel={`Minimum ${describe(coldest)}, maximum ${describe(warmest)}`}
+        accessibilityLabel={t('jour.courbe', {
+          coldest: describe(coldest),
+          warmest: describe(warmest),
+        })}
         accessibilityValue={
           point
-            ? { text: `${hourLabel(point.time)}, ${Math.round(point.temperature)}°` }
+            ? { text: `${formatHour(point.time)}, ${Math.round(point.temperature)}°` }
             : undefined
         }
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
@@ -116,7 +122,8 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
               </SvgText>
             </G>
           ))}
-          {X_TICKS.map((h) => (
+          {/* Un jour de changement d'heure n'a que 23 heures : le dernier repère s'arrête à la fin. */}
+          {X_TICKS.map((tick) => Math.min(tick, hours.length - 1)).map((h) => (
             <SvgText
               key={h}
               x={AXIS + h * step}
@@ -125,7 +132,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
               fontSize={12}
               textAnchor="middle"
             >
-              {`${h} h`}
+              {formatHour(hours[h].time)}
             </SvgText>
           ))}
           <G x={AXIS} y={TOP}>
@@ -166,12 +173,12 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
             ]}
           >
             <Text style={styles.bubbleText}>
-              {hourLabel(point.time)} · {Math.round(point.temperature)}°
+              {formatHour(point.time)} · {Math.round(point.temperature)}°
             </Text>
           </View>
         )}
       </View>
-      <Text style={styles.hint}>Touchez la courbe pour le détail heure par heure.</Text>
+      <Text style={styles.hint}>{t('jour.astuce')}</Text>
     </View>
   );
 }

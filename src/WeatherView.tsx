@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { Ref } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -38,13 +39,12 @@ export function WeatherView({
   scrollRef?: Ref<ScrollView>;
   onScroll?: ScrollViewProps['onScroll'];
 }) {
+  const { t } = useTranslation();
   const reload = () => refetch();
   const gradient = gradientFor(data);
 
   if (!data && !isFetching) {
-    return (
-      <ErrorScreen message={error?.message || 'Impossible de charger la météo.'} onRetry={reload} />
-    );
+    return <ErrorScreen message={error?.message || 'erreurs.chargement'} onRetry={reload} />;
   }
   if (!data) {
     return (
@@ -74,10 +74,10 @@ export function WeatherView({
         {!ville && data.place && (
           <View testID="mention-position" style={styles.position}>
             <Ionicons name="navigate" size={14} color="#e6efff" accessible={false} />
-            <Text style={styles.positionText}>Ma position</Text>
+            <Text style={styles.positionText}>{t('meteo.maPosition')}</Text>
           </View>
         )}
-        <Text style={styles.place}>{data.place ?? 'Ma position'}</Text>
+        <Text style={styles.place}>{data.place ?? t('meteo.maPosition')}</Text>
         <Ionicons
           name={now.icon}
           size={72}
@@ -91,23 +91,29 @@ export function WeatherView({
         <Text style={styles.label}>{now.label}</Text>
         {today && (
           <Text style={styles.range}>
-            Max {Math.round(today.max)}° · Min {Math.round(today.min)}°
+            {t('meteo.maxMin', { max: Math.round(today.max), min: Math.round(today.min) })}
           </Text>
         )}
 
         <View style={[cardStyles.card, cardStyles.details]}>
-          <Text style={cardStyles.detail}>Ressenti {Math.round(current.apparentTemperature)}°</Text>
-          <Text style={cardStyles.detail}>Humidité {current.humidity}%</Text>
-          <Text style={cardStyles.detail}>Vent {Math.round(current.windSpeed)} km/h</Text>
+          <Text style={cardStyles.detail}>
+            {t('meteo.ressenti', { temperature: Math.round(current.apparentTemperature) })}
+          </Text>
+          <Text style={cardStyles.detail}>
+            {t('meteo.humidite', { humidity: current.humidity })}
+          </Text>
+          <Text style={cardStyles.detail}>
+            {t('meteo.vent', { speed: Math.round(current.windSpeed) })}
+          </Text>
         </View>
 
         <View style={cardStyles.card}>
-          <Text style={cardStyles.cardTitle}>Heure par heure</Text>
+          <Text style={cardStyles.cardTitle}>{t('meteo.heureParHeure')}</Text>
           <HourlyStrip hours={hourly.slice(start, start + 48)} />
         </View>
 
         <View style={cardStyles.card}>
-          <Text style={cardStyles.cardTitle}>Prévisions sur 7 jours</Text>
+          <Text style={cardStyles.cardTitle}>{t('meteo.septJours')}</Text>
           <DailyList days={daily} ville={ville} />
         </View>
       </ScrollView>

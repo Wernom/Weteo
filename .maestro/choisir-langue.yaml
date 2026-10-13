@@ -1,0 +1,32 @@
+# L'utilisateur passe l'app en anglais depuis Réglages : les onglets changent aussitôt.
+# Puis il revient au français. Localisation refusée pour ne pas dépendre du réseau.
+appId: com.wernom.weteo
+name: Choisir ma langue
+---
+- runFlow: localisation-refusee.yaml
+- tapOn:
+    id: onglet-reglages
+- assertVisible:
+    id: langue-fr
+    checked: true
+- tapOn:
+    id: langue-en
+- assertVisible: 'Settings'
+- assertVisible: 'Weather'
+- assertVisible:
+    id: langue-en
+    checked: true
+# Le choix est retenu au relancement.
+- stopApp
+- launchApp
+- tapOn:
+    id: onglet-reglages
+- assertVisible:
+    id: langue-en
+    checked: true
+- tapOn:
+    id: langue-fr
+- assertVisible: 'Météo'
+- assertVisible:
+    id: langue-fr
+    checked: true

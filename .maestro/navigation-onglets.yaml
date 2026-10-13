@@ -21,7 +21,8 @@ name: Navigation par onglets
     selected: true
 - tapOn:
     id: onglet-reglages
-- assertVisible: 'Aucun réglage pour le moment.'
+- assertVisible:
+    id: langue-fr
 - assertVisible:
     id: onglet-reglages
     selected: true

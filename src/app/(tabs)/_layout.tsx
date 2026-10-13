@@ -1,7 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
+import { useTranslation } from 'react-i18next';
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -14,7 +16,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Météo',
+          title: t('onglets.meteo'),
           tabBarButtonTestID: 'onglet-meteo',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="partly-sunny" color={color} size={size} />
@@ -24,7 +26,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="villes"
         options={{
-          title: 'Villes',
+          title: t('onglets.villes'),
           tabBarButtonTestID: 'onglet-villes',
           tabBarIcon: ({ color, size }) => <Ionicons name="list" color={color} size={size} />,
         }}
@@ -32,7 +34,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="reglages"
         options={{
-          title: 'Réglages',
+          title: t('onglets.reglages'),
           tabBarButtonTestID: 'onglet-reglages',
           tabBarIcon: ({ color, size }) => <Ionicons name="settings" color={color} size={size} />,
         }}

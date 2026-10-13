@@ -1,0 +1,62 @@
+{
+  "onglets": { "meteo": "Météo", "villes": "Villes", "reglages": "Réglages" },
+  "meteo": {
+    "maPosition": "Ma position",
+    "maPositionLieu": "Ma position · {{place}}",
+    "maxMin": "Max {{max}}° · Min {{min}}°",
+    "ressenti": "Ressenti {{temperature}}°",
+    "humidite": "Humidité {{humidity}}%",
+    "vent": "Vent {{speed}} km/h",
+    "heureParHeure": "Heure par heure",
+    "septJours": "Prévisions sur 7 jours",
+    "page": "Page {{current}} sur {{total}}",
+    "maintenant": "Maintenant",
+    "aujourdhui": "Aujourd'hui",
+    "jourDetail": "{{day}}, {{weather}}, minimum {{min}}°, maximum {{max}}°",
+    "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, pluie {{rain}} %"
+  },
+  "jour": {
+    "temperatures": "Températures",
+    "precipitations": "Précipitations {{amount}} mm · {{chance}} %",
+    "lever": "Lever {{time}}",
+    "coucher": "Coucher {{time}}",
+    "courbe": "Minimum {{coldest}}, maximum {{warmest}}",
+    "temperatureA": "{{temperature}}° à {{hour}}",
+    "astuce": "Touchez la courbe pour le détail heure par heure."
+  },
+  "villes": {
+    "titre": "Rechercher une ville",
+    "champ": "Nom de la ville",
+    "exemple": "Paris, Lyon, Montréal…",
+    "deuxLettres": "Tapez au moins 2 lettres.",
+    "aucune": "Aucune ville trouvée pour « {{term}} ». Vérifiez l'orthographe.",
+    "ajouter": "Ajouter {{name}} aux favoris",
+    "retirer": "Retirer {{name}} des favoris",
+    "monter": "Monter {{name}}",
+    "descendre": "Descendre {{name}}",
+    "supprimer": "Supprimer {{name}}"
+  },
+  "reglages": { "titre": "Réglages", "langue": "Langue" },
+  "temps": {
+    "degage": "Ciel dégagé",
+    "peuNuageux": "Peu nuageux",
+    "couvert": "Couvert",
+    "brouillard": "Brouillard",
+    "bruine": "Bruine",
+    "pluie": "Pluie",
+    "neige": "Neige",
+    "averses": "Averses",
+    "aversesNeige": "Averses de neige",
+    "orage": "Orage"
+  },
+  "erreurs": {
+    "reseau": "Pas de connexion internet. Vérifiez votre réseau.",
+    "http": "Le service météo est indisponible pour le moment.",
+    "delai": "Le service météo met trop de temps à répondre.",
+    "donnees": "Les données météo reçues sont invalides.",
+    "localisation": "Autorisez la localisation pour voir la météo autour de vous.",
+    "chargement": "Impossible de charger la météo.",
+    "inattendue": "Une erreur inattendue est survenue.",
+    "reessayer": "Réessayer"
+  }
+}

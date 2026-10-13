@@ -2,9 +2,11 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { dayLabel } from '../../DailyList';
+import { formatClock } from '../../i18n';
 import { TemperatureChart } from '../../TemperatureChart';
 import { cardStyles } from '../../WeatherView';
 import {
@@ -19,6 +21,7 @@ import {
 export { ErrorBoundary } from '../../ErrorScreen';
 
 export default function DayScreen() {
+  const { t, i18n } = useTranslation();
   const { date, ville } = useLocalSearchParams<{ date: string; ville?: string }>();
   // On arrive depuis la liste 7 jours de ma position ou d'une ville : sa météo est déjà en cache.
   const key = ville ? cityQueryKey(ville) : WEATHER_QUERY_KEY;
@@ -30,9 +33,9 @@ export default function DayScreen() {
   const hours = forecast.hourly.filter((h) => h.time.startsWith(date));
   const d = describeWeather(day.weatherCode);
   const gradient = GRADIENTS[d.theme];
-  // Heures lues telles quelles : c'est l'heure locale du lieu, pas celle du téléphone.
-  const clock = (iso: string) => iso.slice(11, 16);
-  const precipitation = day.precipitation.toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+  const precipitation = day.precipitation.toLocaleString(i18n.language, {
+    maximumFractionDigits: 1,
+  });
 
   return (
     <LinearGradient colors={gradient} style={styles.container}>
@@ -42,7 +45,7 @@ export default function DayScreen() {
           title: dayLabel(date, index),
           headerTransparent: true,
           headerTintColor: '#fff',
-          headerBackTitle: 'Météo',
+          headerBackTitle: t('onglets.meteo'),
         }}
       />
       <ScrollView contentContainerStyle={styles.content}>
@@ -53,16 +56,20 @@ export default function DayScreen() {
         </Text>
 
         <View style={cardStyles.card}>
-          <Text style={cardStyles.cardTitle}>Températures</Text>
+          <Text style={cardStyles.cardTitle}>{t('jour.temperatures')}</Text>
           <TemperatureChart hours={hours} />
         </View>
 
         <View style={[cardStyles.card, cardStyles.details]}>
           <Text style={cardStyles.detail}>
-            Précipitations {precipitation} mm · {day.rainChance} %
+            {t('jour.precipitations', { amount: precipitation, chance: day.rainChance })}
           </Text>
-          <Text style={cardStyles.detail}>Lever {clock(day.sunrise)}</Text>
-          <Text style={cardStyles.detail}>Coucher {clock(day.sunset)}</Text>
+          <Text style={cardStyles.detail}>
+            {t('jour.lever', { time: formatClock(day.sunrise) })}
+          </Text>
+          <Text style={cardStyles.detail}>
+            {t('jour.coucher', { time: formatClock(day.sunset) })}
+          </Text>
         </View>
       </ScrollView>
     </LinearGradient>

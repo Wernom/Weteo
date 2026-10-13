@@ -30,7 +30,8 @@
         }
       ],
       "expo-router",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-localization"
     ],
     "scheme": "weteo"
   }

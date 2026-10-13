@@ -1,0 +1,62 @@
+{
+  "onglets": { "meteo": "Wetter", "villes": "Städte", "reglages": "Einstellungen" },
+  "meteo": {
+    "maPosition": "Mein Standort",
+    "maPositionLieu": "Mein Standort · {{place}}",
+    "maxMin": "Max {{max}}° · Min {{min}}°",
+    "ressenti": "Gefühlt {{temperature}}°",
+    "humidite": "Luftfeuchtigkeit {{humidity}}%",
+    "vent": "Wind {{speed}} km/h",
+    "heureParHeure": "Stündlich",
+    "septJours": "7-Tage-Vorhersage",
+    "page": "Seite {{current}} von {{total}}",
+    "maintenant": "Jetzt",
+    "aujourdhui": "Heute",
+    "jourDetail": "{{day}}, {{weather}}, Tiefstwert {{min}}°, Höchstwert {{max}}°",
+    "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, Regen {{rain}} %"
+  },
+  "jour": {
+    "temperatures": "Temperaturen",
+    "precipitations": "Niederschlag {{amount}} mm · {{chance}} %",
+    "lever": "Sonnenaufgang {{time}}",
+    "coucher": "Sonnenuntergang {{time}}",
+    "courbe": "Tiefstwert {{coldest}}, Höchstwert {{warmest}}",
+    "temperatureA": "{{temperature}}° um {{hour}}",
+    "astuce": "Tippe auf die Kurve für Details zu jeder Stunde."
+  },
+  "villes": {
+    "titre": "Stadt suchen",
+    "champ": "Name der Stadt",
+    "exemple": "Berlin, München, Wien…",
+    "deuxLettres": "Gib mindestens 2 Buchstaben ein.",
+    "aucune": "Keine Stadt für „{{term}}“ gefunden. Prüfe die Schreibweise.",
+    "ajouter": "{{name}} zu Favoriten hinzufügen",
+    "retirer": "{{name}} aus Favoriten entfernen",
+    "monter": "{{name}} nach oben",
+    "descendre": "{{name}} nach unten",
+    "supprimer": "{{name}} löschen"
+  },
+  "reglages": { "titre": "Einstellungen", "langue": "Sprache" },
+  "temps": {
+    "degage": "Klarer Himmel",
+    "peuNuageux": "Leicht bewölkt",
+    "couvert": "Bedeckt",
+    "brouillard": "Nebel",
+    "bruine": "Nieselregen",
+    "pluie": "Regen",
+    "neige": "Schnee",
+    "averses": "Schauer",
+    "aversesNeige": "Schneeschauer",
+    "orage": "Gewitter"
+  },
+  "erreurs": {
+    "reseau": "Keine Internetverbindung. Prüfe dein Netzwerk.",
+    "http": "Der Wetterdienst ist gerade nicht verfügbar.",
+    "delai": "Der Wetterdienst antwortet zu langsam.",
+    "donnees": "Die empfangenen Wetterdaten sind ungültig.",
+    "localisation": "Erlaube den Standortzugriff, um das Wetter in deiner Nähe zu sehen.",
+    "chargement": "Das Wetter kann nicht geladen werden.",
+    "inattendue": "Ein unerwarteter Fehler ist aufgetreten.",
+    "reessayer": "Erneut versuchen"
+  }
+}

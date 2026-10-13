@@ -1,7 +1,6 @@
 // Lance les tests Maestro de bout en bout : démarre l'émulateur si besoin,
 // construit et installe l'APK release, puis joue les flows de .maestro.
 import { execSync, spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
@@ -11,18 +10,18 @@ const tool = (dir, name) =>
   process.env.ANDROID_HOME ? path.join(process.env.ANDROID_HOME, dir, name) : name;
 const adb = `"${tool('platform-tools', 'adb')}"`;
 
-if (!/\tdevice\b/.test(output(`${adb} devices`))) {
-  const emulator = tool('emulator', process.platform === 'win32' ? 'emulator.exe' : 'emulator');
-  const avd = process.env.AVD ?? output(`"${emulator}" -list-avds`).split(/\r?\n/)[0];
-  console.log(`Démarrage de l'émulateur ${avd}…`);
-  spawn(emulator, ['-avd', avd, '-no-snapshot-save', '-no-boot-anim'], {
-    detached: true,
-    stdio: 'ignore',
-  }).unref();
+const bootId = () => output(`${adb} shell cat /proc/sys/kernel/random/boot_id`).trim();
+
+// `previousBoot` : après un `adb reboot`, l'ancien système peut encore répondre « démarré » ;
+// on attend un nouveau démarrage.
+async function waitForBoot(previousBoot) {
   run(`${adb} wait-for-device`, { timeout: 180_000 });
   const booted = () => {
     try {
-      return output(`${adb} shell getprop sys.boot_completed`).trim() === '1';
+      return (
+        output(`${adb} shell getprop sys.boot_completed`).trim() === '1' &&
+        bootId() !== previousBoot
+      );
     } catch {
       return false; // l'émulateur peut être encore « offline »
     }
@@ -34,20 +33,49 @@ if (!/\tdevice\b/.test(output(`${adb} devices`))) {
   }
 }
 
-let cwd = process.cwd();
-let drive;
-if (process.platform === 'win32') {
-  // ponytail: certains chemins du build C++ dépassent 260 caractères sous Windows ;
-  // on construit depuis un lecteur virtuel court. À retirer si les chemins longs sont activés.
-  drive = ['W:', 'V:', 'U:', 'T:'].find((d) => !existsSync(`${d}/`));
-  if (!drive) throw new Error('Aucune lettre de lecteur libre parmi W:, V:, U:, T:.');
-  run(`subst ${drive} "${path.dirname(cwd)}"`);
-  cwd = path.join(`${drive}/`, path.basename(cwd));
+if (!/\tdevice\b/.test(output(`${adb} devices`))) {
+  const emulator = tool('emulator', process.platform === 'win32' ? 'emulator.exe' : 'emulator');
+  const avd = process.env.AVD ?? output(`"${emulator}" -list-avds`).split(/\r?\n/)[0];
+  console.log(`Démarrage de l'émulateur ${avd}…`);
+  spawn(emulator, ['-avd', avd, '-no-snapshot-save', '-no-boot-anim'], {
+    detached: true,
+    stdio: 'ignore',
+  }).unref();
+  await waitForBoot();
 }
-try {
-  run('npx expo run:android --variant release --no-bundler', { cwd });
-} finally {
-  if (drive) run(`subst ${drive} /D`);
+
+// Les scénarios lisent les textes en français et l'app suit la langue du téléphone.
+const french = () => output(`${adb} shell getprop persist.sys.locale`).startsWith('fr');
+if (!french()) {
+  console.log("Passage de l'émulateur en français…");
+  // Android récent : sans root ni redémarrage.
+  try {
+    output(`${adb} shell cmd locale set-device-locale fr-FR`);
+  } catch {}
+  if (!french()) {
+    // Android plus ancien : il faut root (image « Google APIs », pas « Google Play »).
+    try {
+      run(`${adb} root`);
+      run(`${adb} wait-for-device`);
+      run(`${adb} shell setprop persist.sys.locale fr-FR`);
+    } catch {
+      throw new Error(
+        "Impossible de passer l'émulateur en français sans root : choisissez Français dans " +
+          'Paramètres > Système > Langues, ou utilisez une image « Google APIs ».',
+      );
+    }
+    const previousBoot = bootId();
+    run(`${adb} reboot`);
+    await waitForBoot(previousBoot);
+  }
 }
+
+// Seule l'architecture de l'émulateur est construite : 4 fois plus rapide.
+// Sous Windows, certains chemins du build C++ dépassent 260 caractères : il faut les chemins
+// longs activés et ninja ≥ 1.12 dans Android/Sdk/cmake/<version>/bin (1.10 fourni avec 3.22.1).
+const abi = output(`${adb} shell getprop ro.product.cpu.abi`).trim();
+run('npx expo run:android --variant release --no-bundler', {
+  env: { ...process.env, ORG_GRADLE_PROJECT_reactNativeArchitectures: abi },
+});
 
 run('maestro test .maestro');

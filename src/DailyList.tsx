@@ -1,8 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import i18n, { formatWeekday } from './i18n';
 import {
   DailyForecast,
   describeWeather,
@@ -14,6 +16,7 @@ import {
 // Une ligne par jour ; le premier est aujourd'hui. Toucher un jour ouvre son détail,
 // celui de la ville `ville` si elle est donnée, sinon celui de ma position.
 export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: string }) {
+  const { t } = useTranslation();
   // Échelle commune des barres : la plus basse et la plus haute de la semaine.
   const lo = Math.min(...days.map((d) => d.min));
   const hi = Math.max(...days.map((d) => d.max));
@@ -30,7 +33,7 @@ export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: stri
             testID={`jour-${i}`}
             style={styles.row}
             accessibilityRole="button"
-            accessibilityLabel={`${label}, ${d.label}, minimum ${min}°, maximum ${max}°`}
+            accessibilityLabel={t('meteo.jourDetail', { day: label, weather: d.label, min, max })}
             onPress={() => router.push(`/jour/${day.date}${ville ? `?ville=${ville}` : ''}`)}
           >
             <Text style={styles.day}>{label}</Text>
@@ -54,12 +57,7 @@ export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: stri
 
 // `index` 0 est aujourd'hui.
 export function dayLabel(isoDate: string, index: number) {
-  return index === 0 ? "Aujourd'hui" : formatDay(isoDate);
-}
-
-function formatDay(isoDate: string) {
-  const label = new Date(`${isoDate}T12:00:00`).toLocaleDateString('fr-FR', { weekday: 'long' });
-  return label.charAt(0).toUpperCase() + label.slice(1);
+  return index === 0 ? i18n.t('meteo.aujourdhui') : formatWeekday(isoDate);
 }
 
 function barStyle(min: number, max: number, lo: number, hi: number) {

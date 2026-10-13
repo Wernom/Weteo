@@ -1,0 +1,62 @@
+{
+  "onglets": { "meteo": "Weather", "villes": "Cities", "reglages": "Settings" },
+  "meteo": {
+    "maPosition": "My location",
+    "maPositionLieu": "My location · {{place}}",
+    "maxMin": "H {{max}}° · L {{min}}°",
+    "ressenti": "Feels like {{temperature}}°",
+    "humidite": "Humidity {{humidity}}%",
+    "vent": "Wind {{speed}} km/h",
+    "heureParHeure": "Hourly",
+    "septJours": "7-day forecast",
+    "page": "Page {{current}} of {{total}}",
+    "maintenant": "Now",
+    "aujourdhui": "Today",
+    "jourDetail": "{{day}}, {{weather}}, low {{min}}°, high {{max}}°",
+    "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, rain {{rain}}%"
+  },
+  "jour": {
+    "temperatures": "Temperatures",
+    "precipitations": "Precipitation {{amount}} mm · {{chance}}%",
+    "lever": "Sunrise {{time}}",
+    "coucher": "Sunset {{time}}",
+    "courbe": "Low {{coldest}}, high {{warmest}}",
+    "temperatureA": "{{temperature}}° at {{hour}}",
+    "astuce": "Touch the curve for hour-by-hour details."
+  },
+  "villes": {
+    "titre": "Search for a city",
+    "champ": "City name",
+    "exemple": "London, New York, Sydney…",
+    "deuxLettres": "Type at least 2 letters.",
+    "aucune": "No city found for “{{term}}”. Check the spelling.",
+    "ajouter": "Add {{name}} to favorites",
+    "retirer": "Remove {{name}} from favorites",
+    "monter": "Move {{name}} up",
+    "descendre": "Move {{name}} down",
+    "supprimer": "Delete {{name}}"
+  },
+  "reglages": { "titre": "Settings", "langue": "Language" },
+  "temps": {
+    "degage": "Clear sky",
+    "peuNuageux": "Partly cloudy",
+    "couvert": "Overcast",
+    "brouillard": "Fog",
+    "bruine": "Drizzle",
+    "pluie": "Rain",
+    "neige": "Snow",
+    "averses": "Showers",
+    "aversesNeige": "Snow showers",
+    "orage": "Thunderstorm"
+  },
+  "erreurs": {
+    "reseau": "No internet connection. Check your network.",
+    "http": "The weather service is unavailable right now.",
+    "delai": "The weather service is taking too long to respond.",
+    "donnees": "The weather data received is invalid.",
+    "localisation": "Allow location access to see the weather around you.",
+    "chargement": "Unable to load the weather.",
+    "inattendue": "An unexpected error occurred.",
+    "reessayer": "Try again"
+  }
+}

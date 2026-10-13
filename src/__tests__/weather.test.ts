@@ -95,12 +95,12 @@ describe("erreurs de l'API", () => {
 
   it('sans réseau', async () => {
     jest.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Network request failed'));
-    await failsWith('reseau', 'Pas de connexion internet. Vérifiez votre réseau.');
+    await failsWith('reseau', 'erreurs.reseau');
   });
 
   it("quand l'API répond en erreur", async () => {
     jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 503 } as Response);
-    await failsWith('http', 'Le service météo est indisponible pour le moment.', 503);
+    await failsWith('http', 'erreurs.http', 503);
   });
 
   it('quand la réponse dépasse 10 s', async () => {
@@ -114,7 +114,7 @@ describe("erreurs de l'API", () => {
             init!.signal!.addEventListener('abort', () => reject(new Error('Aborted'))),
           ),
       );
-    const result = failsWith('delai', 'Le service météo met trop de temps à répondre.');
+    const result = failsWith('delai', 'erreurs.delai');
     jest.advanceTimersByTime(10_000);
     await result;
   });
@@ -124,7 +124,7 @@ describe("erreurs de l'API", () => {
     ['qui ne sont pas du JSON', async () => Promise.reject(new SyntaxError('JSON Parse error'))],
   ])('quand les données sont %s', async (_, json) => {
     jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json } as unknown as Response);
-    await failsWith('donnees', 'Les données météo reçues sont invalides.');
+    await failsWith('donnees', 'erreurs.donnees');
   });
 });
 

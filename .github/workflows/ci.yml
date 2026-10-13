@@ -76,7 +76,12 @@ jobs:
           target: google_apis
           arch: x86_64
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          # Les scénarios lisent les textes en français et l'app suit la langue du téléphone.
+          # Chaque ligne du script s'exécute à part.
           script: |
+            adb root && adb wait-for-device && adb shell setprop persist.sys.locale fr-FR
+            echo "$(adb shell cat /proc/sys/kernel/random/boot_id)" > boot_id && adb reboot && adb wait-for-device
+            until [ "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1 ] && [ "$(adb shell cat /proc/sys/kernel/random/boot_id)" != "$(cat boot_id)" ]; do sleep 3; done
             adb install android/app/build/outputs/apk/release/app-release.apk
             maestro test .maestro --format junit --output maestro-report.xml
 
