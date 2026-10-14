@@ -3,8 +3,8 @@
   "meteo": {
     "maPosition": "My location",
     "maPositionLieu": "My location · {{place}}",
-    "maxMin": "H {{max}}° · L {{min}}°",
-    "ressenti": "Feels like {{temperature}}°",
+    "maxMin": "H {{max}} · L {{min}}",
+    "ressenti": "Feels like {{temperature}}",
     "humidite": "Humidity {{humidity}}%",
     "vent": "Wind {{speed}}",
     "heureParHeure": "Hourly",
@@ -12,8 +12,9 @@
     "page": "Page {{current}} of {{total}}",
     "maintenant": "Now",
     "aujourdhui": "Today",
-    "jourDetail": "{{day}}, {{weather}}, low {{min}}°, high {{max}}°",
-    "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, rain {{rain}}%"
+    "jourDetail": "{{day}}, {{weather}}, low {{min}}, high {{max}}",
+    "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, rain {{rain}}%",
+    "pourcent": "{{value}}%"
   },
   "jour": {
     "temperatures": "Temperatures",
@@ -21,7 +22,7 @@
     "lever": "Sunrise {{time}}",
     "coucher": "Sunset {{time}}",
     "courbe": "Low {{coldest}}, high {{warmest}}",
-    "temperatureA": "{{temperature}}° at {{hour}}",
+    "temperatureA": "{{temperature}} at {{hour}}",
     "astuce": "Touch the curve for hour-by-hour details."
   },
   "villes": {

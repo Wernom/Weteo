@@ -1,13 +1,11 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, userEvent } from '@testing-library/react-native';
 import * as Location from 'expo-location';
 import { router, useLocalSearchParams } from 'expo-router';
 import Storage from 'expo-sqlite/kv-store';
 
 import CityScreen from '../src/app/ville/[id]';
-import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
-
-jest.mock('expo-location', () => ({ requestForegroundPermissionsAsync: jest.fn() }));
+import { LYON, mockFetch, newClient } from '../jest/helpers';
 
 jest.mock('expo-router', () => ({
   router: { push: jest.fn() },
@@ -18,20 +16,12 @@ jest.mock('expo-router', () => ({
 
 async function renderCity() {
   jest.mocked(useLocalSearchParams).mockReturnValue({
-    id: '2996944',
-    name: 'Lyon',
-    region: 'Rhône-Alpes',
-    country: 'France',
-    latitude: '45.74906',
-    longitude: '4.84789',
+    id: String(LYON.id),
+    city: JSON.stringify(LYON),
   });
-  const fetchMock = jest
-    .spyOn(globalThis, 'fetch')
-    .mockResolvedValue({ ok: true, json: async () => forecastFixture } as Response);
+  const fetchMock = mockFetch();
   await render(
-    <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })}
-    >
+    <QueryClientProvider client={newClient()}>
       <CityScreen />
     </QueryClientProvider>,
   );
@@ -39,11 +29,6 @@ async function renderCity() {
 }
 
 describe("Écran Météo d'une ville", () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-    Storage.clearSync();
-  });
-
   it('affiche la météo de la ville sans demander la localisation', async () => {
     const fetchMock = await renderCity();
 
@@ -71,16 +56,7 @@ describe("Écran Météo d'une ville", () => {
 
     await user.press(star);
 
-    expect(JSON.parse(Storage.getItemSync('favoris')!)).toEqual([
-      {
-        id: 2996944,
-        name: 'Lyon',
-        region: 'Rhône-Alpes',
-        country: 'France',
-        latitude: 45.74906,
-        longitude: 4.84789,
-      },
-    ]);
+    expect(JSON.parse(Storage.getItemSync('favoris')!)).toEqual([LYON]);
     expect(screen.getByTestId('etoile-ville')).toHaveAccessibleName('Retirer Lyon des favoris');
 
     await user.press(screen.getByTestId('etoile-ville'));

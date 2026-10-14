@@ -12,7 +12,7 @@ export type IconName = ComponentProps<typeof Ionicons>['name'];
 // Client Open-Meteo (gratuit, sans clé API) : https://open-meteo.com/en/docs
 
 // `time` est l'heure locale du lieu (« 2026-10-05T14:15 »), pas celle du téléphone.
-export type CurrentWeather = {
+type CurrentWeather = {
   time: string;
   temperature: number;
   apparentTemperature: number;
@@ -44,7 +44,7 @@ export type HourlyForecast = {
 };
 
 // `hourly` couvre les 7 jours de `daily`, de 00:00 à 23:00.
-export type Forecast = {
+type Forecast = {
   current: CurrentWeather;
   hourly: HourlyForecast[];
   daily: DailyForecast[];
@@ -60,9 +60,10 @@ export const LOCATION_DENIED = 'erreurs.localisation';
 export async function loadWeather(): Promise<WeatherData> {
   const { granted } = await Location.requestForegroundPermissionsAsync();
   if (!granted) throw new Error(LOCATION_DENIED);
-  const { coords } = await Location.getCurrentPositionAsync({
-    accuracy: Location.Accuracy.Balanced,
-  });
+  // Une position de moins de 10 min suffit à la météo, sans attendre le GPS.
+  const { coords } =
+    (await Location.getLastKnownPositionAsync({ maxAge: TEN_MINUTES })) ??
+    (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
   const [forecast, address] = await Promise.all([
     fetchForecast(coords.latitude, coords.longitude),
     Location.reverseGeocodeAsync(coords).catch(() => []),
@@ -75,6 +76,13 @@ export const cityQueryKey = (id: string) => ['meteo', 'ville', id] as const;
 
 // Hors geste, au plus un appel météo toutes les 10 min ; tirer (refetch) passe outre.
 export const TEN_MINUTES = 10 * 60 * 1000;
+
+// Partagée par l'écran Météo et la ligne « Ma position » des villes : même cache.
+export const positionWeatherQuery = queryOptions({
+  queryKey: WEATHER_QUERY_KEY,
+  queryFn: loadWeather,
+  staleTime: TEN_MINUTES,
+});
 
 // Partagée par l'écran ville et la liste des favoris : même cache.
 export const cityWeatherQuery = (city: City) =>

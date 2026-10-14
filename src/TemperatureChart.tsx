@@ -5,7 +5,7 @@ import Svg, { Circle, G, Line, Polyline, Text as SvgText } from 'react-native-sv
 
 import { formatHour } from './i18n';
 import { themedStyles, usePalette } from './theme';
-import { useUnits } from './units';
+import { formatDegrees, useUnits } from './units';
 import { HourlyForecast } from './weather';
 
 const BAND = 30; // bande de la bulle, au-dessus de la courbe : elle ne la cache jamais
@@ -67,13 +67,19 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
   const y = (t: number) => PLOT_HEIGHT - ((t - lo) / (hi - lo)) * PLOT_HEIGHT;
 
   const describe = (i: number) =>
-    t('jour.temperatureA', { temperature: Math.round(temps[i]), hour: formatHour(hours[i].time) });
+    t('jour.temperatureA', {
+      temperature: formatDegrees(temps[i]),
+      hour: formatHour(hours[i].time),
+    });
 
   const select = (x: number) => {
     if (step > 0)
       setSelected(Math.min(Math.max(Math.round((x - AXIS) / step), 0), hours.length - 1));
   };
-  const point = selected === null ? null : hours[selected];
+  const selection =
+    selected === null
+      ? null
+      : { hour: formatHour(hours[selected].time), temperature: formatDegrees(temps[selected]) };
 
   return (
     <View>
@@ -86,9 +92,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
           warmest: describe(temps.indexOf(max)),
         })}
         accessibilityValue={
-          point && selected !== null
-            ? { text: `${formatHour(point.time)}, ${Math.round(temps[selected])}°` }
-            : undefined
+          selection ? { text: `${selection.hour}, ${selection.temperature}` } : undefined
         }
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
         onAccessibilityAction={(e) => {
@@ -123,7 +127,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
                 fontSize={12}
                 textAnchor="end"
               >
-                {`${t}°`}
+                {formatDegrees(t)}
               </SvgText>
             </G>
           ))}
@@ -149,7 +153,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
               strokeLinejoin="round"
               strokeLinecap="round"
             />
-            {point && selected !== null && (
+            {selected !== null && (
               <>
                 {/* Part de la bulle pour la relier au point. */}
                 <Line
@@ -165,7 +169,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
             )}
           </G>
         </Svg>
-        {point && selected !== null && (
+        {selection && selected !== null && (
           <View
             pointerEvents="none"
             style={[
@@ -179,7 +183,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
             ]}
           >
             <Text style={styles.bubbleText}>
-              {formatHour(point.time)} · {Math.round(temps[selected])}°
+              {selection.hour} · {selection.temperature}
             </Text>
           </View>
         )}

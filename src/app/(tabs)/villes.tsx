@@ -2,31 +2,24 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ComponentProps, ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RetryButton } from '../../ErrorScreen';
-import { gradientFor } from '../../WeatherView';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import { useSettings } from '../../settings';
-import { iconColor, themedStyles, usePalette } from '../../theme';
+import { Screen, useScreenStyles } from '../../Screen';
+import { gradientFor, iconColor, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
 import {
   City,
   cityWeatherQuery,
   describeWeather,
-  loadWeather,
+  IconName,
+  positionWeatherQuery,
   searchCities,
-  WEATHER_QUERY_KEY,
   WeatherData,
 } from '../../weather';
 
@@ -37,6 +30,8 @@ export default function CitiesScreen() {
   const { language } = useSettings();
   const c = usePalette();
   const styles = useStyles();
+  const shared = useScreenStyles();
+  const { top } = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [term, setTerm] = useState('');
   const favorites = useFavorites();
@@ -64,8 +59,8 @@ export default function CitiesScreen() {
   else if (data?.length === 0) message = t('villes.aucune', { term });
 
   return (
-    <LinearGradient colors={c.gradients.jour} style={styles.container}>
-      <Text style={styles.title} accessibilityRole="header">
+    <Screen style={[styles.container, { paddingTop: top + 32 }]}>
+      <Text style={shared.title} accessibilityRole="header">
         {t('villes.titre')}
       </Text>
       <TextInput
@@ -104,7 +99,7 @@ export default function CitiesScreen() {
           )}
         />
       )}
-    </LinearGradient>
+    </Screen>
   );
 }
 
@@ -113,14 +108,7 @@ const where = (city: City) => [city.region, city.country].filter(Boolean).join('
 function openCity(city: City) {
   router.push({
     pathname: '/ville/[id]',
-    params: {
-      id: String(city.id),
-      name: city.name,
-      region: city.region ?? '',
-      country: city.country,
-      latitude: String(city.latitude),
-      longitude: String(city.longitude),
-    },
+    params: { id: String(city.id), city: JSON.stringify(city) },
   });
 }
 
@@ -131,8 +119,9 @@ const openPage = (page: number) =>
 function CityRow({ city, index, favorite }: { city: City; index: number; favorite: boolean }) {
   const { t } = useTranslation();
   const styles = useStyles();
+  const shared = useScreenStyles();
   return (
-    <View style={styles.row}>
+    <View style={[shared.card, styles.row]}>
       <Pressable
         testID={`ville-${index}`}
         style={styles.grow}
@@ -159,12 +148,7 @@ function MyPositionRow() {
   const { t } = useTranslation();
   const c = usePalette();
   const styles = useStyles();
-  // Pas de skipToken : il remplacerait loadWeather pour un nouvel essai en cours (voir l'onglet Météo).
-  const { data } = useQuery<WeatherData>({
-    queryKey: WEATHER_QUERY_KEY,
-    queryFn: loadWeather,
-    enabled: false,
-  });
+  const { data } = useQuery({ ...positionWeatherQuery, enabled: false });
   const title = data?.place
     ? t('meteo.maPositionLieu', { place: data.place })
     : t('meteo.maPosition');
@@ -229,12 +213,13 @@ function FavoriteRow({ city, index, last }: { city: City; index: number; last: b
 function WeatherCard({ data, children }: { data: WeatherData | undefined; children: ReactNode }) {
   const c = usePalette();
   const styles = useStyles();
+  const shared = useScreenStyles();
   return (
     <LinearGradient
       colors={data ? gradientFor(c, data) : [c.surface, c.surface]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.row, styles.card]}
+      style={[shared.card, styles.row, styles.card]}
     >
       {children}
     </LinearGradient>
@@ -252,7 +237,7 @@ function WeatherSummary({ data }: { data: WeatherData | undefined }) {
   return (
     <View style={styles.summary}>
       <Ionicons name={icon} size={26} color={iconColor(c, icon)} />
-      <Text style={styles.temperature}>{units.temp(temperature)}°</Text>
+      <Text style={styles.temperature}>{units.temp(temperature)}</Text>
     </View>
   );
 }
@@ -264,7 +249,7 @@ function IconButton({
   disabled,
   testID,
 }: {
-  icon: ComponentProps<typeof Ionicons>['name'];
+  icon: IconName;
   label: string;
   onPress: () => void;
   disabled?: boolean;
@@ -289,8 +274,7 @@ function IconButton({
 }
 
 const useStyles = themedStyles((c) => ({
-  container: { flex: 1, paddingTop: 80, paddingHorizontal: 16 },
-  title: { color: c.text, fontSize: 28, fontWeight: '600', textAlign: 'center' },
+  container: { paddingHorizontal: 16 },
   input: {
     marginTop: 16,
     paddingHorizontal: 16,
@@ -303,25 +287,15 @@ const useStyles = themedStyles((c) => ({
   spinner: { marginTop: 16 },
   center: { alignItems: 'center', marginTop: 24, gap: 16 },
   message: { color: c.secondary, fontSize: 17, textAlign: 'center' },
-  row: {
-    marginTop: 12,
-    padding: 16,
-    borderRadius: 16,
-    backgroundColor: c.surface,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  // Carte commune, plus serrée dans une liste.
+  row: { marginTop: 12, flexDirection: 'row', alignItems: 'center' },
   // Ligne dans une ligne : pas de deuxième fond ni de marge.
   inner: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   grow: { flex: 1 },
   pin: { marginRight: 8 },
   summary: { flexDirection: 'row', alignItems: 'center', marginLeft: 8, gap: 4 },
   temperature: { color: c.text, fontSize: 26, fontWeight: '300' },
-  card: {
-    paddingVertical: 20,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: c.border,
-  },
+  card: { paddingVertical: 20 },
   iconButton: { padding: 6, marginLeft: 4 },
   disabled: { opacity: 0.3 },
   name: { color: c.text, fontSize: 18, fontWeight: '600' },

@@ -44,10 +44,7 @@ const defaults = (): Settings => ({
 
 // Les valeurs par défaut complètent ce qui est stocké : un réglage ajouté dans une
 // nouvelle version a sa valeur par défaut chez un utilisateur déjà installé.
-const store = createStore<Settings>('reglages', (value) => ({
-  ...defaults(),
-  ...(value ? JSON.parse(value) : {}),
-}));
+const store = createStore<Settings>('reglages', (stored) => ({ ...defaults(), ...stored }));
 
 export const useSettings = store.use;
 export const readSettings = store.read;

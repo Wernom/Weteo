@@ -8,44 +8,19 @@ import CitiesScreen from '../src/app/(tabs)/villes';
 import { City, fetchForecast, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 import geocodingFixture from '../__fixtures__/open-meteo-geocoding.json';
+import { LYON, mockFetch as mockApi, newClient, NICE, respond } from '../jest/helpers';
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), navigate: jest.fn() } }));
-jest.mock('expo-location', () => ({ requestForegroundPermissionsAsync: jest.fn() }));
-
-const LYON: City = {
-  id: 2996944,
-  name: 'Lyon',
-  region: 'Rhône-Alpes',
-  country: 'France',
-  latitude: 45.74906,
-  longitude: 4.84789,
-};
-const NICE: City = {
-  id: 2990440,
-  name: 'Nice',
-  region: "Provence-Alpes-Côte d'Azur",
-  country: 'France',
-  latitude: 43.70313,
-  longitude: 7.26608,
-};
-
-function mockApi(response: Partial<Response>) {
-  return jest.spyOn(globalThis, 'fetch').mockResolvedValue(response as Response);
-}
 
 // Recherche → fixture geocoding, prévisions → fixture forecast.
 function mockBothApis() {
   return jest.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
     const json = String(url).includes('geocoding') ? geocodingFixture : forecastFixture;
-    return { ok: true, json: async () => json } as Response;
+    return respond(json);
   });
 }
 
 const storedFavorites = (): City[] => JSON.parse(Storage.getItemSync('favoris') ?? '[]');
-
-function newClient() {
-  return new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
-}
 
 async function renderScreen(client = newClient()) {
   await render(
@@ -66,14 +41,9 @@ async function search(text: string) {
   return user;
 }
 
-afterEach(() => {
-  jest.restoreAllMocks();
-  Storage.clearSync();
-});
-
 describe('Écran Villes', () => {
   it('affiche les villes trouvées avec leur région et leur pays', async () => {
-    const fetchMock = mockApi({ ok: true, json: async () => geocodingFixture });
+    const fetchMock = mockApi(respond(geocodingFixture));
 
     await search('Lyon');
 
@@ -86,7 +56,7 @@ describe('Écran Villes', () => {
   });
 
   it("dit clairement qu'aucune ville n'est trouvée", async () => {
-    mockApi({ ok: true, json: async () => ({ generationtime_ms: 0.2 }) });
+    mockApi(respond({ generationtime_ms: 0.2 }));
 
     await search('zzqxwv');
 
@@ -96,7 +66,7 @@ describe('Écran Villes', () => {
   });
 
   it("n'interroge pas l'API pour une seule lettre", async () => {
-    const fetchMock = mockApi({ ok: true, json: async () => geocodingFixture });
+    const fetchMock = mockApi(respond(geocodingFixture));
 
     await search('L');
 
@@ -112,28 +82,21 @@ describe('Écran Villes', () => {
       await screen.findByText('Le service météo est indisponible pour le moment.'),
     ).toBeOnTheScreen();
 
-    fetchMock.mockResolvedValue({ ok: true, json: async () => geocodingFixture } as Response);
+    fetchMock.mockResolvedValue(respond(geocodingFixture));
     await user.press(screen.getByText('Réessayer'));
 
     expect(await screen.findByText('Rhône-Alpes, France')).toBeOnTheScreen();
   });
 
   it('toucher une ville ouvre sa météo', async () => {
-    mockApi({ ok: true, json: async () => geocodingFixture });
+    mockApi(respond(geocodingFixture));
 
     const user = await search('Lyon');
     await user.press(await screen.findByTestId('ville-0'));
 
     expect(router.push).toHaveBeenCalledWith({
       pathname: '/ville/[id]',
-      params: {
-        id: '2996944',
-        name: 'Lyon',
-        region: 'Rhône-Alpes',
-        country: 'France',
-        latitude: '45.74906',
-        longitude: '4.84789',
-      },
+      params: { id: '2996944', city: JSON.stringify(LYON) },
     });
   });
 });

@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { translateFavorites } from '../../favorites';
 import { setLanguage } from '../../i18n';
@@ -9,14 +9,15 @@ import {
   Language,
   LANGUAGES,
   PRECIPITATION_UNITS,
+  readSettings,
   setSetting,
   TEMPERATURE_UNITS,
   THEMES,
   useSettings,
   WIND_UNITS,
 } from '../../settings';
+import { Screen, useScreenStyles } from '../../Screen';
 import { themedStyles, usePalette } from '../../theme';
-import { useCardStyles } from '../../WeatherView';
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
@@ -29,7 +30,9 @@ const LANGUAGE_NAMES: Record<Language, string> = {
   es: 'Español',
 };
 
+// Retoucher la langue affichée ne relance pas la traduction des favoris (un appel par ville).
 function chooseLanguage(language: Language) {
+  if (language === readSettings().language) return;
   setLanguage(language);
   translateFavorites(language);
 }
@@ -38,11 +41,13 @@ export default function SettingsScreen() {
   const { t } = useTranslation();
   const { language, temperature, wind, precipitation, theme } = useSettings();
   const styles = useStyles();
+  const shared = useScreenStyles();
+  const { top } = useSafeAreaInsets();
   const unit = (code: string) => t(`unites.${code}`);
   return (
-    <LinearGradient colors={usePalette().gradients.jour} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title} accessibilityRole="header">
+    <Screen>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: top + 32 }]}>
+        <Text style={shared.title} accessibilityRole="header">
           {t('reglages.titre')}
         </Text>
         <Choices
@@ -86,7 +91,7 @@ export default function SettingsScreen() {
           testID="theme"
         />
       </ScrollView>
-    </LinearGradient>
+    </Screen>
   );
 }
 
@@ -108,13 +113,13 @@ function Choices<T extends string>({
 }) {
   const c = usePalette();
   const styles = useStyles();
-  const cardStyles = useCardStyles();
+  const shared = useScreenStyles();
   return (
     <>
-      <Text style={[cardStyles.cardTitle, styles.section]} accessibilityRole="header">
+      <Text style={[shared.cardTitle, styles.section]} accessibilityRole="header">
         {title}
       </Text>
-      <View style={styles.card} accessibilityRole="radiogroup">
+      <View style={[shared.card, styles.card]} accessibilityRole="radiogroup">
         {options.map((option) => {
           const checked = option === value;
           return (
@@ -137,11 +142,10 @@ function Choices<T extends string>({
 }
 
 const useStyles = themedStyles((c) => ({
-  container: { flex: 1 },
-  content: { paddingTop: 80, paddingHorizontal: 16, paddingBottom: 40 },
-  title: { color: c.text, fontSize: 28, fontWeight: '600', textAlign: 'center' },
+  content: { paddingHorizontal: 16, paddingBottom: 40 },
   section: { marginTop: 24 },
-  card: { borderRadius: 16, backgroundColor: c.surface, overflow: 'hidden' },
+  // Carte commune, collée à son titre ; les lignes portent la marge intérieure.
+  card: { marginTop: 0, padding: 0, overflow: 'hidden' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

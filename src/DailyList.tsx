@@ -38,7 +38,7 @@ export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: stri
           >
             <Text style={styles.day}>{label}</Text>
             <Ionicons name={d.icon} size={24} color={iconColor(c, d.icon)} />
-            <Text style={[styles.temp, styles.min]}>{min}°</Text>
+            <Text style={[styles.temp, styles.min]}>{min}</Text>
             <View style={styles.track}>
               <LinearGradient
                 colors={[temperatureColor(c, day.min), temperatureColor(c, day.max)]}
@@ -47,7 +47,7 @@ export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: stri
                 style={[styles.bar, barStyle(day.min, day.max, lo, hi)]}
               />
             </View>
-            <Text style={styles.temp}>{max}°</Text>
+            <Text style={styles.temp}>{max}</Text>
           </Pressable>
         );
       })}

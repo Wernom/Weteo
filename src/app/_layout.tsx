@@ -1,3 +1,6 @@
+// Textes prêts avant le premier écran, y compris celui d'erreur.
+import '../i18n';
+
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';

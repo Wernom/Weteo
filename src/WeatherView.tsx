@@ -1,6 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import type { UseQueryResult } from '@tanstack/react-query';
-import { LinearGradient } from 'expo-linear-gradient';
 import type { Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,23 +7,18 @@ import {
   RefreshControl,
   ScrollView,
   ScrollViewProps,
-  StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DailyList } from './DailyList';
 import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
-import { iconColor, Palette, themedStyles, usePalette } from './theme';
+import { Screen, useScreenStyles } from './Screen';
+import { gradientFor, iconColor, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
 import { describeWeather, WeatherData } from './weather';
-
-// Fond du temps actuel, ou du jour tant que la météo n'est pas chargée.
-export function gradientFor(c: Palette, data: WeatherData | undefined) {
-  const current = data?.forecast.current;
-  return c.gradients[current ? describeWeather(current.weatherCode, current.isDay).theme : 'jour'];
-}
 
 // Météo d'un lieu (ma position ou une ville) : chargement, erreur avec « Réessayer », puis le détail.
 // `ville` est passé au détail d'un jour pour qu'il lise la météo de la bonne ville ; sans `ville`,
@@ -45,7 +39,8 @@ export function WeatherView({
   const units = useUnits();
   const c = usePalette();
   const styles = useStyles();
-  const cardStyles = useCardStyles();
+  const shared = useScreenStyles();
+  const { top } = useSafeAreaInsets();
   const reload = () => refetch();
   const gradient = gradientFor(c, data);
 
@@ -54,9 +49,9 @@ export function WeatherView({
   }
   if (!data) {
     return (
-      <LinearGradient colors={gradient} style={[styles.container, styles.center]}>
+      <Screen colors={gradient} style={styles.center}>
         <ActivityIndicator size="large" color={c.text} />
-      </LinearGradient>
+      </Screen>
     );
   }
 
@@ -67,12 +62,12 @@ export function WeatherView({
   const start = hourly.findIndex((h) => h.time >= current.time.slice(0, 13));
 
   return (
-    <LinearGradient testID="fond-meteo" colors={gradient} style={styles.container}>
+    <Screen testID="fond-meteo" colors={gradient}>
       <ScrollView
         ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingTop: top + 16 }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={reload} tintColor={c.text} />
         }
@@ -83,7 +78,7 @@ export function WeatherView({
             <Text style={styles.positionText}>{t('meteo.maPosition')}</Text>
           </View>
         )}
-        <Text style={styles.place}>{data.place ?? t('meteo.maPosition')}</Text>
+        <Text style={shared.title}>{data.place ?? t('meteo.maPosition')}</Text>
         <Ionicons
           name={now.icon}
           size={72}
@@ -92,7 +87,7 @@ export function WeatherView({
           accessible={false}
         />
         <Text style={styles.temp} maxFontSizeMultiplier={1.5}>
-          {units.temp(current.temperature)}°
+          {units.temp(current.temperature)}
         </Text>
         <Text style={styles.label}>{now.label}</Text>
         {today && (
@@ -101,34 +96,31 @@ export function WeatherView({
           </Text>
         )}
 
-        <View style={[cardStyles.card, cardStyles.details]}>
-          <Text style={cardStyles.detail}>
+        <View style={[shared.card, shared.details]}>
+          <Text style={shared.detail}>
             {t('meteo.ressenti', { temperature: units.temp(current.apparentTemperature) })}
           </Text>
-          <Text style={cardStyles.detail}>
-            {t('meteo.humidite', { humidity: current.humidity })}
-          </Text>
-          <Text style={cardStyles.detail}>
+          <Text style={shared.detail}>{t('meteo.humidite', { humidity: current.humidity })}</Text>
+          <Text style={shared.detail}>
             {t('meteo.vent', { speed: units.wind(current.windSpeed) })}
           </Text>
         </View>
 
-        <View style={cardStyles.card}>
-          <Text style={cardStyles.cardTitle}>{t('meteo.heureParHeure')}</Text>
+        <View style={shared.card}>
+          <Text style={shared.cardTitle}>{t('meteo.heureParHeure')}</Text>
           <HourlyStrip hours={hourly.slice(start, start + 48)} />
         </View>
 
-        <View style={cardStyles.card}>
-          <Text style={cardStyles.cardTitle}>{t('meteo.septJours')}</Text>
+        <View style={shared.card}>
+          <Text style={shared.cardTitle}>{t('meteo.septJours')}</Text>
           <DailyList days={daily} ville={ville} />
         </View>
       </ScrollView>
-    </LinearGradient>
+    </Screen>
   );
 }
 
 const useStyles = themedStyles((c) => ({
-  container: { flex: 1 },
   center: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -136,13 +128,11 @@ const useStyles = themedStyles((c) => ({
   },
   content: {
     alignItems: 'center',
-    paddingTop: 64,
     paddingHorizontal: 16,
     paddingBottom: 40,
   },
   position: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
   positionText: { color: c.secondary, fontSize: 15, fontWeight: '600', textTransform: 'uppercase' },
-  place: { color: c.text, fontSize: 28, fontWeight: '600', textAlign: 'center' },
   icon: { marginTop: 8 },
   temp: {
     color: c.text,
@@ -155,27 +145,4 @@ const useStyles = themedStyles((c) => ({
   },
   label: { color: c.text, fontSize: 22, fontWeight: '500', textAlign: 'center' },
   range: { color: c.secondary, fontSize: 17, marginTop: 4 },
-}));
-
-// Cartes translucides sur le dégradé, reprises par le détail d'un jour.
-export const useCardStyles = themedStyles((c) => ({
-  card: {
-    alignSelf: 'stretch',
-    marginTop: 20,
-    padding: 16,
-    borderRadius: 20,
-    backgroundColor: c.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: c.border,
-  },
-  details: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: 8 },
-  detail: { color: c.text, fontSize: 15, fontWeight: '500' },
-  cardTitle: {
-    color: c.secondary,
-    fontSize: 13,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
 }));

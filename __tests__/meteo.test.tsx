@@ -25,13 +25,7 @@ import { toggleFavorite } from '../src/favorites';
 import { PALETTES } from '../src/theme';
 import { TEN_MINUTES, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
-
-jest.mock('expo-location', () => ({
-  Accuracy: { Balanced: 3 },
-  requestForegroundPermissionsAsync: jest.fn(),
-  getCurrentPositionAsync: jest.fn(),
-  reverseGeocodeAsync: jest.fn(),
-}));
+import { LYON, mockFetch as mockApi, newClient, NICE, respond } from '../jest/helpers';
 
 const mockNavigation = { setOptions: jest.fn() };
 let mockParams: { page?: string } = {};
@@ -55,10 +49,6 @@ function allowLocation() {
   ]);
 }
 
-function newClient() {
-  return new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } });
-}
-
 function screenTree(client: QueryClient) {
   return (
     <QueryClientProvider client={client}>
@@ -78,15 +68,8 @@ function makeDataOlderThanTenMinutes(client: QueryClient) {
   });
 }
 
-const okForecast = { ok: true, json: async () => forecastFixture };
-
-function mockApi(response: Partial<Response> = okForecast) {
-  return jest.spyOn(globalThis, 'fetch').mockResolvedValue(response as Response);
-}
-
 describe('Écran Météo', () => {
   afterEach(() => {
-    jest.restoreAllMocks();
     focusManager.setFocused(undefined);
   });
 
@@ -117,7 +100,6 @@ describe('Écran Météo', () => {
     expect(await screen.findByText('65°')).toBeOnTheScreen();
     expect(screen.getByText('Ressenti 62°')).toBeOnTheScreen();
     expect(screen.getByText('Vent 9 mph')).toBeOnTheScreen();
-    Storage.clearSync();
   });
 
   it('affiche les 7 prochains jours avec icône, minimum et maximum', async () => {
@@ -171,13 +153,12 @@ describe('Écran Météo', () => {
 
   it('affiche le fond et la barre d’onglets du temps actuel', async () => {
     allowLocation();
-    mockApi({
-      ok: true,
-      json: async () => ({
+    mockApi(
+      respond({
         ...forecastFixture,
         current: { ...forecastFixture.current, weather_code: 0, is_day: 0 },
       }),
-    });
+    );
 
     await renderScreen();
 
@@ -255,7 +236,7 @@ describe('Écran Météo', () => {
       await screen.findByText('Le service météo est indisponible pour le moment.'),
     ).toBeOnTheScreen();
 
-    fetchMock.mockResolvedValue(okForecast as Response);
+    fetchMock.mockResolvedValue(respond(forecastFixture));
     await user.press(screen.getByText('Réessayer'));
 
     expect(await screen.findByText('Paris')).toBeOnTheScreen();
@@ -349,24 +330,15 @@ describe('Écran Météo', () => {
   });
 
   describe("passer d'une ville à l'autre", () => {
-    const LYON = { id: 2996944, name: 'Lyon', region: 'Rhône-Alpes', country: 'France' };
-    const NICE = { id: 2990440, name: 'Nice', region: 'PACA', country: 'France' };
-
     // Paris sous la pluie (fixture), Lyon de nuit par ciel dégagé, Nice comme Paris.
     async function renderWithFavorites() {
-      Storage.setItemSync(
-        'favoris',
-        JSON.stringify([
-          { ...LYON, latitude: 45.75, longitude: 4.85 },
-          { ...NICE, latitude: 43.7, longitude: 7.27 },
-        ]),
-      );
+      Storage.setItemSync('favoris', JSON.stringify([LYON, NICE]));
       allowLocation();
       jest.spyOn(globalThis, 'fetch').mockImplementation(async (url) => {
-        const lyon = String(url).includes('latitude=45.75');
+        const lyon = String(url).includes(`latitude=${LYON.latitude}`);
         const current = { ...forecastFixture.current, weather_code: 0, is_day: 0 };
         const json = lyon ? { ...forecastFixture, current } : forecastFixture;
-        return { ok: true, json: async () => json } as Response;
+        return respond(json);
       });
       await renderScreen();
       await screen.findByText('Paris');
@@ -374,7 +346,6 @@ describe('Écran Météo', () => {
     }
 
     afterEach(() => {
-      Storage.clearSync();
       mockParams = {};
     });
 
@@ -428,7 +399,7 @@ describe('Écran Météo', () => {
       expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 3 sur 3');
 
       // Suppression de Nice depuis l'onglet Villes, resté monté à côté.
-      await act(async () => toggleFavorite({ ...NICE, latitude: 43.7, longitude: 7.27 }));
+      await act(async () => toggleFavorite(NICE));
 
       expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 2');
       expect(scrollToIndex).toHaveBeenLastCalledWith({ index: 1, animated: false });

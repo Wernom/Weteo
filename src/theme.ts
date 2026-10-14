@@ -1,9 +1,9 @@
 import { StyleSheet, useColorScheme } from 'react-native';
 
 import { useSettings } from './settings';
-import type { IconName, WeatherTheme } from './weather';
+import { describeWeather, type IconName, type WeatherData, type WeatherTheme } from './weather';
 
-export type Scheme = 'light' | 'dark';
+type Scheme = 'light' | 'dark';
 
 // Couleurs d'un thème. Le contraste du texte (≥ 4,5:1) et des icônes (≥ 3:1) sur chaque
 // couleur des dégradés et des cartes est vérifié par src/__tests__/theme.test.ts.
@@ -103,6 +103,12 @@ export function themedStyles<T extends StyleSheet.NamedStyles<T>>(make: (c: Pale
     dark: StyleSheet.create(make(PALETTES.dark)),
   };
   return () => sheets[useScheme()];
+}
+
+// Fond du temps actuel, ou du jour tant que la météo n'est pas chargée.
+export function gradientFor(c: Palette, data: WeatherData | undefined) {
+  const current = data?.forecast.current;
+  return c.gradients[current ? describeWeather(current.weatherCode, current.isDay).theme : 'jour'];
 }
 
 export const iconColor = (c: Palette, icon: IconName) => c.icons[icon] ?? c.text;

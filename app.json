@@ -33,6 +33,9 @@
       "expo-sqlite",
       "expo-localization"
     ],
-    "scheme": "weteo"
+    "scheme": "weteo",
+    "experiments": {
+      "reactCompiler": true
+    }
   }
 }

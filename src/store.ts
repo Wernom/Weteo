@@ -2,7 +2,8 @@ import Storage from 'expo-sqlite/kv-store';
 import { useSyncExternalStore } from 'react';
 
 // Valeur stockée sur le téléphone (SQLite), partagée par tous les écrans qui l'utilisent.
-export function createStore<T>(key: string, parse: (value: string | null) => T) {
+// `parse` reçoit la valeur stockée, déjà décodée, ou `undefined` s'il n'y en a pas.
+export function createStore<T>(key: string, parse: (stored: T | undefined) => T) {
   const listeners = new Set<() => void>();
   let raw: string | null | undefined;
   let cached: T;
@@ -14,9 +15,9 @@ export function createStore<T>(key: string, parse: (value: string | null) => T) 
       raw = value;
       // Valeur illisible : on repart du défaut plutôt que de bloquer l'écran à chaque lecture.
       try {
-        cached = parse(value);
+        cached = parse(value === null ? undefined : JSON.parse(value));
       } catch {
-        cached = parse(null);
+        cached = parse(undefined);
       }
     }
     return cached;

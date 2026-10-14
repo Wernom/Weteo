@@ -25,7 +25,7 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
       {hours.map((hour, i) => {
         const d = describeWeather(hour.weatherCode, hour.isDay);
         const label = i === 0 ? t('meteo.maintenant') : formatHour(hour.time);
-        const temperature = `${units.temp(hour.temperature)}°`;
+        const temperature = units.temp(hour.temperature);
         return (
           <View
             key={hour.time}
@@ -43,7 +43,8 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
             <Ionicons name={d.icon} size={28} color={iconColor(c, d.icon)} />
             <Text style={styles.temp}>{temperature}</Text>
             <Text style={styles.rain}>
-              <Ionicons name="water" size={12} color={c.secondary} /> {hour.rainChance} %
+              <Ionicons name="water" size={12} color={c.secondary} />{' '}
+              {t('meteo.pourcent', { value: hour.rainChance })}
             </Text>
           </View>
         );

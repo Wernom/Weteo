@@ -1,11 +1,9 @@
 import type { ErrorBoundaryProps } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text } from 'react-native';
 
-// Textes prêts même si cet écran est le premier affiché (plantage au lancement).
-import './i18n';
-import { themedStyles, usePalette } from './theme';
+import { Screen } from './Screen';
+import { themedStyles } from './theme';
 
 // Écran commun à tout échec : un message et « Réessayer ». `message` est une clé de traduction ;
 // un message qui n'en est pas une (erreur inattendue d'une bibliothèque) s'affiche tel quel.
@@ -13,10 +11,10 @@ export function ErrorScreen({ message, onRetry }: { message: string; onRetry: ()
   const { t } = useTranslation();
   const styles = useStyles();
   return (
-    <LinearGradient colors={usePalette().gradients.jour} style={styles.container}>
+    <Screen style={styles.container}>
       <Text style={styles.message}>{t(message, { nsSeparator: false })}</Text>
       <RetryButton onPress={onRetry} />
-    </LinearGradient>
+    </Screen>
   );
 }
 
@@ -38,7 +36,7 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 const useStyles = themedStyles((c) => ({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  container: { alignItems: 'center', justifyContent: 'center', padding: 24 },
   message: { color: c.text, fontSize: 18, textAlign: 'center', marginBottom: 16 },
   button: {
     backgroundColor: c.inverse,

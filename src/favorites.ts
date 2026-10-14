@@ -4,7 +4,7 @@ import { City, getCity } from './weather';
 
 // Villes favorites, dans l'ordre choisi, stockées sur le téléphone.
 // « Ma position » n'y figure pas : l'écran l'affiche toujours en premier.
-const store = createStore<City[]>('favoris', (value) => (value ? JSON.parse(value) : []));
+const store = createStore<City[]>('favoris', (stored) => stored ?? []);
 
 export const useFavorites = store.use;
 

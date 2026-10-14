@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { skipToken, useQuery } from '@tanstack/react-query';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { ComponentProps, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { router, useIsFocused, useLocalSearchParams, useNavigation } from 'expo-router';
@@ -14,17 +14,15 @@ import {
 } from 'react-native';
 
 import { useFavorites } from '../../favorites';
-import { usePalette } from '../../theme';
+import { gradientFor, usePalette } from '../../theme';
 import {
   City,
-  cityQueryKey,
   cityWeatherQuery,
-  loadWeather,
   LOCATION_DENIED,
-  TEN_MINUTES,
-  WEATHER_QUERY_KEY,
+  positionWeatherQuery,
+  WeatherData,
 } from '../../weather';
-import { gradientFor, WeatherView } from '../../WeatherView';
+import { WeatherView } from '../../WeatherView';
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
@@ -32,9 +30,7 @@ export { ErrorBoundary } from '../../ErrorScreen';
 export default function WeatherScreen() {
   const focused = useIsFocused();
   const query = useQuery({
-    queryKey: WEATHER_QUERY_KEY,
-    queryFn: loadWeather,
-    staleTime: TEN_MINUTES,
+    ...positionWeatherQuery,
     // Les onglets restent montés : se réabonner au retour sur l'onglet relance l'appel si périmé,
     // sans purger le cache pendant l'absence.
     subscribed: focused,
@@ -97,16 +93,14 @@ export default function WeatherScreen() {
     list.current?.scrollToIndex({ index: page, animated: false });
   }, [page]);
 
-  // Fond de la page affichée, lu dans le cache de sa ville.
+  // Fond de la page affichée, lu dans le cache de son lieu. Pas de skipToken : ces options
+  // remplacent celles de la requête, et un nouvel essai en cours échouerait (« Missing queryFn »).
   const city = favorites[page - 1];
-  // Pas de skipToken : ces options remplacent celles de la requête, et un nouvel essai
-  // de la page en cours échouerait (« Missing queryFn »). `enabled: false` suffit à ne rien appeler.
-  const cityData = useQuery({
-    queryKey: cityQueryKey(String(city?.id)),
-    queryFn: city ? cityWeatherQuery(city).queryFn : skipToken,
+  const shown = useQuery({
+    ...((city ? cityWeatherQuery(city) : positionWeatherQuery) as UseQueryOptions<WeatherData>),
     enabled: false,
   }).data;
-  const gradient = gradientFor(usePalette(), page > 0 ? cityData : query.data);
+  const gradient = gradientFor(usePalette(), shown);
 
   // La barre d'onglets prolonge le bas du dégradé.
   const navigation = useNavigation();

@@ -1,4 +1,5 @@
 import forecastFixture from '../../__fixtures__/open-meteo-forecast.json';
+import { mockFetch, respond } from '../../jest/helpers';
 import { axisTicks, chartPoints } from '../TemperatureChart';
 import {
   ApiError,
@@ -10,14 +11,8 @@ import {
 } from '../weather';
 
 describe('fetchForecast', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
   it('appelle Open-Meteo avec la position et convertit la réponse', async () => {
-    const fetchMock = jest
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue({ ok: true, json: async () => forecastFixture } as Response);
+    const fetchMock = mockFetch();
 
     const forecast = await fetchForecast(48.85, 2.35);
 
@@ -70,9 +65,7 @@ describe('fetchForecast', () => {
     const data = JSON.parse(JSON.stringify(forecastFixture));
     data.hourly.precipitation_probability[0] = null;
     data.daily.precipitation_sum[0] = null;
-    jest
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue({ ok: true, json: async () => data } as Response);
+    mockFetch(respond(data));
 
     const forecast = await fetchForecast(48.85, 2.35);
 
@@ -83,7 +76,6 @@ describe('fetchForecast', () => {
 
 describe("erreurs de l'API", () => {
   afterEach(() => {
-    jest.restoreAllMocks();
     jest.useRealTimers();
   });
 
@@ -99,7 +91,7 @@ describe("erreurs de l'API", () => {
   });
 
   it("quand l'API répond en erreur", async () => {
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 503 } as Response);
+    mockFetch({ ok: false, status: 503 });
     await failsWith('http', 'erreurs.http', 503);
   });
 
@@ -123,7 +115,7 @@ describe("erreurs de l'API", () => {
     ['incomplètes', async () => ({ current: {} })],
     ['qui ne sont pas du JSON', async () => Promise.reject(new SyntaxError('JSON Parse error'))],
   ])('quand les données sont %s', async (_, json) => {
-    jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: true, json } as unknown as Response);
+    mockFetch({ ok: true, json });
     await failsWith('donnees', 'erreurs.donnees');
   });
 });

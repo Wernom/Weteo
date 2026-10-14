@@ -1,16 +1,17 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQueryClient } from '@tanstack/react-query';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router';
+import { useHeaderHeight } from 'expo-router/react-navigation';
+import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';
 
 import { dayLabel } from '../../DailyList';
 import { formatClock } from '../../i18n';
+import { Screen, useScreenStyles } from '../../Screen';
 import { TemperatureChart } from '../../TemperatureChart';
 import { iconColor, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
-import { useCardStyles } from '../../WeatherView';
 import { cityQueryKey, describeWeather, WEATHER_QUERY_KEY, WeatherData } from '../../weather';
 
 export { ErrorBoundary } from '../../ErrorScreen';
@@ -20,11 +21,16 @@ export default function DayScreen() {
   const units = useUnits();
   const c = usePalette();
   const styles = useStyles();
-  const cardStyles = useCardStyles();
+  const shared = useScreenStyles();
+  const headerHeight = useHeaderHeight();
   const { date, ville } = useLocalSearchParams<{ date: string; ville?: string }>();
   // On arrive depuis la liste 7 jours de ma position ou d'une ville : sa météo est déjà en cache.
   const key = ville ? cityQueryKey(ville) : WEATHER_QUERY_KEY;
-  const forecast = useQueryClient().getQueryData<WeatherData>(key)?.forecast;
+  // Abonné au cache : un rafraîchissement de la météo se voit aussi ici.
+  const client = useQueryClient();
+  const forecast = useSyncExternalStore(client.getQueryCache().subscribe, () =>
+    client.getQueryData<WeatherData>(key),
+  )?.forecast;
   const index = forecast?.daily.findIndex((d) => d.date === date) ?? -1;
   if (!forecast || index === -1) return <Redirect href="/" />;
 
@@ -34,7 +40,7 @@ export default function DayScreen() {
   const gradient = c.gradients[d.theme];
 
   return (
-    <LinearGradient colors={gradient} style={styles.container}>
+    <Screen colors={gradient}>
       <Stack.Screen
         options={{
           headerShown: true,
@@ -44,42 +50,36 @@ export default function DayScreen() {
           headerBackTitle: t('onglets.meteo'),
         }}
       />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + 16 }]}>
         <Ionicons name={d.icon} size={64} color={iconColor(c, d.icon)} accessible={false} />
         <Text style={styles.label}>{d.label}</Text>
         <Text style={styles.range}>
-          {units.temp(day.min)}° / {units.temp(day.max)}°
+          {units.temp(day.min)} / {units.temp(day.max)}
         </Text>
 
-        <View style={cardStyles.card}>
-          <Text style={cardStyles.cardTitle}>{t('jour.temperatures')}</Text>
+        <View style={shared.card}>
+          <Text style={shared.cardTitle}>{t('jour.temperatures')}</Text>
           <TemperatureChart hours={hours} />
         </View>
 
-        <View style={[cardStyles.card, cardStyles.details]}>
-          <Text style={cardStyles.detail}>
+        <View style={[shared.card, shared.details]}>
+          <Text style={shared.detail}>
             {t('jour.precipitations', {
               amount: units.rain(day.precipitation),
               chance: day.rainChance,
             })}
           </Text>
-          <Text style={cardStyles.detail}>
-            {t('jour.lever', { time: formatClock(day.sunrise) })}
-          </Text>
-          <Text style={cardStyles.detail}>
-            {t('jour.coucher', { time: formatClock(day.sunset) })}
-          </Text>
+          <Text style={shared.detail}>{t('jour.lever', { time: formatClock(day.sunrise) })}</Text>
+          <Text style={shared.detail}>{t('jour.coucher', { time: formatClock(day.sunset) })}</Text>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </Screen>
   );
 }
 
 const useStyles = themedStyles((c) => ({
-  container: { flex: 1 },
   content: {
     alignItems: 'center',
-    paddingTop: 110,
     paddingHorizontal: 16,
     paddingBottom: 40,
   },

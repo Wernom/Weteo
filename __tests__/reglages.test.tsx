@@ -3,6 +3,7 @@ import Storage from 'expo-sqlite/kv-store';
 import { renderRouter, screen } from 'expo-router/testing-library';
 
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
+import { mockFetch, respond } from '../jest/helpers';
 import de from '../src/locales/de.json';
 import en from '../src/locales/en.json';
 import es from '../src/locales/es.json';
@@ -36,8 +37,6 @@ const LONDRES: City = {
 };
 
 afterEach(async () => {
-  jest.restoreAllMocks();
-  Storage.clearSync();
   phoneScheme.mockReturnValue('light');
   await i18n.changeLanguage('fr');
 });
@@ -51,9 +50,7 @@ async function openSettings() {
 
 describe('Choisir ma langue', () => {
   it("passe immédiatement l'app dans la langue choisie et la retient", async () => {
-    jest
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    mockFetch(respond({}));
     const user = await openSettings();
     expect(screen.getByTestId('langue-fr')).toBeChecked();
 
@@ -79,7 +76,7 @@ describe('Choisir ma langue', () => {
             longitude: -0.12574,
           }
         : forecastFixture;
-      return { ok: true, json: async () => json } as Response;
+      return respond(json);
     });
     const user = await openSettings();
 
@@ -107,9 +104,7 @@ describe('Choisir ma langue', () => {
 
 describe('Choisir mes unités', () => {
   it('coche °C, km/h et mm par défaut et retient le choix', async () => {
-    jest
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    mockFetch(respond({}));
     const user = await openSettings();
     expect(screen.getByTestId('unite-celsius')).toBeChecked();
     expect(screen.getByTestId('unite-kmh')).toBeChecked();
@@ -134,9 +129,7 @@ describe('Choisir mes unités', () => {
 describe('Choisir le thème', () => {
   it('suit le téléphone par défaut, puis le choix, et le retient', async () => {
     phoneScheme.mockReturnValue('dark');
-    jest
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    mockFetch(respond({}));
     const user = await openSettings();
     const title = () => screen.getByRole('header', { name: 'Réglages' });
     expect(screen.getByTestId('theme-system')).toBeChecked();

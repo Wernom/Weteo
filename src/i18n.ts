@@ -10,7 +10,7 @@ import { Language, readSettings, setSetting } from './settings';
 
 // Textes de l'app dans la langue des réglages. Chaque composant qui affiche du texte appelle
 // useTranslation() : c'est ce qui le redessine quand la langue change.
-// Importé par weather.ts, que presque tous les écrans utilisent : i18n est prêt avant le rendu.
+// Initialisé à l'import, par le layout racine (src/app/_layout.tsx) avant tout écran.
 const i18n = createInstance();
 i18n.use(initReactI18next).init({
   resources: {

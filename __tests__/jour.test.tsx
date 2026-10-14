@@ -1,11 +1,11 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useLocalSearchParams } from 'expo-router';
 import Storage from 'expo-sqlite/kv-store';
 
 import DayScreen from '../src/app/jour/[date]';
 import { cityQueryKey, fetchForecast, WEATHER_QUERY_KEY } from '../src/weather';
-import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
+import { mockFetch, newClient } from '../jest/helpers';
 
 jest.mock('expo-router', () => {
   const { Text } = jest.requireActual('react-native');
@@ -20,12 +20,9 @@ jest.mock('expo-router', () => {
 
 async function renderDay(date: string, { cached = true, ville = '' } = {}) {
   jest.mocked(useLocalSearchParams).mockReturnValue(ville ? { date, ville } : { date });
-  // gcTime infini : sinon le cache arme un minuteur de 5 min qui retient le worker Jest.
-  const client = new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } });
+  const client = newClient();
   if (cached) {
-    jest
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue({ ok: true, json: async () => forecastFixture } as Response);
+    mockFetch();
     client.setQueryData(ville ? cityQueryKey(ville) : WEATHER_QUERY_KEY, {
       forecast: await fetchForecast(48.85, 2.35),
       place: 'Paris',
@@ -38,11 +35,10 @@ async function renderDay(date: string, { cached = true, ville = '' } = {}) {
   );
 }
 
-describe('Écran Détail du jour', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
+// Pas de navigateur autour de l'écran : en-tête sans hauteur.
+jest.mock('expo-router/react-navigation', () => ({ useHeaderHeight: () => 0 }));
 
+describe('Écran Détail du jour', () => {
   it('affiche la courbe, les précipitations et le lever et coucher du soleil du jour', async () => {
     await renderDay('2026-10-06');
 
@@ -100,7 +96,6 @@ describe('Écran Détail du jour', () => {
     await renderDay('2026-10-05');
 
     expect(screen.getByText('Précipitations 0,09 po · 80 %')).toBeOnTheScreen();
-    Storage.clearSync();
   });
 
   it("titre « Aujourd'hui » pour le premier jour, cumul décimal à la française", async () => {
