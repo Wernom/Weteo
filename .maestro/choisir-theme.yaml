@@ -1,0 +1,35 @@
+# L'utilisateur passe en thème sombre depuis Réglages, le choix est retenu au relancement,
+# puis il revient au thème du téléphone. Localisation refusée pour ne pas dépendre du réseau.
+appId: com.wernom.weteo
+name: Choisir mon thème
+---
+- runFlow: localisation-refusee.yaml
+- tapOn:
+    id: onglet-reglages
+- scrollUntilVisible:
+    element:
+      id: theme-dark
+- assertVisible:
+    id: theme-system
+    checked: true
+- tapOn:
+    id: theme-dark
+- assertVisible:
+    id: theme-dark
+    checked: true
+# Le choix est retenu au relancement.
+- stopApp
+- launchApp
+- tapOn:
+    id: onglet-reglages
+- scrollUntilVisible:
+    element:
+      id: theme-dark
+- assertVisible:
+    id: theme-dark
+    checked: true
+- tapOn:
+    id: theme-system
+- assertVisible:
+    id: theme-system
+    checked: true

@@ -41,8 +41,10 @@
     "langue": "Sprache",
     "temperature": "Temperatur",
     "vent": "Wind",
-    "precipitations": "Niederschlag"
+    "precipitations": "Niederschlag",
+    "theme": "Design"
   },
+  "themes": { "system": "Wie das Telefon", "light": "Hell", "dark": "Dunkel" },
   "unites": {
     "celsius": "°C",
     "fahrenheit": "°F",

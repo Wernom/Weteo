@@ -1,15 +1,18 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 import { formatHour } from './i18n';
+import { iconColor, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
-import { describeWeather, HourlyForecast, iconColor } from './weather';
+import { describeWeather, HourlyForecast } from './weather';
 
 // Bandeau horizontal des prochaines heures ; la première est l'heure en cours.
 export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
   const { t } = useTranslation();
   const units = useUnits();
+  const c = usePalette();
+  const styles = useStyles();
   return (
     <ScrollView
       testID="bandeau-horaire"
@@ -37,10 +40,10 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
             })}
           >
             <Text style={styles.time}>{label}</Text>
-            <Ionicons name={d.icon} size={28} color={iconColor(d.icon)} />
+            <Ionicons name={d.icon} size={28} color={iconColor(c, d.icon)} />
             <Text style={styles.temp}>{temperature}</Text>
             <Text style={styles.rain}>
-              <Ionicons name="water" size={12} color="#cfe3ff" /> {hour.rainChance} %
+              <Ionicons name="water" size={12} color={c.secondary} /> {hour.rainChance} %
             </Text>
           </View>
         );
@@ -49,10 +52,10 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = themedStyles((c) => ({
   strip: { gap: 4 },
   hour: { alignItems: 'center', gap: 6, minWidth: 64, paddingVertical: 4 },
-  time: { color: '#fff', fontSize: 14 },
-  temp: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  rain: { color: '#cfe3ff', fontSize: 13 },
-});
+  time: { color: c.text, fontSize: 14 },
+  temp: { color: c.text, fontSize: 18, fontWeight: '600' },
+  rain: { color: c.secondary, fontSize: 13 },
+}));

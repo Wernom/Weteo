@@ -22,6 +22,7 @@ import {
 
 import WeatherScreen from '../src/app/(tabs)/index';
 import { toggleFavorite } from '../src/favorites';
+import { PALETTES } from '../src/theme';
 import { TEN_MINUTES, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 
@@ -182,10 +183,10 @@ describe('Écran Météo', () => {
 
     expect(await screen.findByTestId('fond-meteo')).toHaveProp(
       'colors',
-      ['#0b1026', '#1e1b4b', '#33307f'].map(processColor),
+      PALETTES.light.gradients.nuit.map(processColor),
     );
     expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
-      tabBarStyle: { backgroundColor: '#33307f', borderTopWidth: 0 },
+      tabBarStyle: { backgroundColor: PALETTES.light.gradients.nuit[2], borderTopWidth: 0 },
     });
   });
 
@@ -197,7 +198,7 @@ describe('Écran Météo', () => {
 
     expect(await screen.findByTestId('fond-meteo')).toHaveProp(
       'colors',
-      ['#3a4b63', '#465a73', '#1f2a3c'].map(processColor),
+      PALETTES.light.gradients.pluie.map(processColor),
     );
   });
 
@@ -412,7 +413,7 @@ describe('Écran Météo', () => {
       expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 3');
       await waitFor(() =>
         expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
-          tabBarStyle: { backgroundColor: '#33307f', borderTopWidth: 0 },
+          tabBarStyle: { backgroundColor: PALETTES.light.gradients.nuit[2], borderTopWidth: 0 },
         }),
       );
     });

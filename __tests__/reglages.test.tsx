@@ -9,6 +9,7 @@ import es from '../src/locales/es.json';
 import fr from '../src/locales/fr.json';
 import italian from '../src/locales/it.json';
 import i18n from '../src/i18n';
+import { PALETTES } from '../src/theme';
 import type { City } from '../src/weather';
 
 // Seuls les réglages et la liste des villes comptent ici.
@@ -16,6 +17,14 @@ jest.mock('../src/app/(tabs)/index', () => {
   const { Text } = jest.requireActual('react-native');
   return { __esModule: true, default: () => <Text>Écran Météo</Text> };
 });
+
+// Thème du téléphone, clair sauf mention contraire.
+jest.mock('react-native/Libraries/Utilities/useColorScheme', () => ({
+  __esModule: true,
+  default: jest.fn(() => 'light'),
+}));
+const phoneScheme = jest.requireMock('react-native/Libraries/Utilities/useColorScheme')
+  .default as jest.Mock;
 
 const LONDRES: City = {
   id: 2643743,
@@ -29,6 +38,7 @@ const LONDRES: City = {
 afterEach(async () => {
   jest.restoreAllMocks();
   Storage.clearSync();
+  phoneScheme.mockReturnValue('light');
   await i18n.changeLanguage('fr');
 });
 
@@ -118,6 +128,25 @@ describe('Choisir mes unités', () => {
       wind: 'kn',
       precipitation: 'inch',
     });
+  });
+});
+
+describe('Choisir le thème', () => {
+  it('suit le téléphone par défaut, puis le choix, et le retient', async () => {
+    phoneScheme.mockReturnValue('dark');
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    const user = await openSettings();
+    const title = () => screen.getByRole('header', { name: 'Réglages' });
+    expect(screen.getByTestId('theme-system')).toBeChecked();
+    expect(title()).toHaveStyle({ color: PALETTES.dark.text });
+
+    await user.press(screen.getByTestId('theme-light'));
+
+    expect(screen.getByTestId('theme-light')).toBeChecked();
+    expect(title()).toHaveStyle({ color: PALETTES.light.text });
+    expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({ theme: 'light' });
   });
 });
 

@@ -41,8 +41,10 @@
     "langue": "Idioma",
     "temperature": "Temperatura",
     "vent": "Viento",
-    "precipitations": "Precipitaciones"
+    "precipitations": "Precipitaciones",
+    "theme": "Tema"
   },
+  "themes": { "system": "Como el teléfono", "light": "Claro", "dark": "Oscuro" },
   "unites": {
     "celsius": "°C",
     "fahrenheit": "°F",

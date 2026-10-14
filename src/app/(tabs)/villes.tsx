@@ -18,13 +18,12 @@ import { RetryButton } from '../../ErrorScreen';
 import { gradientFor } from '../../WeatherView';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import { useSettings } from '../../settings';
+import { iconColor, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
 import {
   City,
   cityWeatherQuery,
   describeWeather,
-  GRADIENTS,
-  iconColor,
   loadWeather,
   searchCities,
   WEATHER_QUERY_KEY,
@@ -36,6 +35,8 @@ export { ErrorBoundary } from '../../ErrorScreen';
 export default function CitiesScreen() {
   const { t } = useTranslation();
   const { language } = useSettings();
+  const c = usePalette();
+  const styles = useStyles();
   const [text, setText] = useState('');
   const [term, setTerm] = useState('');
   const favorites = useFavorites();
@@ -63,7 +64,7 @@ export default function CitiesScreen() {
   else if (data?.length === 0) message = t('villes.aucune', { term });
 
   return (
-    <LinearGradient colors={GRADIENTS.jour} style={styles.container}>
+    <LinearGradient colors={c.gradients.jour} style={styles.container}>
       <Text style={styles.title} accessibilityRole="header">
         {t('villes.titre')}
       </Text>
@@ -71,14 +72,14 @@ export default function CitiesScreen() {
         testID="recherche-ville"
         accessibilityLabel={t('villes.champ')}
         placeholder={t('villes.exemple')}
-        placeholderTextColor="#c4d6f5"
+        placeholderTextColor={c.secondary}
         style={styles.input}
         value={text}
         onChangeText={setText}
         autoCorrect={false}
         returnKeyType="search"
       />
-      {isFetching && <ActivityIndicator color="#fff" style={styles.spinner} />}
+      {isFetching && <ActivityIndicator color={c.text} style={styles.spinner} />}
       {term === '' ? (
         <FlatList
           data={favorites}
@@ -129,6 +130,7 @@ const openPage = (page: number) =>
 
 function CityRow({ city, index, favorite }: { city: City; index: number; favorite: boolean }) {
   const { t } = useTranslation();
+  const styles = useStyles();
   return (
     <View style={styles.row}>
       <Pressable
@@ -155,6 +157,8 @@ function CityRow({ city, index, favorite }: { city: City; index: number; favorit
 // sans redemander la localisation.
 function MyPositionRow() {
   const { t } = useTranslation();
+  const c = usePalette();
+  const styles = useStyles();
   // Pas de skipToken : il remplacerait loadWeather pour un nouvel essai en cours (voir l'onglet Météo).
   const { data } = useQuery<WeatherData>({
     queryKey: WEATHER_QUERY_KEY,
@@ -173,7 +177,7 @@ function MyPositionRow() {
         accessibilityLabel={title}
         onPress={() => openPage(0)}
       >
-        <Ionicons name="navigate" size={18} color="#fff" style={styles.pin} />
+        <Ionicons name="navigate" size={18} color={c.text} style={styles.pin} />
         <Text style={[styles.name, styles.grow]}>{title}</Text>
         <WeatherSummary data={data} />
       </Pressable>
@@ -183,6 +187,7 @@ function MyPositionRow() {
 
 function FavoriteRow({ city, index, last }: { city: City; index: number; last: boolean }) {
   const { t } = useTranslation();
+  const styles = useStyles();
   const { data } = useQuery(cityWeatherQuery(city));
   return (
     <WeatherCard data={data}>
@@ -222,9 +227,11 @@ function FavoriteRow({ city, index, last }: { city: City; index: number; last: b
 
 // Ligne aux couleurs de la météo de son lieu ; translucide tant qu'elle n'est pas chargée.
 function WeatherCard({ data, children }: { data: WeatherData | undefined; children: ReactNode }) {
+  const c = usePalette();
+  const styles = useStyles();
   return (
     <LinearGradient
-      colors={data ? gradientFor(data) : TRANSLUCENT}
+      colors={data ? gradientFor(c, data) : [c.surface, c.surface]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.row, styles.card]}
@@ -233,17 +240,18 @@ function WeatherCard({ data, children }: { data: WeatherData | undefined; childr
     </LinearGradient>
   );
 }
-const TRANSLUCENT = ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.15)'] as const;
 
 // Rien tant que la météo n'est pas là (chargement, erreur, localisation refusée).
 function WeatherSummary({ data }: { data: WeatherData | undefined }) {
   const units = useUnits();
+  const c = usePalette();
+  const styles = useStyles();
   if (!data) return null;
   const { weatherCode, isDay, temperature } = data.forecast.current;
   const { icon } = describeWeather(weatherCode, isDay);
   return (
     <View style={styles.summary}>
-      <Ionicons name={icon} size={26} color={iconColor(icon)} />
+      <Ionicons name={icon} size={26} color={iconColor(c, icon)} />
       <Text style={styles.temperature}>{units.temp(temperature)}°</Text>
     </View>
   );
@@ -262,6 +270,8 @@ function IconButton({
   disabled?: boolean;
   testID?: string;
 }) {
+  const c = usePalette();
+  const styles = useStyles();
   return (
     <Pressable
       testID={testID}
@@ -273,31 +283,31 @@ function IconButton({
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons name={icon} size={22} color="#fff" />
+      <Ionicons name={icon} size={22} color={c.text} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = themedStyles((c) => ({
   container: { flex: 1, paddingTop: 80, paddingHorizontal: 16 },
-  title: { color: '#fff', fontSize: 28, fontWeight: '600', textAlign: 'center' },
+  title: { color: c.text, fontSize: 28, fontWeight: '600', textAlign: 'center' },
   input: {
     marginTop: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    color: '#fff',
+    backgroundColor: c.surface,
+    color: c.text,
     fontSize: 17,
   },
   spinner: { marginTop: 16 },
   center: { alignItems: 'center', marginTop: 24, gap: 16 },
-  message: { color: '#e6efff', fontSize: 17, textAlign: 'center' },
+  message: { color: c.secondary, fontSize: 17, textAlign: 'center' },
   row: {
     marginTop: 12,
     padding: 16,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: c.surface,
     flexDirection: 'row',
     alignItems: 'center',
   },
@@ -306,14 +316,14 @@ const styles = StyleSheet.create({
   grow: { flex: 1 },
   pin: { marginRight: 8 },
   summary: { flexDirection: 'row', alignItems: 'center', marginLeft: 8, gap: 4 },
-  temperature: { color: '#fff', fontSize: 26, fontWeight: '300' },
+  temperature: { color: c.text, fontSize: 26, fontWeight: '300' },
   card: {
     paddingVertical: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: c.border,
   },
   iconButton: { padding: 6, marginLeft: 4 },
   disabled: { opacity: 0.3 },
-  name: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  where: { color: '#e6efff', fontSize: 15, marginTop: 2 },
-});
+  name: { color: c.text, fontSize: 18, fontWeight: '600' },
+  where: { color: c.secondary, fontSize: 15, marginTop: 2 },
+}));

@@ -13,6 +13,10 @@ export type WindUnit = (typeof WIND_UNITS)[number];
 export const PRECIPITATION_UNITS = ['mm', 'inch'] as const;
 export type PrecipitationUnit = (typeof PRECIPITATION_UNITS)[number];
 
+// « system » suit le thème du téléphone (voir theme.ts).
+export const THEMES = ['system', 'light', 'dark'] as const;
+export type Theme = (typeof THEMES)[number];
+
 // Langue du téléphone si l'app la propose, sinon le français.
 function phoneLanguage(): Language {
   const code = getLocales()[0]?.languageCode;
@@ -26,6 +30,7 @@ export type Settings = {
   temperature: TemperatureUnit;
   wind: WindUnit;
   precipitation: PrecipitationUnit;
+  theme: Theme;
 };
 
 // Tant que l'utilisateur n'a pas choisi, la langue suit celle du téléphone.
@@ -34,6 +39,7 @@ const defaults = (): Settings => ({
   temperature: 'celsius',
   wind: 'kmh',
   precipitation: 'mm',
+  theme: 'system',
 });
 
 // Les valeurs par défaut complètent ce qui est stocké : un réglage ajouté dans une

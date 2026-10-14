@@ -3,27 +3,24 @@ import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 
 import { dayLabel } from '../../DailyList';
 import { formatClock } from '../../i18n';
 import { TemperatureChart } from '../../TemperatureChart';
+import { iconColor, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
-import { cardStyles } from '../../WeatherView';
-import {
-  cityQueryKey,
-  describeWeather,
-  GRADIENTS,
-  iconColor,
-  WEATHER_QUERY_KEY,
-  WeatherData,
-} from '../../weather';
+import { useCardStyles } from '../../WeatherView';
+import { cityQueryKey, describeWeather, WEATHER_QUERY_KEY, WeatherData } from '../../weather';
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
 export default function DayScreen() {
   const { t } = useTranslation();
   const units = useUnits();
+  const c = usePalette();
+  const styles = useStyles();
+  const cardStyles = useCardStyles();
   const { date, ville } = useLocalSearchParams<{ date: string; ville?: string }>();
   // On arrive depuis la liste 7 jours de ma position ou d'une ville : sa météo est déjà en cache.
   const key = ville ? cityQueryKey(ville) : WEATHER_QUERY_KEY;
@@ -34,7 +31,7 @@ export default function DayScreen() {
   const day = forecast.daily[index];
   const hours = forecast.hourly.filter((h) => h.time.startsWith(date));
   const d = describeWeather(day.weatherCode);
-  const gradient = GRADIENTS[d.theme];
+  const gradient = c.gradients[d.theme];
 
   return (
     <LinearGradient colors={gradient} style={styles.container}>
@@ -43,12 +40,12 @@ export default function DayScreen() {
           headerShown: true,
           title: dayLabel(date, index),
           headerTransparent: true,
-          headerTintColor: '#fff',
+          headerTintColor: c.text,
           headerBackTitle: t('onglets.meteo'),
         }}
       />
       <ScrollView contentContainerStyle={styles.content}>
-        <Ionicons name={d.icon} size={64} color={iconColor(d.icon)} accessible={false} />
+        <Ionicons name={d.icon} size={64} color={iconColor(c, d.icon)} accessible={false} />
         <Text style={styles.label}>{d.label}</Text>
         <Text style={styles.range}>
           {units.temp(day.min)}° / {units.temp(day.max)}°
@@ -78,7 +75,7 @@ export default function DayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = themedStyles((c) => ({
   container: { flex: 1 },
   content: {
     alignItems: 'center',
@@ -86,6 +83,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 40,
   },
-  label: { color: '#fff', fontSize: 22, textAlign: 'center', marginTop: 8 },
-  range: { color: '#fff', fontSize: 28, fontWeight: '300', marginTop: 4 },
-});
+  label: { color: c.text, fontSize: 22, textAlign: 'center', marginTop: 8 },
+  range: { color: c.text, fontSize: 28, fontWeight: '300', marginTop: 4 },
+}));

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 
 import { useFavorites } from '../../favorites';
+import { usePalette } from '../../theme';
 import {
   City,
   cityQueryKey,
@@ -105,7 +106,7 @@ export default function WeatherScreen() {
     queryFn: city ? cityWeatherQuery(city).queryFn : skipToken,
     enabled: false,
   }).data;
-  const gradient = gradientFor(page > 0 ? cityData : query.data);
+  const gradient = gradientFor(usePalette(), page > 0 ? cityData : query.data);
 
   // La barre d'onglets prolonge le bas du dégradé.
   const navigation = useNavigation();
@@ -166,7 +167,8 @@ function CityPage({
 // Flèche pour ma position, puis un point par favori ; celui de la page affichée est plein.
 function PageDots({ count, current }: { count: number; current: number }) {
   const { t } = useTranslation();
-  const color = (i: number) => (i === current ? '#fff' : 'rgba(255,255,255,0.4)');
+  const { text } = usePalette();
+  const opacity = (i: number) => (i === current ? 1 : 0.4);
   return (
     <View
       testID="indicateur"
@@ -175,9 +177,9 @@ function PageDots({ count, current }: { count: number; current: number }) {
       accessible
       accessibilityLabel={t('meteo.page', { current: current + 1, total: count })}
     >
-      <Ionicons name="navigate" size={10} color={color(0)} />
+      <Ionicons name="navigate" size={10} color={text} style={{ opacity: opacity(0) }} />
       {Array.from({ length: count - 1 }, (_, i) => (
-        <View key={i} style={[styles.dot, { backgroundColor: color(i + 1) }]} />
+        <View key={i} style={[styles.dot, { backgroundColor: text, opacity: opacity(i + 1) }]} />
       ))}
     </View>
   );

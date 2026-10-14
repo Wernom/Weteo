@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Polyline, Text as SvgText } from 'react-native-svg';
 
 import { formatHour } from './i18n';
+import { themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
 import { HourlyForecast } from './weather';
 
@@ -49,6 +50,8 @@ export function chartPoints(
 export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
   const { t } = useTranslation();
   const units = useUnits();
+  const c = usePalette();
+  const styles = useStyles();
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
 
@@ -109,13 +112,14 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
                 x2={AXIS + plotWidth}
                 y1={TOP + y(t)}
                 y2={TOP + y(t)}
-                stroke="rgba(255,255,255,0.25)"
+                stroke={c.text}
+                strokeOpacity={0.25}
                 strokeDasharray="3 4"
               />
               <SvgText
                 x={AXIS - 6}
                 y={TOP + y(t) + 4}
-                fill="#cfe3ff"
+                fill={c.secondary}
                 fontSize={12}
                 textAnchor="end"
               >
@@ -129,7 +133,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
               key={h}
               x={AXIS + h * step}
               y={HEIGHT - 4}
-              fill="#cfe3ff"
+              fill={c.secondary}
               fontSize={12}
               textAnchor="middle"
             >
@@ -140,7 +144,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
             <Polyline
               points={chartPoints(temps, plotWidth, PLOT_HEIGHT, lo, hi)}
               fill="none"
-              stroke="#fff"
+              stroke={c.text}
               strokeWidth={3}
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -153,9 +157,10 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
                   x2={selected * step}
                   y1={BAND - TOP}
                   y2={PLOT_HEIGHT}
-                  stroke="rgba(255,255,255,0.7)"
+                  stroke={c.text}
+                  strokeOpacity={0.7}
                 />
-                <Circle cx={selected * step} cy={y(temps[selected])} r={5} fill="#fff" />
+                <Circle cx={selected * step} cy={y(temps[selected])} r={5} fill={c.text} />
               </>
             )}
           </G>
@@ -184,15 +189,15 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = themedStyles((c) => ({
   bubble: {
     position: 'absolute',
     top: 0,
     width: BUBBLE_WIDTH,
     paddingVertical: 4,
     borderRadius: 8,
-    backgroundColor: '#fff',
+    backgroundColor: c.inverse,
   },
-  bubbleText: { color: '#1f2d5c', fontSize: 14, fontWeight: '600', textAlign: 'center' },
-  hint: { color: '#cfe3ff', fontSize: 13, textAlign: 'center', marginTop: 4 },
-});
+  bubbleText: { color: c.onInverse, fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  hint: { color: c.secondary, fontSize: 13, textAlign: 'center', marginTop: 4 },
+}));

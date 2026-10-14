@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { translateFavorites } from '../../favorites';
 import { setLanguage } from '../../i18n';
@@ -11,11 +11,12 @@ import {
   PRECIPITATION_UNITS,
   setSetting,
   TEMPERATURE_UNITS,
+  THEMES,
   useSettings,
   WIND_UNITS,
 } from '../../settings';
-import { cardStyles } from '../../WeatherView';
-import { GRADIENTS } from '../../weather';
+import { themedStyles, usePalette } from '../../theme';
+import { useCardStyles } from '../../WeatherView';
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
@@ -35,10 +36,11 @@ function chooseLanguage(language: Language) {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const { language, temperature, wind, precipitation } = useSettings();
+  const { language, temperature, wind, precipitation, theme } = useSettings();
+  const styles = useStyles();
   const unit = (code: string) => t(`unites.${code}`);
   return (
-    <LinearGradient colors={GRADIENTS.jour} style={styles.container}>
+    <LinearGradient colors={usePalette().gradients.jour} style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title} accessibilityRole="header">
           {t('reglages.titre')}
@@ -75,6 +77,14 @@ export default function SettingsScreen() {
           onChange={(value) => setSetting('precipitation', value)}
           testID="unite"
         />
+        <Choices
+          title={t('reglages.theme')}
+          options={THEMES}
+          value={theme}
+          label={(code) => t(`themes.${code}`)}
+          onChange={(value) => setSetting('theme', value)}
+          testID="theme"
+        />
       </ScrollView>
     </LinearGradient>
   );
@@ -96,6 +106,9 @@ function Choices<T extends string>({
   onChange: (option: T) => void;
   testID: string;
 }) {
+  const c = usePalette();
+  const styles = useStyles();
+  const cardStyles = useCardStyles();
   return (
     <>
       <Text style={[cardStyles.cardTitle, styles.section]} accessibilityRole="header">
@@ -114,7 +127,7 @@ function Choices<T extends string>({
               onPress={() => onChange(option)}
             >
               <Text style={styles.name}>{label(option)}</Text>
-              {checked && <Ionicons name="checkmark" size={22} color="#fff" />}
+              {checked && <Ionicons name="checkmark" size={22} color={c.text} />}
             </Pressable>
           );
         })}
@@ -123,12 +136,12 @@ function Choices<T extends string>({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = themedStyles((c) => ({
   container: { flex: 1 },
   content: { paddingTop: 80, paddingHorizontal: 16, paddingBottom: 40 },
-  title: { color: '#fff', fontSize: 28, fontWeight: '600', textAlign: 'center' },
+  title: { color: c.text, fontSize: 28, fontWeight: '600', textAlign: 'center' },
   section: { marginTop: 24 },
-  card: { borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.15)', overflow: 'hidden' },
+  card: { borderRadius: 16, backgroundColor: c.surface, overflow: 'hidden' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -137,5 +150,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  name: { color: '#fff', fontSize: 17 },
-});
+  name: { color: c.text, fontSize: 17 },
+}));

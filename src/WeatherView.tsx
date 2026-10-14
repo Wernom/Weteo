@@ -16,13 +16,14 @@ import {
 import { DailyList } from './DailyList';
 import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
+import { iconColor, Palette, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
-import { describeWeather, GRADIENTS, iconColor, WeatherData } from './weather';
+import { describeWeather, WeatherData } from './weather';
 
 // Fond du temps actuel, ou du jour tant que la météo n'est pas chargée.
-export function gradientFor(data: WeatherData | undefined) {
+export function gradientFor(c: Palette, data: WeatherData | undefined) {
   const current = data?.forecast.current;
-  return GRADIENTS[current ? describeWeather(current.weatherCode, current.isDay).theme : 'jour'];
+  return c.gradients[current ? describeWeather(current.weatherCode, current.isDay).theme : 'jour'];
 }
 
 // Météo d'un lieu (ma position ou une ville) : chargement, erreur avec « Réessayer », puis le détail.
@@ -42,8 +43,11 @@ export function WeatherView({
 }) {
   const { t } = useTranslation();
   const units = useUnits();
+  const c = usePalette();
+  const styles = useStyles();
+  const cardStyles = useCardStyles();
   const reload = () => refetch();
-  const gradient = gradientFor(data);
+  const gradient = gradientFor(c, data);
 
   if (!data && !isFetching) {
     return <ErrorScreen message={error?.message || 'erreurs.chargement'} onRetry={reload} />;
@@ -51,7 +55,7 @@ export function WeatherView({
   if (!data) {
     return (
       <LinearGradient colors={gradient} style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size="large" color={c.text} />
       </LinearGradient>
     );
   }
@@ -70,12 +74,12 @@ export function WeatherView({
         scrollEventThrottle={16}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={reload} tintColor="#fff" />
+          <RefreshControl refreshing={isRefetching} onRefresh={reload} tintColor={c.text} />
         }
       >
         {!ville && data.place && (
           <View testID="mention-position" style={styles.position}>
-            <Ionicons name="navigate" size={14} color="#e6efff" accessible={false} />
+            <Ionicons name="navigate" size={14} color={c.secondary} accessible={false} />
             <Text style={styles.positionText}>{t('meteo.maPosition')}</Text>
           </View>
         )}
@@ -83,7 +87,7 @@ export function WeatherView({
         <Ionicons
           name={now.icon}
           size={72}
-          color={iconColor(now.icon)}
+          color={iconColor(c, now.icon)}
           style={styles.icon}
           accessible={false}
         />
@@ -123,7 +127,7 @@ export function WeatherView({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = themedStyles((c) => ({
   container: { flex: 1 },
   center: {
     alignItems: 'center',
@@ -137,41 +141,41 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   position: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  positionText: { color: '#e6efff', fontSize: 15, fontWeight: '600', textTransform: 'uppercase' },
-  place: { color: '#fff', fontSize: 28, fontWeight: '600', textAlign: 'center' },
+  positionText: { color: c.secondary, fontSize: 15, fontWeight: '600', textTransform: 'uppercase' },
+  place: { color: c.text, fontSize: 28, fontWeight: '600', textAlign: 'center' },
   icon: { marginTop: 8 },
   temp: {
-    color: '#fff',
+    color: c.text,
     fontSize: 112,
     fontWeight: '200',
     lineHeight: 120,
-    textShadowColor: 'rgba(0,0,0,0.25)',
+    textShadowColor: c.textShadow,
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 12,
   },
-  label: { color: '#fff', fontSize: 22, fontWeight: '500', textAlign: 'center' },
-  range: { color: '#e6efff', fontSize: 17, marginTop: 4 },
-});
+  label: { color: c.text, fontSize: 22, fontWeight: '500', textAlign: 'center' },
+  range: { color: c.secondary, fontSize: 17, marginTop: 4 },
+}));
 
 // Cartes translucides sur le dégradé, reprises par le détail d'un jour.
-export const cardStyles = StyleSheet.create({
+export const useCardStyles = themedStyles((c) => ({
   card: {
     alignSelf: 'stretch',
     marginTop: 20,
     padding: 16,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    backgroundColor: c.surface,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.3)',
+    borderColor: c.border,
   },
   details: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', gap: 8 },
-  detail: { color: '#fff', fontSize: 15, fontWeight: '500' },
+  detail: { color: c.text, fontSize: 15, fontWeight: '500' },
   cardTitle: {
-    color: '#e6efff',
+    color: c.secondary,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.8,
     marginBottom: 8,
     textTransform: 'uppercase',
   },
-});
+}));

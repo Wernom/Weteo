@@ -41,8 +41,10 @@
     "langue": "Language",
     "temperature": "Temperature",
     "vent": "Wind",
-    "precipitations": "Precipitation"
+    "precipitations": "Precipitation",
+    "theme": "Theme"
   },
+  "themes": { "system": "Same as phone", "light": "Light", "dark": "Dark" },
   "unites": {
     "celsius": "°C",
     "fahrenheit": "°F",

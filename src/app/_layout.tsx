@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState } from 'react-native';
 
+import { useScheme } from '../theme';
 import { shouldRetry } from '../weather';
 
 export { ErrorBoundary } from '../ErrorScreen';
@@ -24,9 +25,11 @@ focusManager.setEventListener((setFocused) => {
 
 // Les écrans de détail s'empilent au-dessus des onglets.
 export default function RootLayout() {
+  // Texte de la barre d'état contrasté sur le fond : clair en thème sombre, et inversement.
+  const statusBar = useScheme() === 'dark' ? 'light' : 'dark';
   return (
     <QueryClientProvider client={queryClient}>
-      <StatusBar style="light" />
+      <StatusBar style={statusBar} />
       <Stack screenOptions={{ headerShown: false }} />
     </QueryClientProvider>
   );

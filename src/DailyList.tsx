@@ -2,23 +2,20 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 
 import i18n, { formatWeekday } from './i18n';
+import { iconColor, temperatureColor, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
-import {
-  DailyForecast,
-  describeWeather,
-  iconColor,
-  temperatureBar,
-  temperatureColor,
-} from './weather';
+import { DailyForecast, describeWeather, temperatureBar } from './weather';
 
 // Une ligne par jour ; le premier est aujourd'hui. Toucher un jour ouvre son détail,
 // celui de la ville `ville` si elle est donnée, sinon celui de ma position.
 export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: string }) {
   const { t } = useTranslation();
   const units = useUnits();
+  const c = usePalette();
+  const styles = useStyles();
   // Barres et couleurs en °C, quelle que soit l'unité affichée.
   // Échelle commune des barres : la plus basse et la plus haute de la semaine.
   const lo = Math.min(...days.map((d) => d.min));
@@ -40,11 +37,11 @@ export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: stri
             onPress={() => router.push(`/jour/${day.date}${ville ? `?ville=${ville}` : ''}`)}
           >
             <Text style={styles.day}>{label}</Text>
-            <Ionicons name={d.icon} size={24} color={iconColor(d.icon)} />
+            <Ionicons name={d.icon} size={24} color={iconColor(c, d.icon)} />
             <Text style={[styles.temp, styles.min]}>{min}°</Text>
             <View style={styles.track}>
               <LinearGradient
-                colors={[temperatureColor(day.min), temperatureColor(day.max)]}
+                colors={[temperatureColor(c, day.min), temperatureColor(c, day.max)]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={[styles.bar, barStyle(day.min, day.max, lo, hi)]}
@@ -68,18 +65,18 @@ function barStyle(min: number, max: number, lo: number, hi: number) {
   return { left: `${left}%`, width: `${width}%` } as const;
 }
 
-const styles = StyleSheet.create({
+const useStyles = themedStyles((c) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  day: { flex: 1, color: '#fff', fontSize: 17 },
-  temp: { color: '#fff', fontSize: 17, fontWeight: '600', minWidth: 36, textAlign: 'right' },
-  min: { color: '#e6efff', fontWeight: '400' },
+  day: { flex: 1, color: c.text, fontSize: 17 },
+  temp: { color: c.text, fontSize: 17, fontWeight: '600', minWidth: 36, textAlign: 'right' },
+  min: { color: c.secondary, fontWeight: '400' },
   track: {
     width: 72,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: c.track,
     overflow: 'hidden',
   },
   // Une barre d'un seul degré reste visible.
   bar: { position: 'absolute', top: 0, bottom: 0, minWidth: 6, borderRadius: 3 },
-});
+}));

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable } from 'react-native';
 
 import { isFavorite, toggleFavorite, useFavorites } from '../../favorites';
+import { usePalette } from '../../theme';
 import { City, cityWeatherQuery } from '../../weather';
 import { WeatherView } from '../../WeatherView';
 
@@ -31,6 +32,7 @@ export default function CityScreen() {
   };
   const query = useQuery(cityWeatherQuery(city));
   const favorite = isFavorite(useFavorites(), city.id);
+  const { text } = usePalette();
 
   return (
     <>
@@ -39,7 +41,7 @@ export default function CityScreen() {
           headerShown: true,
           title: '',
           headerTransparent: true,
-          headerTintColor: '#fff',
+          headerTintColor: text,
           headerBackTitle: t('onglets.villes'),
           headerRight: () => (
             <Pressable
@@ -49,7 +51,7 @@ export default function CityScreen() {
               hitSlop={12}
               onPress={() => toggleFavorite(city)}
             >
-              <Ionicons name={favorite ? 'star' : 'star-outline'} size={24} color="#fff" />
+              <Ionicons name={favorite ? 'star' : 'star-outline'} size={24} color={text} />
             </Pressable>
           ),
         }}
