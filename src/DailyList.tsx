@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import i18n, { formatWeekday } from './i18n';
+import { useUnits } from './units';
 import {
   DailyForecast,
   describeWeather,
@@ -17,6 +18,8 @@ import {
 // celui de la ville `ville` si elle est donnée, sinon celui de ma position.
 export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: string }) {
   const { t } = useTranslation();
+  const units = useUnits();
+  // Barres et couleurs en °C, quelle que soit l'unité affichée.
   // Échelle commune des barres : la plus basse et la plus haute de la semaine.
   const lo = Math.min(...days.map((d) => d.min));
   const hi = Math.max(...days.map((d) => d.max));
@@ -25,8 +28,8 @@ export function DailyList({ days, ville }: { days: DailyForecast[]; ville?: stri
       {days.map((day, i) => {
         const d = describeWeather(day.weatherCode);
         const label = dayLabel(day.date, i);
-        const min = Math.round(day.min);
-        const max = Math.round(day.max);
+        const min = units.temp(day.min);
+        const max = units.temp(day.max);
         return (
           <Pressable
             key={day.date}

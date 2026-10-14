@@ -6,7 +6,7 @@
     "maxMin": "H {{max}}° · L {{min}}°",
     "ressenti": "Feels like {{temperature}}°",
     "humidite": "Humidity {{humidity}}%",
-    "vent": "Wind {{speed}} km/h",
+    "vent": "Wind {{speed}}",
     "heureParHeure": "Hourly",
     "septJours": "7-day forecast",
     "page": "Page {{current}} of {{total}}",
@@ -17,7 +17,7 @@
   },
   "jour": {
     "temperatures": "Temperatures",
-    "precipitations": "Precipitation {{amount}} mm · {{chance}}%",
+    "precipitations": "Precipitation {{amount}} · {{chance}}%",
     "lever": "Sunrise {{time}}",
     "coucher": "Sunset {{time}}",
     "courbe": "Low {{coldest}}, high {{warmest}}",
@@ -36,7 +36,23 @@
     "descendre": "Move {{name}} down",
     "supprimer": "Delete {{name}}"
   },
-  "reglages": { "titre": "Settings", "langue": "Language" },
+  "reglages": {
+    "titre": "Settings",
+    "langue": "Language",
+    "temperature": "Temperature",
+    "vent": "Wind",
+    "precipitations": "Precipitation"
+  },
+  "unites": {
+    "celsius": "°C",
+    "fahrenheit": "°F",
+    "kmh": "km/h",
+    "ms": "m/s",
+    "mph": "mph",
+    "kn": "kn",
+    "mm": "mm",
+    "inch": "in"
+  },
   "temps": {
     "degage": "Clear sky",
     "peuNuageux": "Partly cloudy",

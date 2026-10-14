@@ -53,7 +53,7 @@ describe('Choisir ma langue', () => {
     expect(screen.getByText('Weather')).toBeOnTheScreen();
     expect(screen.getByTestId('langue-en')).toBeChecked();
     expect(screen.getByTestId('langue-fr')).not.toBeChecked();
-    expect(JSON.parse(Storage.getItemSync('reglages')!)).toEqual({ language: 'en' });
+    expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({ language: 'en' });
   });
 
   it('retraduit les noms des favoris', async () => {
@@ -91,6 +91,32 @@ describe('Choisir ma langue', () => {
     jest.isolateModules(() => {
       require('expo-localization').getLocales.mockReturnValueOnce([{ languageCode: phone }]);
       expect(require('../src/i18n').default.language).toBe(expected);
+    });
+  });
+});
+
+describe('Choisir mes unités', () => {
+  it('coche °C, km/h et mm par défaut et retient le choix', async () => {
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue({ ok: true, json: async () => ({}) } as Response);
+    const user = await openSettings();
+    expect(screen.getByTestId('unite-celsius')).toBeChecked();
+    expect(screen.getByTestId('unite-kmh')).toBeChecked();
+    expect(screen.getByTestId('unite-mm')).toBeChecked();
+
+    await user.press(screen.getByTestId('unite-fahrenheit'));
+    await user.press(screen.getByTestId('unite-kn'));
+    await user.press(screen.getByTestId('unite-inch'));
+
+    expect(screen.getByTestId('unite-fahrenheit')).toBeChecked();
+    expect(screen.getByTestId('unite-celsius')).not.toBeChecked();
+    expect(screen.getByTestId('unite-kn')).toBeChecked();
+    expect(screen.getByTestId('unite-inch')).toBeChecked();
+    expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({
+      temperature: 'fahrenheit',
+      wind: 'kn',
+      precipitation: 'inch',
     });
   });
 });

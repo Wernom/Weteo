@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useLocalSearchParams } from 'expo-router';
+import Storage from 'expo-sqlite/kv-store';
 
 import DayScreen from '../src/app/jour/[date]';
 import { cityQueryKey, fetchForecast, WEATHER_QUERY_KEY } from '../src/weather';
@@ -89,6 +90,17 @@ describe('Écran Détail du jour', () => {
     expect(chart).toHaveAccessibilityValue({ text: '1 h, 9°' });
     await fireEvent(chart, 'accessibilityAction', { nativeEvent: { actionName: 'decrement' } });
     expect(chart).toHaveAccessibilityValue({ text: '0 h, 9°' });
+  });
+
+  it('affiche températures et précipitations dans les unités des réglages', async () => {
+    Storage.setItemSync(
+      'reglages',
+      JSON.stringify({ temperature: 'fahrenheit', precipitation: 'inch' }),
+    );
+    await renderDay('2026-10-05');
+
+    expect(screen.getByText('Précipitations 0,09 po · 80 %')).toBeOnTheScreen();
+    Storage.clearSync();
   });
 
   it("titre « Aujourd'hui » pour le premier jour, cumul décimal à la française", async () => {

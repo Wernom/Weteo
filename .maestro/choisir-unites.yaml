@@ -1,0 +1,48 @@
+# L'utilisateur passe en °F et mph depuis Réglages, le choix est retenu au relancement,
+# puis il revient aux unités par défaut. Localisation refusée pour ne pas dépendre du réseau.
+appId: com.wernom.weteo
+name: Choisir mes unités
+---
+- runFlow: localisation-refusee.yaml
+- tapOn:
+    id: onglet-reglages
+- scrollUntilVisible:
+    element:
+      id: unite-mm
+- assertVisible:
+    id: unite-celsius
+    checked: true
+- assertVisible:
+    id: unite-kmh
+    checked: true
+- assertVisible:
+    id: unite-mm
+    checked: true
+- tapOn:
+    id: unite-fahrenheit
+- tapOn:
+    id: unite-mph
+- assertVisible:
+    id: unite-fahrenheit
+    checked: true
+- assertVisible:
+    id: unite-mph
+    checked: true
+# Le choix est retenu au relancement.
+- stopApp
+- launchApp
+- tapOn:
+    id: onglet-reglages
+- scrollUntilVisible:
+    element:
+      id: unite-mm
+- assertVisible:
+    id: unite-fahrenheit
+    checked: true
+- tapOn:
+    id: unite-celsius
+- tapOn:
+    id: unite-kmh
+- assertVisible:
+    id: unite-celsius
+    checked: true

@@ -106,6 +106,19 @@ describe('Écran Météo', () => {
     expect(screen.getByText('Vent 14 km/h')).toBeOnTheScreen();
   });
 
+  it('affiche les valeurs dans les unités des réglages', async () => {
+    Storage.setItemSync('reglages', JSON.stringify({ temperature: 'fahrenheit', wind: 'mph' }));
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    expect(await screen.findByText('65°')).toBeOnTheScreen();
+    expect(screen.getByText('Ressenti 62°')).toBeOnTheScreen();
+    expect(screen.getByText('Vent 9 mph')).toBeOnTheScreen();
+    Storage.clearSync();
+  });
+
   it('affiche les 7 prochains jours avec icône, minimum et maximum', async () => {
     allowLocation();
     mockApi();

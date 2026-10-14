@@ -6,7 +6,7 @@
     "maxMin": "Max {{max}}° · Min {{min}}°",
     "ressenti": "Gefühlt {{temperature}}°",
     "humidite": "Luftfeuchtigkeit {{humidity}}%",
-    "vent": "Wind {{speed}} km/h",
+    "vent": "Wind {{speed}}",
     "heureParHeure": "Stündlich",
     "septJours": "7-Tage-Vorhersage",
     "page": "Seite {{current}} von {{total}}",
@@ -17,7 +17,7 @@
   },
   "jour": {
     "temperatures": "Temperaturen",
-    "precipitations": "Niederschlag {{amount}} mm · {{chance}} %",
+    "precipitations": "Niederschlag {{amount}} · {{chance}} %",
     "lever": "Sonnenaufgang {{time}}",
     "coucher": "Sonnenuntergang {{time}}",
     "courbe": "Tiefstwert {{coldest}}, Höchstwert {{warmest}}",
@@ -36,7 +36,23 @@
     "descendre": "{{name}} nach unten",
     "supprimer": "{{name}} löschen"
   },
-  "reglages": { "titre": "Einstellungen", "langue": "Sprache" },
+  "reglages": {
+    "titre": "Einstellungen",
+    "langue": "Sprache",
+    "temperature": "Temperatur",
+    "vent": "Wind",
+    "precipitations": "Niederschlag"
+  },
+  "unites": {
+    "celsius": "°C",
+    "fahrenheit": "°F",
+    "kmh": "km/h",
+    "ms": "m/s",
+    "mph": "mph",
+    "kn": "kn",
+    "mm": "mm",
+    "inch": "Zoll"
+  },
   "temps": {
     "degage": "Klarer Himmel",
     "peuNuageux": "Leicht bewölkt",

@@ -18,6 +18,7 @@ import { RetryButton } from '../../ErrorScreen';
 import { gradientFor } from '../../WeatherView';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import { useSettings } from '../../settings';
+import { useUnits } from '../../units';
 import {
   City,
   cityWeatherQuery,
@@ -236,13 +237,14 @@ const TRANSLUCENT = ['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.15)'] as cons
 
 // Rien tant que la météo n'est pas là (chargement, erreur, localisation refusée).
 function WeatherSummary({ data }: { data: WeatherData | undefined }) {
+  const units = useUnits();
   if (!data) return null;
   const { weatherCode, isDay, temperature } = data.forecast.current;
   const { icon } = describeWeather(weatherCode, isDay);
   return (
     <View style={styles.summary}>
       <Ionicons name={icon} size={26} color={iconColor(icon)} />
-      <Text style={styles.temperature}>{Math.round(temperature)}°</Text>
+      <Text style={styles.temperature}>{units.temp(temperature)}°</Text>
     </View>
   );
 }

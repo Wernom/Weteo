@@ -8,6 +8,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { dayLabel } from '../../DailyList';
 import { formatClock } from '../../i18n';
 import { TemperatureChart } from '../../TemperatureChart';
+import { useUnits } from '../../units';
 import { cardStyles } from '../../WeatherView';
 import {
   cityQueryKey,
@@ -21,7 +22,8 @@ import {
 export { ErrorBoundary } from '../../ErrorScreen';
 
 export default function DayScreen() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+  const units = useUnits();
   const { date, ville } = useLocalSearchParams<{ date: string; ville?: string }>();
   // On arrive depuis la liste 7 jours de ma position ou d'une ville : sa météo est déjà en cache.
   const key = ville ? cityQueryKey(ville) : WEATHER_QUERY_KEY;
@@ -33,9 +35,6 @@ export default function DayScreen() {
   const hours = forecast.hourly.filter((h) => h.time.startsWith(date));
   const d = describeWeather(day.weatherCode);
   const gradient = GRADIENTS[d.theme];
-  const precipitation = day.precipitation.toLocaleString(i18n.language, {
-    maximumFractionDigits: 1,
-  });
 
   return (
     <LinearGradient colors={gradient} style={styles.container}>
@@ -52,7 +51,7 @@ export default function DayScreen() {
         <Ionicons name={d.icon} size={64} color={iconColor(d.icon)} accessible={false} />
         <Text style={styles.label}>{d.label}</Text>
         <Text style={styles.range}>
-          {Math.round(day.min)}° / {Math.round(day.max)}°
+          {units.temp(day.min)}° / {units.temp(day.max)}°
         </Text>
 
         <View style={cardStyles.card}>
@@ -62,7 +61,10 @@ export default function DayScreen() {
 
         <View style={[cardStyles.card, cardStyles.details]}>
           <Text style={cardStyles.detail}>
-            {t('jour.precipitations', { amount: precipitation, chance: day.rainChance })}
+            {t('jour.precipitations', {
+              amount: units.rain(day.precipitation),
+              chance: day.rainChance,
+            })}
           </Text>
           <Text style={cardStyles.detail}>
             {t('jour.lever', { time: formatClock(day.sunrise) })}

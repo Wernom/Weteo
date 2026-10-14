@@ -16,6 +16,7 @@ import {
 import { DailyList } from './DailyList';
 import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
+import { useUnits } from './units';
 import { describeWeather, GRADIENTS, iconColor, WeatherData } from './weather';
 
 // Fond du temps actuel, ou du jour tant que la météo n'est pas chargée.
@@ -40,6 +41,7 @@ export function WeatherView({
   onScroll?: ScrollViewProps['onScroll'];
 }) {
   const { t } = useTranslation();
+  const units = useUnits();
   const reload = () => refetch();
   const gradient = gradientFor(data);
 
@@ -86,24 +88,24 @@ export function WeatherView({
           accessible={false}
         />
         <Text style={styles.temp} maxFontSizeMultiplier={1.5}>
-          {Math.round(current.temperature)}°
+          {units.temp(current.temperature)}°
         </Text>
         <Text style={styles.label}>{now.label}</Text>
         {today && (
           <Text style={styles.range}>
-            {t('meteo.maxMin', { max: Math.round(today.max), min: Math.round(today.min) })}
+            {t('meteo.maxMin', { max: units.temp(today.max), min: units.temp(today.min) })}
           </Text>
         )}
 
         <View style={[cardStyles.card, cardStyles.details]}>
           <Text style={cardStyles.detail}>
-            {t('meteo.ressenti', { temperature: Math.round(current.apparentTemperature) })}
+            {t('meteo.ressenti', { temperature: units.temp(current.apparentTemperature) })}
           </Text>
           <Text style={cardStyles.detail}>
             {t('meteo.humidite', { humidity: current.humidity })}
           </Text>
           <Text style={cardStyles.detail}>
-            {t('meteo.vent', { speed: Math.round(current.windSpeed) })}
+            {t('meteo.vent', { speed: units.wind(current.windSpeed) })}
           </Text>
         </View>
 

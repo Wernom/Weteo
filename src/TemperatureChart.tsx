@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Polyline, Text as SvgText } from 'react-native-svg';
 
 import { formatHour } from './i18n';
+import { useUnits } from './units';
 import { HourlyForecast } from './weather';
 
 const BAND = 30; // bande de la bulle, au-dessus de la courbe : elle ne la cache jamais
@@ -47,10 +48,12 @@ export function chartPoints(
 // Toucher ou glisser sur la courbe affiche l'heure et la température à cet endroit.
 export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
   const { t } = useTranslation();
+  const units = useUnits();
   const [width, setWidth] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
 
-  const temps = hours.map((h) => h.temperature);
+  // Dans l'unité des réglages : graduations, courbe et bulle la suivent.
+  const temps = hours.map((h) => units.degrees(h.temperature));
   const min = Math.min(...temps);
   const max = Math.max(...temps);
   const ticks = axisTicks(min, max);
@@ -60,10 +63,8 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
   const step = plotWidth / Math.max(hours.length - 1, 1);
   const y = (t: number) => PLOT_HEIGHT - ((t - lo) / (hi - lo)) * PLOT_HEIGHT;
 
-  const describe = (h: HourlyForecast) =>
-    t('jour.temperatureA', { temperature: Math.round(h.temperature), hour: formatHour(h.time) });
-  const coldest = hours[temps.indexOf(min)];
-  const warmest = hours[temps.indexOf(max)];
+  const describe = (i: number) =>
+    t('jour.temperatureA', { temperature: Math.round(temps[i]), hour: formatHour(hours[i].time) });
 
   const select = (x: number) => {
     if (step > 0)
@@ -78,12 +79,12 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
         accessible
         accessibilityRole="adjustable"
         accessibilityLabel={t('jour.courbe', {
-          coldest: describe(coldest),
-          warmest: describe(warmest),
+          coldest: describe(temps.indexOf(min)),
+          warmest: describe(temps.indexOf(max)),
         })}
         accessibilityValue={
-          point
-            ? { text: `${formatHour(point.time)}, ${Math.round(point.temperature)}°` }
+          point && selected !== null
+            ? { text: `${formatHour(point.time)}, ${Math.round(temps[selected])}°` }
             : undefined
         }
         accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
@@ -154,7 +155,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
                   y2={PLOT_HEIGHT}
                   stroke="rgba(255,255,255,0.7)"
                 />
-                <Circle cx={selected * step} cy={y(point.temperature)} r={5} fill="#fff" />
+                <Circle cx={selected * step} cy={y(temps[selected])} r={5} fill="#fff" />
               </>
             )}
           </G>
@@ -173,7 +174,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
             ]}
           >
             <Text style={styles.bubbleText}>
-              {formatHour(point.time)} · {Math.round(point.temperature)}°
+              {formatHour(point.time)} · {Math.round(temps[selected])}°
             </Text>
           </View>
         )}

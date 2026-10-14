@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { formatHour } from './i18n';
+import { useUnits } from './units';
 import { describeWeather, HourlyForecast, iconColor } from './weather';
 
 // Bandeau horizontal des prochaines heures ; la première est l'heure en cours.
 export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
   const { t } = useTranslation();
+  const units = useUnits();
   return (
     <ScrollView
       testID="bandeau-horaire"
@@ -20,7 +22,7 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
       {hours.map((hour, i) => {
         const d = describeWeather(hour.weatherCode, hour.isDay);
         const label = i === 0 ? t('meteo.maintenant') : formatHour(hour.time);
-        const temperature = `${Math.round(hour.temperature)}°`;
+        const temperature = `${units.temp(hour.temperature)}°`;
         return (
           <View
             key={hour.time}

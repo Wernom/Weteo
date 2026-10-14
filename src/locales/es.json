@@ -6,7 +6,7 @@
     "maxMin": "Máx {{max}}° · Mín {{min}}°",
     "ressenti": "Sensación {{temperature}}°",
     "humidite": "Humedad {{humidity}}%",
-    "vent": "Viento {{speed}} km/h",
+    "vent": "Viento {{speed}}",
     "heureParHeure": "Por horas",
     "septJours": "Previsión a 7 días",
     "page": "Página {{current}} de {{total}}",
@@ -17,7 +17,7 @@
   },
   "jour": {
     "temperatures": "Temperaturas",
-    "precipitations": "Precipitaciones {{amount}} mm · {{chance}} %",
+    "precipitations": "Precipitaciones {{amount}} · {{chance}} %",
     "lever": "Amanecer {{time}}",
     "coucher": "Atardecer {{time}}",
     "courbe": "Mínima {{coldest}}, máxima {{warmest}}",
@@ -36,7 +36,23 @@
     "descendre": "Bajar {{name}}",
     "supprimer": "Eliminar {{name}}"
   },
-  "reglages": { "titre": "Ajustes", "langue": "Idioma" },
+  "reglages": {
+    "titre": "Ajustes",
+    "langue": "Idioma",
+    "temperature": "Temperatura",
+    "vent": "Viento",
+    "precipitations": "Precipitaciones"
+  },
+  "unites": {
+    "celsius": "°C",
+    "fahrenheit": "°F",
+    "kmh": "km/h",
+    "ms": "m/s",
+    "mph": "mph",
+    "kn": "kn",
+    "mm": "mm",
+    "inch": "in"
+  },
   "temps": {
     "degage": "Despejado",
     "peuNuageux": "Poco nuboso",
