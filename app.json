@@ -11,28 +11,25 @@
     },
     "android": {
       "package": "com.wernom.weteo",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": [
-      [
-        "expo-location",
-        {
-          "locationWhenInUsePermission": "Weteo utilise votre position pour afficher la météo locale."
-        }
-      ],
-      "expo-router",
-      "expo-sqlite",
-      "expo-localization"
-    ],
+    "plugins": ["expo-router", "expo-sqlite", "expo-localization"],
     "scheme": "weteo",
     "experiments": {
       "reactCompiler": true

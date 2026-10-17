@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, userEvent, within } from '@testing-library/react-native';
-import * as Location from 'expo-location';
+import Location from '../modules/weteo-location';
 import { router } from 'expo-router';
 import Storage from 'expo-sqlite/kv-store';
 

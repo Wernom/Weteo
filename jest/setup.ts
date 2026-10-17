@@ -8,3 +8,14 @@ afterEach(() => {
   jest.restoreAllMocks();
   Storage.clearSync();
 });
+
+// Localisation pour Jest : chaque test choisit ses réponses avec jest.mocked(Location).
+jest.mock('../modules/weteo-location', () => ({
+  __esModule: true,
+  default: {
+    requestForegroundPermissionsAsync: jest.fn(),
+    getLastKnownPositionAsync: jest.fn(),
+    getCurrentPositionAsync: jest.fn(),
+    reverseGeocodeAsync: jest.fn(),
+  },
+}));

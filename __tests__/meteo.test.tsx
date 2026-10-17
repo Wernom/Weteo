@@ -8,7 +8,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import * as Location from 'expo-location';
+import Location from '../modules/weteo-location';
 import { router, useIsFocused } from 'expo-router';
 import Storage from 'expo-sqlite/kv-store';
 import {
@@ -42,11 +42,9 @@ const coords = { latitude: 48.85, longitude: 2.35 };
 function allowLocation() {
   location.requestForegroundPermissionsAsync.mockResolvedValue({
     granted: true,
-  } as Location.LocationPermissionResponse);
-  location.getCurrentPositionAsync.mockResolvedValue({ coords } as Location.LocationObject);
-  location.reverseGeocodeAsync.mockResolvedValue([
-    { city: 'Paris' } as Location.LocationGeocodedAddress,
-  ]);
+  });
+  location.getCurrentPositionAsync.mockResolvedValue({ coords });
+  location.reverseGeocodeAsync.mockResolvedValue([{ city: 'Paris' }]);
 }
 
 function screenTree(client: QueryClient) {
@@ -196,7 +194,7 @@ describe('Écran Météo', () => {
   it('ouvre la recherche de ville quand la localisation est refusée', async () => {
     location.requestForegroundPermissionsAsync.mockResolvedValue({
       granted: false,
-    } as Location.LocationPermissionResponse);
+    });
     const fetchMock = mockApi();
 
     await renderScreen();
@@ -212,7 +210,7 @@ describe('Écran Météo', () => {
   it("ne redemande pas la localisation refusée au retour sur l'app", async () => {
     location.requestForegroundPermissionsAsync.mockResolvedValue({
       granted: false,
-    } as Location.LocationPermissionResponse);
+    });
 
     await renderScreen();
     await screen.findByText('Réessayer');

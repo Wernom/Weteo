@@ -1,8 +1,9 @@
 import type Ionicons from '@expo/vector-icons/Ionicons';
 import { queryOptions } from '@tanstack/react-query';
-import * as Location from 'expo-location';
 import type { ComponentProps } from 'react';
 import { z } from 'zod';
+
+import Location from '../modules/weteo-location';
 
 import i18n from './i18n';
 import type { Language } from './settings';
@@ -62,11 +63,11 @@ export async function loadWeather(): Promise<WeatherData> {
   if (!granted) throw new Error(LOCATION_DENIED);
   // Une position de moins de 10 min suffit à la météo, sans attendre le GPS.
   const { coords } =
-    (await Location.getLastKnownPositionAsync({ maxAge: TEN_MINUTES })) ??
-    (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced }));
+    (await Location.getLastKnownPositionAsync(TEN_MINUTES)) ??
+    (await Location.getCurrentPositionAsync());
   const [forecast, address] = await Promise.all([
     fetchForecast(coords.latitude, coords.longitude),
-    Location.reverseGeocodeAsync(coords).catch(() => []),
+    Location.reverseGeocodeAsync(coords.latitude, coords.longitude).catch(() => []),
   ]);
   return { forecast, place: address[0]?.city ?? address[0]?.region ?? null };
 }
