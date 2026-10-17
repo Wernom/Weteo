@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
-import { ComponentProps, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ComponentProps, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { router, useIsFocused, useLocalSearchParams, useNavigation } from 'expo-router';
+import { router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import {
   FlatList,
   NativeScrollEvent,
@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 
 import { useFavorites } from '../../favorites';
-import { gradientFor, usePalette } from '../../theme';
+import { radius, space, tabBarTheme, usePalette, weatherTheme } from '../../theme';
 import {
   City,
   cityWeatherQuery,
@@ -100,13 +100,11 @@ export default function WeatherScreen() {
     ...((city ? cityWeatherQuery(city) : positionWeatherQuery) as UseQueryOptions<WeatherData>),
     enabled: false,
   }).data;
-  const gradient = gradientFor(usePalette(), shown);
-
-  // La barre d'onglets prolonge le bas du dégradé.
-  const navigation = useNavigation();
-  useLayoutEffect(() => {
-    navigation.setOptions({ tabBarStyle: { backgroundColor: gradient[2], borderTopWidth: 0 } });
-  }, [navigation, gradient]);
+  // La barre d'onglets prolonge le bas de son dégradé.
+  const theme = weatherTheme(shown);
+  useEffect(() => {
+    if (theme !== tabBarTheme.read()) tabBarTheme.write(theme);
+  }, [theme]);
 
   useEffect(() => {
     // Sans position, on ouvre directement la recherche de ville (une seule fois).
@@ -183,11 +181,11 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   dots: {
     position: 'absolute',
-    bottom: 12,
+    bottom: space.m,
     alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: space.s,
   },
-  dot: { width: 8, height: 8, borderRadius: 4 },
+  dot: { width: 8, height: 8, borderRadius: radius.s },
 });

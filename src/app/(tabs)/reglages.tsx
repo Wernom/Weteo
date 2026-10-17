@@ -17,7 +17,7 @@ import {
   WIND_UNITS,
 } from '../../settings';
 import { Screen, useScreenStyles } from '../../Screen';
-import { themedStyles, usePalette } from '../../theme';
+import { font, space, themedStyles, usePalette } from '../../theme';
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
@@ -46,7 +46,7 @@ export default function SettingsScreen() {
   const unit = (code: string) => t(`unites.${code}`);
   return (
     <Screen>
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: top + 32 }]}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: top + space.xxxl }]}>
         <Text style={shared.title} accessibilityRole="header">
           {t('reglages.titre')}
         </Text>
@@ -142,8 +142,8 @@ function Choices<T extends string>({
 }
 
 const useStyles = themedStyles((c) => ({
-  content: { paddingHorizontal: 16, paddingBottom: 40 },
-  section: { marginTop: 24 },
+  content: { paddingHorizontal: space.l, paddingBottom: space.xxxxl },
+  section: { marginTop: space.xxl },
   // Carte commune, collée à son titre ; les lignes portent la marge intérieure.
   card: { marginTop: 0, padding: 0, overflow: 'hidden' },
   row: {
@@ -151,8 +151,8 @@ const useStyles = themedStyles((c) => ({
     alignItems: 'center',
     justifyContent: 'space-between',
     minHeight: 48,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: space.l,
+    paddingVertical: space.m,
   },
-  name: { color: c.text, fontSize: 17 },
+  name: { color: c.text, fontSize: font.size.body },
 }));

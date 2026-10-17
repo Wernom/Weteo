@@ -10,7 +10,7 @@ import { dayLabel } from '../../DailyList';
 import { formatClock } from '../../i18n';
 import { Screen, useScreenStyles } from '../../Screen';
 import { TemperatureChart } from '../../TemperatureChart';
-import { iconColor, themedStyles, usePalette } from '../../theme';
+import { font, iconColor, space, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
 import { cityQueryKey, describeWeather, WEATHER_QUERY_KEY, WeatherData } from '../../weather';
 
@@ -50,11 +50,11 @@ export default function DayScreen() {
           headerBackTitle: t('onglets.meteo'),
         }}
       />
-      <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + 16 }]}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingTop: headerHeight + space.l }]}>
         <Ionicons name={d.icon} size={64} color={iconColor(c, d.icon)} accessible={false} />
         <Text style={styles.label}>{d.label}</Text>
         <Text style={styles.range}>
-          {units.temp(day.min)} / {units.temp(day.max)}
+          {units.temp(day.max)} / {units.temp(day.min)}
         </Text>
 
         <View style={shared.card}>
@@ -80,9 +80,20 @@ export default function DayScreen() {
 const useStyles = themedStyles((c) => ({
   content: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingHorizontal: space.l,
+    paddingBottom: space.xxxxl,
   },
-  label: { color: c.text, fontSize: 22, textAlign: 'center', marginTop: 8 },
-  range: { color: c.text, fontSize: 28, fontWeight: '300', marginTop: 4 },
+  label: {
+    color: c.text,
+    fontSize: font.size.title3,
+    fontWeight: font.weight.medium,
+    textAlign: 'center',
+    marginTop: space.s,
+  },
+  range: {
+    color: c.text,
+    fontSize: font.size.title1,
+    fontWeight: font.weight.light,
+    marginTop: space.xs,
+  },
 }));

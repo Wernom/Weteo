@@ -2,18 +2,19 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router/js-tabs';
 import { useTranslation } from 'react-i18next';
 
-import { usePalette } from '../../theme';
+import { tabBarTheme, usePalette } from '../../theme';
 
 export default function TabsLayout() {
   const { t } = useTranslation();
   const c = usePalette();
+  const theme = tabBarTheme.use();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: c.text,
         tabBarInactiveTintColor: c.secondary,
-        tabBarStyle: { backgroundColor: c.gradients.jour[2], borderTopWidth: 0 },
+        tabBarStyle: { backgroundColor: c.gradients[theme][2], borderTopWidth: 0 },
       }}
     >
       <Tabs.Screen

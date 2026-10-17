@@ -22,18 +22,16 @@ import {
 
 import WeatherScreen from '../src/app/(tabs)/index';
 import { toggleFavorite } from '../src/favorites';
-import { PALETTES } from '../src/theme';
+import { PALETTES, tabBarTheme } from '../src/theme';
 import { TEN_MINUTES, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 import { LYON, mockFetch as mockApi, newClient, NICE, respond } from '../jest/helpers';
 
-const mockNavigation = { setOptions: jest.fn() };
 let mockParams: { page?: string } = {};
 jest.mock('expo-router', () => ({
   router: { navigate: jest.fn(), push: jest.fn(), setParams: jest.fn() },
   useIsFocused: jest.fn(() => true),
   useLocalSearchParams: () => mockParams,
-  useNavigation: () => mockNavigation,
 }));
 
 const location = jest.mocked(Location);
@@ -84,7 +82,7 @@ describe('Écran Météo', () => {
     expect(screen.getByText('18°')).toBeOnTheScreen();
     expect(screen.getByText('Pluie')).toBeOnTheScreen();
     expect(screen.getByText('Ressenti 17°')).toBeOnTheScreen();
-    expect(screen.getByText('Humidité 72%')).toBeOnTheScreen();
+    expect(screen.getByText('Humidité 72 %')).toBeOnTheScreen();
     expect(screen.getByText('Vent 14 km/h')).toBeOnTheScreen();
   });
 
@@ -164,9 +162,7 @@ describe('Écran Météo', () => {
       'colors',
       PALETTES.light.gradients.nuit.map(processColor),
     );
-    expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
-      tabBarStyle: { backgroundColor: PALETTES.light.gradients.nuit[2], borderTopWidth: 0 },
-    });
+    expect(tabBarTheme.read()).toBe('nuit');
   });
 
   it('la pluie prime sur le jour pour le fond', async () => {
@@ -380,11 +376,7 @@ describe('Écran Météo', () => {
       });
 
       expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 3');
-      await waitFor(() =>
-        expect(mockNavigation.setOptions).toHaveBeenLastCalledWith({
-          tabBarStyle: { backgroundColor: PALETTES.light.gradients.nuit[2], borderTopWidth: 0 },
-        }),
-      );
+      await waitFor(() => expect(tabBarTheme.read()).toBe('nuit'));
     });
 
     it('supprimer le favori affiché recule sur la dernière page au lieu d’une page blanche', async () => {

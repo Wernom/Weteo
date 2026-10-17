@@ -16,7 +16,7 @@ import { DailyList } from './DailyList';
 import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
 import { Screen, useScreenStyles } from './Screen';
-import { gradientFor, iconColor, themedStyles, usePalette } from './theme';
+import { font, gradientFor, iconColor, space, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
 import { describeWeather, WeatherData } from './weather';
 
@@ -67,7 +67,7 @@ export function WeatherView({
         ref={scrollRef}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={[styles.content, { paddingTop: top + 16 }]}
+        contentContainerStyle={[styles.content, { paddingTop: top + space.l }]}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={reload} tintColor={c.text} />
         }
@@ -124,25 +124,35 @@ const useStyles = themedStyles((c) => ({
   center: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
+    padding: space.xxl,
   },
   content: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingHorizontal: space.l,
+    paddingBottom: space.xxxxl,
   },
-  position: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
-  positionText: { color: c.secondary, fontSize: 15, fontWeight: '600', textTransform: 'uppercase' },
-  icon: { marginTop: 8 },
+  position: { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginBottom: space.xs },
+  positionText: {
+    color: c.secondary,
+    fontSize: font.size.subhead,
+    fontWeight: font.weight.semibold,
+    textTransform: 'uppercase',
+  },
+  icon: { marginTop: space.s },
   temp: {
     color: c.text,
-    fontSize: 112,
-    fontWeight: '200',
+    fontSize: font.size.hero,
+    fontWeight: font.weight.thin,
     lineHeight: 120,
     textShadowColor: c.textShadow,
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 12,
   },
-  label: { color: c.text, fontSize: 22, fontWeight: '500', textAlign: 'center' },
-  range: { color: c.secondary, fontSize: 17, marginTop: 4 },
+  label: {
+    color: c.text,
+    fontSize: font.size.title3,
+    fontWeight: font.weight.medium,
+    textAlign: 'center',
+  },
+  range: { color: c.secondary, fontSize: font.size.body, marginTop: space.xs },
 }));

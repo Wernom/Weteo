@@ -5,7 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 
 import i18n, { formatWeekday } from './i18n';
-import { iconColor, temperatureColor, themedStyles, usePalette } from './theme';
+import {
+  font,
+  iconColor,
+  radius,
+  space,
+  temperatureColor,
+  themedStyles,
+  usePalette,
+} from './theme';
 import { useUnits } from './units';
 import { DailyForecast, describeWeather, temperatureBar } from './weather';
 
@@ -66,17 +74,23 @@ function barStyle(min: number, max: number, lo: number, hi: number) {
 }
 
 const useStyles = themedStyles((c) => ({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  day: { flex: 1, color: c.text, fontSize: 17 },
-  temp: { color: c.text, fontSize: 17, fontWeight: '600', minWidth: 36, textAlign: 'right' },
-  min: { color: c.secondary, fontWeight: '400' },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space.m, paddingVertical: space.s },
+  day: { flex: 1, color: c.text, fontSize: font.size.body },
+  temp: {
+    color: c.text,
+    fontSize: font.size.body,
+    fontWeight: font.weight.semibold,
+    minWidth: 36,
+    textAlign: 'right',
+  },
+  min: { color: c.secondary, fontWeight: font.weight.regular },
   track: {
     width: 72,
     height: 6,
-    borderRadius: 3,
+    borderRadius: radius.xs,
     backgroundColor: c.track,
     overflow: 'hidden',
   },
   // Une barre d'un seul degré reste visible.
-  bar: { position: 'absolute', top: 0, bottom: 0, minWidth: 6, borderRadius: 3 },
+  bar: { position: 'absolute', top: 0, bottom: 0, minWidth: 6, borderRadius: radius.xs },
 }));

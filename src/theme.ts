@@ -1,6 +1,7 @@
 import { StyleSheet, useColorScheme } from 'react-native';
 
 import { useSettings } from './settings';
+import { createStore } from './store';
 import { describeWeather, type IconName, type WeatherData, type WeatherTheme } from './weather';
 
 type Scheme = 'light' | 'dark';
@@ -28,11 +29,11 @@ export type Palette = {
 export const PALETTES: Record<Scheme, Palette> = {
   light: {
     gradients: {
-      jour: ['#e0f2fe', '#dbeafe', '#c7d7fe'],
-      nuit: ['#e0e7ff', '#d4d4f7', '#c4c1f0'],
-      pluie: ['#e2e8f0', '#cbd5e1', '#b6c2d2'],
-      neige: ['#f8fafc', '#eef2f7', '#dde5ee'],
-      orage: ['#ede9fe', '#ddd6fe', '#c9bff5'],
+      jour: ['#b5e1ff', '#b0d2ff', '#9cb9ff'],
+      nuit: ['#d3ddff', '#c8c8f6', '#b8b5ef'],
+      pluie: ['#dae2ed', '#c2cfde', '#adbcd0'],
+      neige: ['#bed3e7', '#b5c9e1', '#a5bdd8'],
+      orage: ['#e2dcfe', '#d2c8ff', '#beb2f5'],
     },
     text: '#0f172a',
     secondary: '#334155',
@@ -52,8 +53,9 @@ export const PALETTES: Record<Scheme, Palette> = {
       rainy: '#1d4ed8',
       'rainy-outline': '#1d4ed8',
       thunderstorm: '#854d0e',
+      snow: '#0369a1',
     },
-    temperatures: ['#2563eb', '#0891b2', '#65a30d', '#d97706', '#dc2626'],
+    temperatures: ['#2563eb', '#0e7490', '#4d7c0f', '#b45309', '#dc2626'],
   },
   dark: {
     gradients: {
@@ -81,10 +83,33 @@ export const PALETTES: Record<Scheme, Palette> = {
       rainy: '#a5cdfd',
       'rainy-outline': '#a5cdfd',
       thunderstorm: '#fde047',
+      snow: '#e0f2fe',
     },
-    temperatures: ['#93c5fd', '#67e8f9', '#a3e635', '#fbbf24', '#f87171'],
+    temperatures: ['#93c5fd', '#67e8f9', '#a3e635', '#fbbf24', '#fecaca'],
   },
 };
+
+// Échelles communes aux StyleSheet (en dp).
+export const space = { xxs: 2, xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 24, xxxl: 32, xxxxl: 40 };
+
+export const radius = { xs: 3, s: 4, m: 8, l: 20, pill: 999 };
+
+export const font = {
+  size: {
+    caption: 12,
+    footnote: 13,
+    small: 14,
+    subhead: 15,
+    button: 16,
+    body: 17,
+    headline: 18,
+    title3: 22,
+    title2: 26,
+    title1: 28,
+    hero: 112,
+  },
+  weight: { thin: '200', light: '300', regular: '400', medium: '500', semibold: '600' },
+} as const;
 
 // Thème des réglages, ou celui du téléphone tant que l'utilisateur n'a pas choisi.
 export function useScheme(): Scheme {
@@ -105,11 +130,18 @@ export function themedStyles<T extends StyleSheet.NamedStyles<T>>(make: (c: Pale
   return () => sheets[useScheme()];
 }
 
-// Fond du temps actuel, ou du jour tant que la météo n'est pas chargée.
-export function gradientFor(c: Palette, data: WeatherData | undefined) {
+// Thème du temps actuel, ou du jour tant que la météo n'est pas chargée.
+export function weatherTheme(data: WeatherData | undefined): WeatherTheme {
   const current = data?.forecast.current;
-  return c.gradients[current ? describeWeather(current.weatherCode, current.isDay).theme : 'jour'];
+  return current ? describeWeather(current.weatherCode, current.isDay).theme : 'jour';
 }
+
+export const gradientFor = (c: Palette, data: WeatherData | undefined) =>
+  c.gradients[weatherTheme(data)];
+
+// Thème de la page Météo affichée : la barre d'onglets prolonge son dégradé sur tous les onglets.
+// Conservé, pour que la barre ait la bonne couleur dès le lancement.
+export const tabBarTheme = createStore<WeatherTheme>('fondOnglets', (stored) => stored ?? 'jour');
 
 export const iconColor = (c: Palette, icon: IconName) => c.icons[icon] ?? c.text;
 

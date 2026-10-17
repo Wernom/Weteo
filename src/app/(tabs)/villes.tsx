@@ -11,7 +11,7 @@ import { RetryButton } from '../../ErrorScreen';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import { useSettings } from '../../settings';
 import { Screen, useScreenStyles } from '../../Screen';
-import { gradientFor, iconColor, themedStyles, usePalette } from '../../theme';
+import { font, gradientFor, iconColor, radius, space, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
 import {
   City,
@@ -59,7 +59,7 @@ export default function CitiesScreen() {
   else if (data?.length === 0) message = t('villes.aucune', { term });
 
   return (
-    <Screen style={[styles.container, { paddingTop: top + 32 }]}>
+    <Screen style={[styles.container, { paddingTop: top + space.xxxl }]}>
       <Text style={shared.title} accessibilityRole="header">
         {t('villes.titre')}
       </Text>
@@ -265,7 +265,8 @@ function IconButton({
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
       disabled={disabled}
-      hitSlop={6}
+      // Icône 22 + marge 2 × 6 + 2 × 7 : cible de 48 dp.
+      hitSlop={7}
       onPress={onPress}
     >
       <Ionicons name={icon} size={22} color={c.text} />
@@ -274,30 +275,30 @@ function IconButton({
 }
 
 const useStyles = themedStyles((c) => ({
-  container: { paddingHorizontal: 16 },
+  container: { paddingHorizontal: space.l },
   input: {
-    marginTop: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 999,
+    marginTop: space.l,
+    paddingHorizontal: space.l,
+    paddingVertical: space.m,
+    borderRadius: radius.pill,
     backgroundColor: c.surface,
     color: c.text,
-    fontSize: 17,
+    fontSize: font.size.body,
   },
-  spinner: { marginTop: 16 },
-  center: { alignItems: 'center', marginTop: 24, gap: 16 },
-  message: { color: c.secondary, fontSize: 17, textAlign: 'center' },
+  spinner: { marginTop: space.l },
+  center: { alignItems: 'center', marginTop: space.xxl, gap: space.l },
+  message: { color: c.secondary, fontSize: font.size.body, textAlign: 'center' },
   // Carte commune, plus serrée dans une liste.
-  row: { marginTop: 12, flexDirection: 'row', alignItems: 'center' },
+  row: { marginTop: space.m, flexDirection: 'row', alignItems: 'center' },
   // Ligne dans une ligne : pas de deuxième fond ni de marge.
   inner: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   grow: { flex: 1 },
-  pin: { marginRight: 8 },
-  summary: { flexDirection: 'row', alignItems: 'center', marginLeft: 8, gap: 4 },
-  temperature: { color: c.text, fontSize: 26, fontWeight: '300' },
-  card: { paddingVertical: 20 },
-  iconButton: { padding: 6, marginLeft: 4 },
+  pin: { marginRight: space.s },
+  summary: { flexDirection: 'row', alignItems: 'center', marginLeft: space.s, gap: space.xs },
+  temperature: { color: c.text, fontSize: font.size.title2, fontWeight: font.weight.light },
+  card: { paddingVertical: space.xl },
+  iconButton: { padding: space.xs + space.xxs, marginLeft: space.xs },
   disabled: { opacity: 0.3 },
-  name: { color: c.text, fontSize: 18, fontWeight: '600' },
-  where: { color: c.secondary, fontSize: 15, marginTop: 2 },
+  name: { color: c.text, fontSize: font.size.headline, fontWeight: font.weight.semibold },
+  where: { color: c.secondary, fontSize: font.size.subhead, marginTop: space.xxs },
 }));

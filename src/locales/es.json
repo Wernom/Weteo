@@ -5,7 +5,7 @@
     "maPositionLieu": "Mi ubicación · {{place}}",
     "maxMin": "Máx {{max}} · Mín {{min}}",
     "ressenti": "Sensación {{temperature}}",
-    "humidite": "Humedad {{humidity}}%",
+    "humidite": "Humedad {{humidity}} %",
     "vent": "Viento {{speed}}",
     "heureParHeure": "Por horas",
     "septJours": "Previsión a 7 días",

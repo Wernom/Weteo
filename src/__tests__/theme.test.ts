@@ -44,6 +44,13 @@ describe.each(Object.entries(PALETTES))('thème %s', (_, c) => {
       expect(worst(icon, stops)).toBeGreaterThanOrEqual(3);
     }
   });
+
+  it('barres de température visibles sur les cartes (≥ 3:1)', () => {
+    const cards = stops.map((s) => rgb(c.surface, s));
+    for (const color of c.temperatures) {
+      expect(worst(color, cards)).toBeGreaterThanOrEqual(3);
+    }
+  });
 });
 
 it('couleur de température par palier', () => {

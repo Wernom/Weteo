@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text } from 'react-native';
 
 import { Screen } from './Screen';
-import { themedStyles } from './theme';
+import { font, radius, space, themedStyles } from './theme';
 
 // Écran commun à tout échec : un message et « Réessayer ». `message` est une clé de traduction ;
 // un message qui n'en est pas une (erreur inattendue d'une bibliothèque) s'affiche tel quel.
@@ -36,13 +36,20 @@ export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
 }
 
 const useStyles = themedStyles((c) => ({
-  container: { alignItems: 'center', justifyContent: 'center', padding: 24 },
-  message: { color: c.text, fontSize: 18, textAlign: 'center', marginBottom: 16 },
+  container: { alignItems: 'center', justifyContent: 'center', padding: space.xxl },
+  message: {
+    color: c.text,
+    fontSize: font.size.headline,
+    textAlign: 'center',
+    marginBottom: space.l,
+  },
   button: {
     backgroundColor: c.inverse,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 999,
+    paddingHorizontal: space.xl,
+    paddingVertical: space.m,
+    minHeight: 48,
+    justifyContent: 'center',
+    borderRadius: radius.pill,
   },
-  buttonText: { color: c.onInverse, fontSize: 16, fontWeight: '600' },
+  buttonText: { color: c.onInverse, fontSize: font.size.button, fontWeight: font.weight.semibold },
 }));

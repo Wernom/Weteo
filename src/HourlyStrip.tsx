@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';
 
 import { formatHour } from './i18n';
-import { iconColor, themedStyles, usePalette } from './theme';
+import { font, iconColor, space, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
 import { describeWeather, HourlyForecast } from './weather';
 
@@ -54,9 +54,14 @@ export function HourlyStrip({ hours }: { hours: HourlyForecast[] }) {
 }
 
 const useStyles = themedStyles((c) => ({
-  strip: { gap: 4 },
-  hour: { alignItems: 'center', gap: 6, minWidth: 64, paddingVertical: 4 },
-  time: { color: c.text, fontSize: 14 },
-  temp: { color: c.text, fontSize: 18, fontWeight: '600' },
-  rain: { color: c.secondary, fontSize: 13 },
+  strip: { gap: space.xs },
+  hour: {
+    alignItems: 'center',
+    gap: space.xs + space.xxs,
+    minWidth: 64,
+    paddingVertical: space.xs,
+  },
+  time: { color: c.text, fontSize: font.size.small },
+  temp: { color: c.text, fontSize: font.size.headline, fontWeight: font.weight.semibold },
+  rain: { color: c.secondary, fontSize: font.size.footnote },
 }));

@@ -4,7 +4,7 @@ import { Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Polyline, Text as SvgText } from 'react-native-svg';
 
 import { formatHour } from './i18n';
-import { themedStyles, usePalette } from './theme';
+import { font, radius, space, themedStyles, usePalette } from './theme';
 import { formatDegrees, useUnits } from './units';
 import { HourlyForecast } from './weather';
 
@@ -124,7 +124,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
                 x={AXIS - 6}
                 y={TOP + y(t) + 4}
                 fill={c.secondary}
-                fontSize={12}
+                fontSize={font.size.caption}
                 textAnchor="end"
               >
                 {formatDegrees(t)}
@@ -138,7 +138,7 @@ export function TemperatureChart({ hours }: { hours: HourlyForecast[] }) {
               x={AXIS + h * step}
               y={HEIGHT - 4}
               fill={c.secondary}
-              fontSize={12}
+              fontSize={font.size.caption}
               textAnchor="middle"
             >
               {formatHour(hours[h].time)}
@@ -198,10 +198,20 @@ const useStyles = themedStyles((c) => ({
     position: 'absolute',
     top: 0,
     width: BUBBLE_WIDTH,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: space.xs,
+    borderRadius: radius.m,
     backgroundColor: c.inverse,
   },
-  bubbleText: { color: c.onInverse, fontSize: 14, fontWeight: '600', textAlign: 'center' },
-  hint: { color: c.secondary, fontSize: 13, textAlign: 'center', marginTop: 4 },
+  bubbleText: {
+    color: c.onInverse,
+    fontSize: font.size.small,
+    fontWeight: font.weight.semibold,
+    textAlign: 'center',
+  },
+  hint: {
+    color: c.secondary,
+    fontSize: font.size.footnote,
+    textAlign: 'center',
+    marginTop: space.xs,
+  },
 }));

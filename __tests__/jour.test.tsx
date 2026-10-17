@@ -44,7 +44,7 @@ describe('Écran Détail du jour', () => {
 
     expect(screen.getByText('Mardi')).toBeOnTheScreen();
     expect(screen.getByText('Couvert')).toBeOnTheScreen();
-    expect(screen.getByText('10° / 17°')).toBeOnTheScreen();
+    expect(screen.getByText('17° / 10°')).toBeOnTheScreen();
     expect(screen.getByTestId('courbe-temperatures')).toHaveAccessibleName(
       'Minimum 8° à 3 h, maximum 16° à 15 h',
     );
@@ -109,7 +109,7 @@ describe('Écran Détail du jour', () => {
     await renderDay('2026-10-06', { ville: '2996944' });
 
     expect(screen.getByText('Mardi')).toBeOnTheScreen();
-    expect(screen.getByText('10° / 17°')).toBeOnTheScreen();
+    expect(screen.getByText('17° / 10°')).toBeOnTheScreen();
   });
 
   it("revient à l'écran Météo sans météo en cache", async () => {

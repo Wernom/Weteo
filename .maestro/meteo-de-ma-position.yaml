@@ -13,7 +13,7 @@ name: Météo de ma position
 - extendedWaitUntil:
     visible: 'Ressenti .*'
     timeout: 60000
-- assertVisible: 'Humidité .*'
+- assertVisible: 'Humidité \d+ %'
 - assertVisible: 'Vent .*'
 # Sur un petit écran, les prévisions sont sous le bandeau horaire.
 - scrollUntilVisible:
