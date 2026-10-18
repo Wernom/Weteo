@@ -13,7 +13,7 @@ name: Passer d'une ville à l'autre
     optional: true
 - inputText: 'Lyon'
 - extendedWaitUntil:
-    visible: 'Rhône-Alpes, France'
+    visible: 'Auvergne-Rhône-Alpes, France'
     timeout: 20000
 - tapOn:
     id: etoile-0

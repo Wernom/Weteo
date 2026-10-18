@@ -14,7 +14,7 @@ name: Villes favorites
     optional: true
 - inputText: 'Lyon'
 - extendedWaitUntil:
-    visible: 'Rhône-Alpes, France'
+    visible: 'Auvergne-Rhône-Alpes, France'
     timeout: 20000
 - tapOn:
     id: etoile-0
@@ -47,10 +47,10 @@ name: Villes favorites
     timeout: 20000
 - assertVisible:
     id: ma-position
-- assertVisible: 'Rhône-Alpes, France'
+- assertVisible: 'Auvergne-Rhône-Alpes, France'
 
 - tapOn: 'Supprimer Lyon'
-- assertNotVisible: 'Rhône-Alpes, France'
+- assertNotVisible: 'Auvergne-Rhône-Alpes, France'
 - assertNotVisible:
     id: favori-0
 - assertVisible:

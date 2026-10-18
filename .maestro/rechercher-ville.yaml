@@ -19,9 +19,9 @@ name: Rechercher une ville
 - eraseText
 - inputText: 'Lyon'
 - extendedWaitUntil:
-    visible: 'Rhône-Alpes, France'
+    visible: 'Auvergne-Rhône-Alpes, France'
     timeout: 20000
-- tapOn: 'Rhône-Alpes, France'
+- tapOn: 'Auvergne-Rhône-Alpes, France'
 - extendedWaitUntil:
     visible: 'Ressenti .*'
     timeout: 60000
@@ -30,7 +30,7 @@ name: Rechercher une ville
     id: onglet-villes
 - back
 # L'onglet reste monté : la recherche est toujours là.
-- assertVisible: 'Rhône-Alpes, France'
+- assertVisible: 'Auvergne-Rhône-Alpes, France'
 - assertVisible:
     id: onglet-villes
     selected: true
