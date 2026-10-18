@@ -1,8 +1,23 @@
 // Lance les tests Maestro de bout en bout : démarre l'émulateur si besoin,
 // construit et installe l'APK release, puis joue les flows de .maestro.
 import { execSync, spawn } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
+
+// `npm run test:e2e -- choisir-unites villes-favorites` : seulement ces flows de .maestro.
+// Vérifiés avant le build, qui prend plusieurs minutes.
+const flows = process.argv
+  .slice(2)
+  .map((f) => path.join('.maestro', `${path.basename(f, path.extname(f))}.yaml`));
+const missing = flows.filter((f) => !existsSync(f));
+if (missing.length) {
+  const available = readdirSync('.maestro').map((f) => path.basename(f, '.yaml'));
+  console.error(
+    `Flows introuvables : ${missing.join(', ')}\nDisponibles : ${available.join(', ')}`,
+  );
+  process.exit(1);
+}
 
 const run = (cmd, options) => execSync(cmd, { stdio: 'inherit', ...options });
 const output = (cmd) => execSync(cmd, { encoding: 'utf8' });
@@ -78,4 +93,4 @@ run('npx expo run:android --variant release --no-bundler', {
   env: { ...process.env, ORG_GRADLE_PROJECT_reactNativeArchitectures: abi },
 });
 
-run('maestro test .maestro');
+run(`maestro test ${flows.length ? flows.map((f) => `"${f}"`).join(' ') : '.maestro'}`);

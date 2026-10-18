@@ -39,6 +39,11 @@ name: Villes favorites
     permissions:
       location: deny
 # La permission est redemandée au lancement selon la version d'Android.
+# Au premier lancement après installation, elle peut mettre plusieurs secondes à venir :
+# on attend l'une ou l'autre avant le tap optionnel, qui n'attend pas assez.
+- extendedWaitUntil:
+    visible: 'Don.t allow|Ne pas autoriser|Rechercher une ville'
+    timeout: 20000
 - tapOn:
     text: 'Don.t allow|Ne pas autoriser'
     optional: true
