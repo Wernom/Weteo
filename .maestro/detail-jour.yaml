@@ -11,7 +11,7 @@ name: Détail d'un jour
     permissions:
       location: allow
 - extendedWaitUntil:
-    visible: 'Heure par heure'
+    visible: 'Ressenti .*'
     timeout: 60000
 - scrollUntilVisible:
     element:

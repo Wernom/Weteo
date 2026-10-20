@@ -11,7 +11,7 @@ name: Prévisions heure par heure
     permissions:
       location: allow
 - extendedWaitUntil:
-    visible: 'Heure par heure'
+    visible: 'Ressenti .*'
     timeout: 60000
 - scrollUntilVisible:
     element:
@@ -31,4 +31,6 @@ name: Prévisions heure par heure
           direction: LEFT
 - assertVisible:
     id: 'heure-47'
-- assertNotVisible: 'Maintenant'
+# Les cartes Qualité de l'air et UV ont aussi leur « Maintenant » : on vise le bandeau.
+- assertNotVisible:
+    id: 'heure-0'

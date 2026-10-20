@@ -11,7 +11,7 @@ name: Prévisions sur 7 jours
     permissions:
       location: allow
 - extendedWaitUntil:
-    visible: 'Heure par heure'
+    visible: 'Ressenti .*'
     timeout: 60000
 - scrollUntilVisible:
     element:
