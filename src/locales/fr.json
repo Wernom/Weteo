@@ -23,7 +23,13 @@
     "uv": "Indice UV",
     "uvDetail": "Indice UV {{index}}, {{level}}",
     "uvHeureDetail": "{{hour}}, indice UV {{index}}, {{level}}",
-    "uvMaxJour": "Max du jour {{index}} · {{level}}"
+    "uvMaxJour": "Max du jour {{index}} · {{level}}",
+    "misAJourMinutes_one": "Mis à jour il y a {{count}} min",
+    "misAJourMinutes_other": "Mis à jour il y a {{count}} min",
+    "misAJourHeures_one": "Mis à jour il y a {{count}} h",
+    "misAJourHeures_other": "Mis à jour il y a {{count}} h",
+    "misAJourJours_one": "Mis à jour il y a {{count}} jour",
+    "misAJourJours_other": "Mis à jour il y a {{count}} jours"
   },
   "jour": {
     "temperatures": "Températures",
@@ -107,6 +113,7 @@
   },
   "erreurs": {
     "reseau": "Pas de connexion internet. Vérifiez votre réseau.",
+    "horsLigne": "Pas de connexion internet et aucune météo enregistrée pour ce lieu. Vérifiez votre réseau.",
     "http": "Le service météo est indisponible pour le moment.",
     "delai": "Le service météo met trop de temps à répondre.",
     "donnees": "Les données météo reçues sont invalides.",

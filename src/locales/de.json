@@ -23,7 +23,13 @@
     "uv": "UV-Index",
     "uvDetail": "UV-Index {{index}}, {{level}}",
     "uvHeureDetail": "{{hour}}, UV-Index {{index}}, {{level}}",
-    "uvMaxJour": "Tagesmaximum {{index}} · {{level}}"
+    "uvMaxJour": "Tagesmaximum {{index}} · {{level}}",
+    "misAJourMinutes_one": "Vor {{count}} Min. aktualisiert",
+    "misAJourMinutes_other": "Vor {{count}} Min. aktualisiert",
+    "misAJourHeures_one": "Vor {{count}} Std. aktualisiert",
+    "misAJourHeures_other": "Vor {{count}} Std. aktualisiert",
+    "misAJourJours_one": "Vor {{count}} Tag aktualisiert",
+    "misAJourJours_other": "Vor {{count}} Tagen aktualisiert"
   },
   "jour": {
     "temperatures": "Temperaturen",
@@ -107,6 +113,7 @@
   },
   "erreurs": {
     "reseau": "Keine Internetverbindung. Prüfe dein Netzwerk.",
+    "horsLigne": "Keine Internetverbindung und kein gespeichertes Wetter für diesen Ort. Prüfe dein Netzwerk.",
     "http": "Der Wetterdienst ist gerade nicht verfügbar.",
     "delai": "Der Wetterdienst antwortet zu langsam.",
     "donnees": "Die empfangenen Wetterdaten sind ungültig.",

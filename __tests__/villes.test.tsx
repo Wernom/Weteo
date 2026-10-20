@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, userEvent, within } from '@testing-library/react-native';
 import Location from '../modules/weteo-location';
 import { router } from 'expo-router';

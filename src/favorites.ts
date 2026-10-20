@@ -7,6 +7,7 @@ import { City, getCity } from './weather';
 const store = createStore<City[]>('favoris', (stored) => stored ?? []);
 
 export const useFavorites = store.use;
+export const readFavorites = store.read;
 
 export const isFavorite = (favorites: City[], id: number) => favorites.some((f) => f.id === id);
 

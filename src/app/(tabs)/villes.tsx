@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RetryButton } from '../../ErrorScreen';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
+import { formatAge } from '../../i18n';
 import { useSettings } from '../../settings';
 import { Screen, useScreenStyles } from '../../Screen';
 import { font, gradientFor, iconColor, radius, space, themedStyles, usePalette } from '../../theme';
@@ -148,7 +149,7 @@ function MyPositionRow() {
   const { t } = useTranslation();
   const c = usePalette();
   const styles = useStyles();
-  const { data } = useQuery({ ...positionWeatherQuery, enabled: false });
+  const { data, error, dataUpdatedAt } = useQuery({ ...positionWeatherQuery, enabled: false });
   const title = data?.place
     ? t('meteo.maPositionLieu', { place: data.place })
     : t('meteo.maPosition');
@@ -162,7 +163,10 @@ function MyPositionRow() {
         onPress={() => openPage(0)}
       >
         <Ionicons name="navigate" size={18} color={c.text} style={styles.pin} />
-        <Text style={[styles.name, styles.grow]}>{title}</Text>
+        <View style={styles.grow}>
+          <Text style={styles.name}>{title}</Text>
+          {data && error && <Text style={styles.where}>{formatAge(dataUpdatedAt)}</Text>}
+        </View>
         <WeatherSummary data={data} />
       </Pressable>
     </WeatherCard>
@@ -172,7 +176,7 @@ function MyPositionRow() {
 function FavoriteRow({ city, index, last }: { city: City; index: number; last: boolean }) {
   const { t } = useTranslation();
   const styles = useStyles();
-  const { data } = useQuery(cityWeatherQuery(city));
+  const { data, error, dataUpdatedAt } = useQuery(cityWeatherQuery(city));
   return (
     <WeatherCard data={data}>
       <Pressable
@@ -185,6 +189,7 @@ function FavoriteRow({ city, index, last }: { city: City; index: number; last: b
         <View style={styles.grow}>
           <Text style={styles.name}>{city.name}</Text>
           <Text style={styles.where}>{where(city)}</Text>
+          {data && error && <Text style={styles.where}>{formatAge(dataUpdatedAt)}</Text>}
         </View>
         <WeatherSummary data={data} />
       </Pressable>

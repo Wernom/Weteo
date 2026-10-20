@@ -6,12 +6,14 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState } from 'react-native';
 
+import { persistWeather } from '../offline';
 import { useScheme } from '../theme';
 import { shouldRetry } from '../weather';
 
 export { ErrorBoundary } from '../ErrorScreen';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { retry: shouldRetry } } });
+persistWeather(queryClient);
 
 // Erreurs hors rendu (gestes, minuteries) : en développement LogBox les journalise,
 // en production l'app ne plante pas. Rien n'est envoyé à un service externe.

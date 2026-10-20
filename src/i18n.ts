@@ -61,6 +61,15 @@ export const formatHour = (time: string) =>
 // « 07:58 » en français, « 07:58 AM » en anglais.
 export const formatClock = (time: string) => formats.clock.format(utc(time));
 
+// « Mis à jour il y a 3 h » pour un chargement à `updatedAt` (ms). Une minute au moins.
+export function formatAge(updatedAt: number) {
+  const minutes = Math.max(1, Math.floor((Date.now() - updatedAt) / 60_000));
+  if (minutes < 60) return i18n.t('meteo.misAJourMinutes', { count: minutes });
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return i18n.t('meteo.misAJourHeures', { count: hours });
+  return i18n.t('meteo.misAJourJours', { count: Math.floor(hours / 24) });
+}
+
 // « 2026-10-06 » → « Mardi », avec la majuscule même là où la langue n'en met pas.
 export function formatWeekday(isoDate: string) {
   const label = formats.weekday.format(utc(`${isoDate}T12:00`));

@@ -23,7 +23,13 @@
     "uv": "UV index",
     "uvDetail": "UV index {{index}}, {{level}}",
     "uvHeureDetail": "{{hour}}, UV index {{index}}, {{level}}",
-    "uvMaxJour": "Today's max {{index}} · {{level}}"
+    "uvMaxJour": "Today's max {{index}} · {{level}}",
+    "misAJourMinutes_one": "Updated {{count}} min ago",
+    "misAJourMinutes_other": "Updated {{count}} min ago",
+    "misAJourHeures_one": "Updated {{count}} h ago",
+    "misAJourHeures_other": "Updated {{count}} h ago",
+    "misAJourJours_one": "Updated {{count}} day ago",
+    "misAJourJours_other": "Updated {{count}} days ago"
   },
   "jour": {
     "temperatures": "Temperatures",
@@ -107,6 +113,7 @@
   },
   "erreurs": {
     "reseau": "No internet connection. Check your network.",
+    "horsLigne": "No internet connection and no saved weather for this place. Check your network.",
     "http": "The weather service is unavailable right now.",
     "delai": "The weather service is taking too long to respond.",
     "donnees": "The weather data received is invalid.",

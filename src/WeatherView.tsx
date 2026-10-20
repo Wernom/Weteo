@@ -16,6 +16,7 @@ import { AirQualityCard } from './AirQualityCard';
 import { DailyList } from './DailyList';
 import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
+import { formatAge } from './i18n';
 import { Screen, useScreenStyles } from './Screen';
 import { font, gradientFor, iconColor, space, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
@@ -23,11 +24,12 @@ import { UvCard } from './UvCard';
 import { describeWeather, WeatherData } from './weather';
 
 // Météo d'un lieu (ma position ou une ville) : chargement, erreur avec « Réessayer », puis le détail.
+// Un rafraîchissement raté (hors ligne) garde la dernière météo, avec son âge.
 // `ville` est passé au détail d'un jour pour qu'il lise la météo de la bonne ville ; sans `ville`,
 // c'est ma position, signalée pour ne pas la confondre avec un favori de la même ville.
 // `scrollRef` et `onScroll` laissent l'écran Météo aligner le défilement de ses pages.
 export function WeatherView({
-  query: { data, error, isFetching, isRefetching, refetch },
+  query: { data, dataUpdatedAt, error, isFetching, isRefetching, refetch },
   ville,
   scrollRef,
   onScroll,
@@ -47,7 +49,9 @@ export function WeatherView({
   const gradient = gradientFor(c, data);
 
   if (!data && !isFetching) {
-    return <ErrorScreen message={error?.message || 'erreurs.chargement'} onRetry={reload} />;
+    // Sans réseau ni météo enregistrée pour ce lieu.
+    const message = error?.message === 'erreurs.reseau' ? 'erreurs.horsLigne' : error?.message;
+    return <ErrorScreen message={message || 'erreurs.chargement'} onRetry={reload} />;
   }
   if (!data) {
     return (
@@ -82,6 +86,12 @@ export function WeatherView({
           </View>
         )}
         <Text style={shared.title}>{data.place ?? t('meteo.maPosition')}</Text>
+        {error && (
+          <View testID="mis-a-jour" style={styles.age}>
+            <Ionicons name="cloud-offline" size={14} color={c.secondary} accessible={false} />
+            <Text style={styles.ageText}>{formatAge(dataUpdatedAt)}</Text>
+          </View>
+        )}
         <Ionicons
           name={now.icon}
           size={72}
@@ -144,6 +154,8 @@ const useStyles = themedStyles((c) => ({
     fontWeight: font.weight.semibold,
     textTransform: 'uppercase',
   },
+  age: { flexDirection: 'row', alignItems: 'center', gap: space.xs, marginTop: space.xs },
+  ageText: { color: c.secondary, fontSize: font.size.subhead },
   icon: { marginTop: space.s },
   temp: {
     color: c.text,

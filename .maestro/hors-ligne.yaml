@@ -1,0 +1,34 @@
+# Météo chargée une fois, puis l'app relancée en mode avion : la dernière météo s'affiche,
+# sans écran d'erreur ; un rafraîchissement raté dit depuis quand elle date.
+appId: com.wernom.weteo
+name: Dernière météo sans réseau
+# Rétablit le réseau même si le flow échoue, pour ne pas casser les suivants.
+onFlowComplete:
+  - setAirplaneMode: disabled
+---
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
+- launchApp:
+    clearState: true
+    permissions:
+      location: allow
+- extendedWaitUntil:
+    visible: 'Ressenti .*'
+    timeout: 60000
+- setAirplaneMode: enabled
+- stopApp
+# Sans clearState : le cache enregistré sur le téléphone est gardé.
+- launchApp
+- extendedWaitUntil:
+    visible: 'Ressenti .*'
+    timeout: 15000
+- assertNotVisible: 'Réessayer'
+# Tirer pour rafraîchir : l'appel échoue, la météo reste avec son âge.
+- swipe:
+    start: 50%, 30%
+    end: 50%, 80%
+- extendedWaitUntil:
+    visible: 'Mis à jour il y a .*'
+    timeout: 60000
+- assertVisible: 'Ressenti .*'

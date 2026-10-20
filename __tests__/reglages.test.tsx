@@ -95,10 +95,13 @@ describe('Choisir ma langue', () => {
     ['ja', 'fr'],
   ])('au premier lancement, téléphone en %s → app en %s', (phone, expected) => {
     // Modules neufs : la langue est lue au chargement d'i18n, comme au lancement de l'app.
+    // require() et non jest.requireMock : seul require lit le registre isolé.
+    /* eslint-disable @typescript-eslint/no-require-imports */
     jest.isolateModules(() => {
       require('expo-localization').getLocales.mockReturnValueOnce([{ languageCode: phone }]);
       expect(require('../src/i18n').default.language).toBe(expected);
     });
+    /* eslint-enable @typescript-eslint/no-require-imports */
   });
 });
 

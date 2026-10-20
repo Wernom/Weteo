@@ -351,14 +351,16 @@ describe('Écran Météo', () => {
     expect(forecastCalls(fetchMock)).toHaveLength(2);
   });
 
-  it('affiche une erreur quand il n’y a pas de réseau', async () => {
+  it('affiche une erreur quand il n’y a ni réseau ni météo enregistrée', async () => {
     allowLocation();
     jest.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Network request failed'));
 
     await renderScreen();
 
     expect(
-      await screen.findByText('Pas de connexion internet. Vérifiez votre réseau.'),
+      await screen.findByText(
+        'Pas de connexion internet et aucune météo enregistrée pour ce lieu. Vérifiez votre réseau.',
+      ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Réessayer')).toBeOnTheScreen();
   });
