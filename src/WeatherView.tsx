@@ -119,9 +119,6 @@ export function WeatherView({
           </Text>
         </View>
 
-        <AirQualityCard air={current.airQuality} hours={nextHours} />
-        <UvCard uv={current.uvIndex} max={today?.uvMax ?? null} hours={nextHours} />
-
         <View style={shared.card}>
           <Text style={shared.cardTitle}>{t('meteo.heureParHeure')}</Text>
           <HourlyStrip hours={nextHours} />
@@ -131,6 +128,9 @@ export function WeatherView({
           <Text style={shared.cardTitle}>{t('meteo.septJours')}</Text>
           <DailyList days={daily} ville={ville} />
         </View>
+
+        <AirQualityCard air={current.airQuality} hours={nextHours} />
+        <UvCard uv={current.uvIndex} max={today?.uvMax ?? null} hours={nextHours} />
       </ScrollView>
     </Screen>
   );

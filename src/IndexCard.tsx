@@ -1,10 +1,11 @@
-import type { ReactNode } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { formatHour } from './i18n';
 import { useScreenStyles } from './Screen';
-import { font, radius, space, themedStyles } from './theme';
+import { font, radius, space, themedStyles, usePalette } from './theme';
 import type { HourlyForecast } from './weather';
 
 // Libellé et couleur du palier d'une valeur : « Correct » et vert pour un indice de l'air de 36.
@@ -32,6 +33,7 @@ export function IndexDot({
 // contenu propre à l'indice (`children`), puis heure par heure. `hours` sont celles du bandeau
 // météo, la première est l'heure en cours ; `pick` les sans valeur (null) sont sautées.
 // `a11yKey` et `hourA11yKey` sont des clés de traduction : {{index}}, {{level}}, et {{hour}}.
+// Avec `help`, toucher la carte affiche ou masque cette explication en bas.
 export function IndexCard({
   id,
   testID,
@@ -42,6 +44,7 @@ export function IndexCard({
   hourA11yKey,
   hours,
   pick,
+  help,
   children,
 }: {
   id: string;
@@ -53,11 +56,15 @@ export function IndexCard({
   hourA11yKey: string;
   hours: HourlyForecast[];
   pick: (hour: HourlyForecast) => number | null;
+  help?: ReactNode;
   children?: ReactNode;
 }) {
   const { t } = useTranslation();
+  const c = usePalette();
   const shared = useScreenStyles();
   const styles = useStyles();
+  const [open, setOpen] = useState(false);
+  const toggle = help ? () => setOpen((o) => !o) : undefined;
   const level = scale(value);
   const forecast = hours.flatMap((hour, i) => {
     const index = pick(hour);
@@ -66,19 +73,43 @@ export function IndexCard({
 
   return (
     <View style={shared.card}>
-      <Text style={shared.cardTitle}>{title}</Text>
-      <View
-        testID={testID}
-        style={styles.header}
-        accessible
-        accessibilityLabel={t(a11yKey, { index: value, level: level.label })}
+      {/* Le haut de la carte seulement : dans un Pressable, le bandeau ne défile plus. */}
+      <Pressable
+        style={({ pressed }) => pressed && toggle && styles.pressed}
+        onPress={toggle}
+        // Le contenu reste lu élément par élément ; l'en-tête porte l'action pour les lecteurs
+        // d'écran. Android rend sinon la zone touchable focalisable, et TalkBack la lirait d'un bloc.
+        accessible={false}
+        importantForAccessibility="no"
       >
-        <IndexDot color={level.color} size={16} testID={`pastille-${id}`} />
-        <Text style={styles.index}>{value}</Text>
-        <Text style={styles.level}>{level.label}</Text>
-      </View>
+        <View style={styles.titleRow}>
+          <Text style={shared.cardTitle}>{title}</Text>
+          {help && (
+            <Ionicons
+              name={open ? 'close-circle-outline' : 'information-circle-outline'}
+              size={18}
+              color={c.secondary}
+            />
+          )}
+        </View>
+        <View
+          testID={testID}
+          style={styles.header}
+          accessible
+          accessibilityLabel={t(a11yKey, { index: value, level: level.label })}
+          accessibilityRole={help ? 'button' : undefined}
+          accessibilityHint={help ? t('meteo.explication') : undefined}
+          accessibilityState={help ? { expanded: open } : undefined}
+          accessibilityActions={help ? [{ name: 'activate' }] : undefined}
+          onAccessibilityAction={toggle}
+        >
+          <IndexDot color={level.color} size={16} testID={`pastille-${id}`} />
+          <Text style={styles.index}>{value}</Text>
+          <Text style={styles.level}>{level.label}</Text>
+        </View>
 
-      {children}
+        {children}
+      </Pressable>
 
       {forecast.length > 0 && (
         <ScrollView
@@ -112,6 +143,8 @@ export function IndexCard({
           })}
         </ScrollView>
       )}
+
+      {open && <View style={styles.help}>{help}</View>}
     </View>
   );
 }
@@ -142,6 +175,9 @@ export function DayIndexCard({
 }
 
 const useStyles = themedStyles((c) => ({
+  pressed: { opacity: 0.7 },
+  titleRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  help: { gap: space.s, marginTop: space.l },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.s },
   index: { color: c.text, fontSize: font.size.title2, fontWeight: font.weight.semibold },
   level: { color: c.text, fontSize: font.size.headline, fontWeight: font.weight.medium },

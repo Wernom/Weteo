@@ -252,8 +252,10 @@ export const AIR_LEVELS = [
   'extremementMauvais',
 ] as const;
 
-export const airQualityLevel = (aqi: number) =>
-  [20, 40, 60, 80, 100].filter((limit) => aqi > limit).length;
+// Borne haute de chaque palier, de bon à très mauvais.
+export const AIR_LIMITS = [20, 40, 60, 80, 100];
+
+export const airQualityLevel = (aqi: number) => AIR_LIMITS.filter((limit) => aqi > limit).length;
 
 // Paliers de l'OMS de l'indice UV, sur l'indice arrondi : faible (≤ 2), modéré (≤ 5), élevé (≤ 7),
 // très élevé (≤ 10), extrême. Rang 0 à 4, qui choisit libellé et couleur.

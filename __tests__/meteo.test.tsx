@@ -169,6 +169,34 @@ describe('Écran Météo', () => {
     });
   });
 
+  it("explique la qualité de l'air quand on touche sa carte, et la masque au second toucher", async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    const header = await screen.findByTestId('qualite-air');
+    expect(header).toBeCollapsed();
+    expect(screen.queryByText(/indice européen de la qualité/)).not.toBeOnTheScreen();
+
+    const user = userEvent.setup();
+    await user.press(screen.getByText('PM2.5'));
+    expect(screen.getByText(/indice européen de la qualité/)).toBeOnTheScreen();
+    expect(screen.getByText('0–20')).toBeOnTheScreen();
+    expect(screen.getByText('21–40')).toBeOnTheScreen();
+    expect(screen.getByText('> 100')).toBeOnTheScreen();
+    expect(screen.getByText('Extrêmement mauvais')).toBeOnTheScreen();
+    expect(screen.getByText(/PM2.5 et PM10 : particules fines/)).toBeOnTheScreen();
+    expect(header).toBeExpanded();
+
+    await user.press(screen.getByText('PM2.5'));
+    expect(screen.queryByText(/indice européen de la qualité/)).not.toBeOnTheScreen();
+
+    // Lecteur d'écran : l'en-tête est un bouton qui fait de même.
+    await fireEvent(header, 'accessibilityAction', { nativeEvent: { actionName: 'activate' } });
+    expect(screen.getByText(/indice européen de la qualité/)).toBeOnTheScreen();
+  });
+
   it("détaille les polluants de l'air", async () => {
     allowLocation();
     mockApi();

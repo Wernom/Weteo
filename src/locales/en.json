@@ -20,6 +20,7 @@
     "airHeureDetail": "{{hour}}, air quality {{index}}, {{level}}",
     "polluantDetail_one": "{{name}}, {{count}} microgram per cubic metre, {{level}}",
     "polluantDetail_other": "{{name}}, {{count}} micrograms per cubic metre, {{level}}",
+    "explication": "Shows or hides the explanation",
     "uv": "UV index",
     "uvDetail": "UV index {{index}}, {{level}}",
     "uvHeureDetail": "{{hour}}, UV index {{index}}, {{level}}",
@@ -100,6 +101,10 @@
       "nitrogen_dioxide": "Nitrogen dioxide",
       "ozone": "Ozone",
       "sulphur_dioxide": "Sulphur dioxide"
+    },
+    "aide": {
+      "indice": "Air quality is defined by the European Air Quality Index (EAQI): the lower its value, the cleaner the air. It reflects the pollutant whose concentration is the most harmful.",
+      "polluants": "Below it, each pollutant's concentration in micrograms per cubic metre (µg/m³). PM2.5 and PM10: fine particles smaller than 2.5 and 10 micrometres. NO₂: nitrogen dioxide, mostly from traffic. O₃: ozone, formed by sunlight. SO₂: sulphur dioxide, mostly industrial."
     }
   },
   "uv": {

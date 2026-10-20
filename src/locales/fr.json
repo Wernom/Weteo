@@ -20,6 +20,7 @@
     "airHeureDetail": "{{hour}}, qualité de l'air {{index}}, {{level}}",
     "polluantDetail_one": "{{name}}, {{count}} microgramme par mètre cube, {{level}}",
     "polluantDetail_other": "{{name}}, {{count}} microgrammes par mètre cube, {{level}}",
+    "explication": "Affiche ou masque l'explication",
     "uv": "Indice UV",
     "uvDetail": "Indice UV {{index}}, {{level}}",
     "uvHeureDetail": "{{hour}}, indice UV {{index}}, {{level}}",
@@ -100,6 +101,10 @@
       "nitrogen_dioxide": "Dioxyde d'azote",
       "ozone": "Ozone",
       "sulphur_dioxide": "Dioxyde de soufre"
+    },
+    "aide": {
+      "indice": "La qualité de l'air est définie par l'indice européen de la qualité de l'air (EAQI) : plus sa valeur est basse, meilleur est l'air. Il reflète le polluant dont la concentration est la plus nocive.",
+      "polluants": "Sous l'indice, la concentration de chaque polluant en microgrammes par mètre cube (µg/m³). PM2.5 et PM10 : particules fines de moins de 2,5 et 10 micromètres. NO₂ : dioxyde d'azote, surtout dû au trafic. O₃ : ozone, formé par le soleil. SO₂ : dioxyde de soufre, surtout industriel."
     }
   },
   "uv": {

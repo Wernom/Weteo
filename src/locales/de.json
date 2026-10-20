@@ -20,6 +20,7 @@
     "airHeureDetail": "{{hour}}, Luftqualität {{index}}, {{level}}",
     "polluantDetail_one": "{{name}}, {{count}} Mikrogramm pro Kubikmeter, {{level}}",
     "polluantDetail_other": "{{name}}, {{count}} Mikrogramm pro Kubikmeter, {{level}}",
+    "explication": "Blendet die Erklärung ein oder aus",
     "uv": "UV-Index",
     "uvDetail": "UV-Index {{index}}, {{level}}",
     "uvHeureDetail": "{{hour}}, UV-Index {{index}}, {{level}}",
@@ -100,6 +101,10 @@
       "nitrogen_dioxide": "Stickstoffdioxid",
       "ozone": "Ozon",
       "sulphur_dioxide": "Schwefeldioxid"
+    },
+    "aide": {
+      "indice": "Die Luftqualität wird durch den Europäischen Luftqualitätsindex (EAQI) bestimmt: Je niedriger sein Wert, desto sauberer die Luft. Er spiegelt den Schadstoff wider, dessen Konzentration am schädlichsten ist.",
+      "polluants": "Darunter die Konzentration jedes Schadstoffs in Mikrogramm pro Kubikmeter (µg/m³). PM2.5 und PM10: Feinstaub kleiner als 2,5 und 10 Mikrometer. NO₂: Stickstoffdioxid, vor allem aus dem Verkehr. O₃: Ozon, durch Sonnenlicht gebildet. SO₂: Schwefeldioxid, vor allem aus der Industrie."
     }
   },
   "uv": {

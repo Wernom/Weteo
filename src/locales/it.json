@@ -20,6 +20,7 @@
     "airHeureDetail": "{{hour}}, qualità dell'aria {{index}}, {{level}}",
     "polluantDetail_one": "{{name}}, {{count}} microgrammo per metro cubo, {{level}}",
     "polluantDetail_other": "{{name}}, {{count}} microgrammi per metro cubo, {{level}}",
+    "explication": "Mostra o nasconde la spiegazione",
     "uv": "Indice UV",
     "uvDetail": "Indice UV {{index}}, {{level}}",
     "uvHeureDetail": "{{hour}}, indice UV {{index}}, {{level}}",
@@ -100,6 +101,10 @@
       "nitrogen_dioxide": "Biossido di azoto",
       "ozone": "Ozono",
       "sulphur_dioxide": "Biossido di zolfo"
+    },
+    "aide": {
+      "indice": "La qualità dell'aria è definita dall'indice europeo della qualità dell'aria (EAQI): più il suo valore è basso, più l'aria è pulita. Riflette l'inquinante la cui concentrazione è la più nociva.",
+      "polluants": "Sotto, la concentrazione di ogni inquinante in microgrammi per metro cubo (µg/m³). PM2.5 e PM10: particolato fine più piccolo di 2,5 e 10 micrometri. NO₂: biossido di azoto, soprattutto dal traffico. O₃: ozono, formato dal sole. SO₂: biossido di zolfo, soprattutto industriale."
     }
   },
   "uv": {
