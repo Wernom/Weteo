@@ -25,7 +25,14 @@ import { toggleFavorite } from '../src/favorites';
 import { PALETTES, tabBarTheme } from '../src/theme';
 import { TEN_MINUTES, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
-import { LYON, mockFetch as mockApi, newClient, NICE, respond } from '../jest/helpers';
+import {
+  forecastCalls,
+  LYON,
+  mockFetch as mockApi,
+  newClient,
+  NICE,
+  respond,
+} from '../jest/helpers';
 
 let mockParams: { page?: string } = {};
 jest.mock('expo-router', () => ({
@@ -147,6 +154,69 @@ describe('Écran Météo', () => {
     expect(screen.queryByTestId('heure-48')).not.toBeOnTheScreen();
   });
 
+  it("affiche la qualité de l'air : indice, palier et sa couleur", async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    const air = within(await screen.findByTestId('qualite-air'));
+    expect(air.getByText('36')).toBeOnTheScreen();
+    expect(air.getByText('Correct')).toBeOnTheScreen();
+    expect(screen.getByTestId('qualite-air')).toHaveAccessibleName("Qualité de l'air 36, Correct");
+    expect(screen.getByTestId('pastille-air')).toHaveStyle({
+      backgroundColor: PALETTES.light.airQuality[1],
+    });
+  });
+
+  it("détaille les polluants de l'air", async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    expect(await screen.findByText('PM2.5')).toBeOnTheScreen();
+    expect(screen.getByText('NO₂')).toBeOnTheScreen();
+    expect(screen.getByTestId('polluant-pm2_5')).toHaveAccessibleName(
+      'Particules fines PM2.5, 7 microgrammes par mètre cube, Correct',
+    );
+    expect(screen.getByTestId('polluant-sulphur_dioxide')).toHaveAccessibleName(
+      'Dioxyde de soufre, 1 microgramme par mètre cube, Bon',
+    );
+  });
+
+  it("affiche la qualité de l'air heure par heure, sans les heures inconnues", async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    const now = within(await screen.findByTestId('air-heure-0'));
+    expect(now.getByText('Maintenant')).toBeOnTheScreen();
+    expect(screen.getByTestId('air-heure-1')).toHaveAccessibleName(
+      "15 h, qualité de l'air 41, Moyen",
+    );
+    // 16 h n'a pas d'indice dans le fixture.
+    expect(screen.queryByTestId('air-heure-2')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('air-heure-3')).toBeOnTheScreen();
+  });
+
+  it("affiche la météo sans la qualité de l'air quand son service est en panne", async () => {
+    allowLocation();
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (url) =>
+        String(url).includes('air-quality')
+          ? ({ ok: false, status: 500 } as Response)
+          : respond(forecastFixture),
+      );
+
+    await renderScreen();
+
+    expect(await screen.findByText('Paris')).toBeOnTheScreen();
+    expect(screen.queryByText("Qualité de l'air")).not.toBeOnTheScreen();
+  });
+
   it('affiche le fond et la barre d’onglets du temps actuel', async () => {
     allowLocation();
     mockApi(
@@ -234,7 +304,7 @@ describe('Écran Météo', () => {
     await user.press(screen.getByText('Réessayer'));
 
     expect(await screen.findByText('Paris')).toBeOnTheScreen();
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(forecastCalls(fetchMock)).toHaveLength(2);
   });
 
   it('affiche une erreur quand il n’y a pas de réseau', async () => {
@@ -266,7 +336,7 @@ describe('Écran Météo', () => {
       const pull = (RefreshControl as unknown as { latestRef: RefreshControl }).latestRef;
       await act(async () => pull.props.onRefresh?.());
 
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(forecastCalls(fetchMock)).toHaveLength(2));
     });
 
     it("revenir sur l'écran dans les 10 minutes ne relance pas d'appel", async () => {
@@ -276,7 +346,7 @@ describe('Écran Météo', () => {
       await renderScreen(client);
 
       expect(await screen.findByText('Paris')).toBeOnTheScreen();
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(forecastCalls(fetchMock)).toHaveLength(1);
     });
 
     it("revenir sur l'écran après 10 minutes relance un appel", async () => {
@@ -286,7 +356,7 @@ describe('Écran Météo', () => {
       makeDataOlderThanTenMinutes(client);
       await renderScreen(client);
 
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(forecastCalls(fetchMock)).toHaveLength(2));
     });
 
     it("revenir sur l'onglet après 10 minutes relance un appel", async () => {
@@ -299,7 +369,7 @@ describe('Écran Météo', () => {
       focused.mockReturnValue(true);
       await view.rerender(screenTree(client));
 
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(forecastCalls(fetchMock)).toHaveLength(2));
     });
 
     it("rouvrir l'app relance un appel seulement après 10 minutes", async () => {
@@ -315,11 +385,11 @@ describe('Écran Météo', () => {
         });
 
       await reopenApp();
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(forecastCalls(fetchMock)).toHaveLength(1);
 
       makeDataOlderThanTenMinutes(client);
       await reopenApp();
-      await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      await waitFor(() => expect(forecastCalls(fetchMock)).toHaveLength(2));
     });
   });
 

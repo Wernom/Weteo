@@ -14,7 +14,12 @@
     "aujourdhui": "Aujourd'hui",
     "jourDetail": "{{day}}, {{weather}}, minimum {{min}}, maximum {{max}}",
     "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, pluie {{rain}} %",
-    "pourcent": "{{value}} %"
+    "pourcent": "{{value}} %",
+    "qualiteAir": "Qualité de l'air",
+    "qualiteAirDetail": "Qualité de l'air {{index}}, {{level}}",
+    "airHeureDetail": "{{hour}}, qualité de l'air {{index}}, {{level}}",
+    "polluantDetail_one": "{{name}}, {{count}} microgramme par mètre cube, {{level}}",
+    "polluantDetail_other": "{{name}}, {{count}} microgrammes par mètre cube, {{level}}"
   },
   "jour": {
     "temperatures": "Températures",
@@ -23,7 +28,8 @@
     "coucher": "Coucher {{time}}",
     "courbe": "Minimum {{coldest}}, maximum {{warmest}}",
     "temperatureA": "{{temperature}} à {{hour}}",
-    "astuce": "Touchez la courbe pour le détail heure par heure."
+    "astuce": "Touchez la courbe pour le détail heure par heure.",
+    "qualiteAirMax": "Max {{index}} · {{level}} à {{hour}}"
   },
   "villes": {
     "titre": "Rechercher une ville",
@@ -67,6 +73,23 @@
     "averses": "Averses",
     "aversesNeige": "Averses de neige",
     "orage": "Orage"
+  },
+  "air": {
+    "niveaux": {
+      "bon": "Bon",
+      "correct": "Correct",
+      "moyen": "Moyen",
+      "mauvais": "Mauvais",
+      "tresMauvais": "Très mauvais",
+      "extremementMauvais": "Extrêmement mauvais"
+    },
+    "polluants": {
+      "pm2_5": "Particules fines PM2.5",
+      "pm10": "Particules PM10",
+      "nitrogen_dioxide": "Dioxyde d'azote",
+      "ozone": "Ozone",
+      "sulphur_dioxide": "Dioxyde de soufre"
+    }
   },
   "erreurs": {
     "reseau": "Pas de connexion internet. Vérifiez votre réseau.",

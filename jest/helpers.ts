@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 
+import airQualityFixture from '../__fixtures__/open-meteo-air-quality.json';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 import type { City } from '../src/weather';
 
@@ -10,9 +11,20 @@ export const newClient = () =>
 // Réponse réussie de fetch, de corps JSON `json`.
 export const respond = (json: unknown) => ({ ok: true, json: async () => json }) as Response;
 
-// fetch renvoie toujours `response` : par défaut, les prévisions du fixture.
-export const mockFetch = (response: Partial<Response> = respond(forecastFixture)) =>
-  jest.spyOn(globalThis, 'fetch').mockResolvedValue(response as Response);
+// fetch renvoie toujours `response`. Par défaut, les fixtures : prévisions et qualité de l'air.
+// Une réponse donnée sert aussi à l'appel de l'air, qui l'écarte : la météo s'affiche sans l'air.
+export const mockFetch = (response?: Partial<Response>) =>
+  jest
+    .spyOn(globalThis, 'fetch')
+    .mockImplementation(async (url) =>
+      response
+        ? (response as Response)
+        : respond(String(url).includes('air-quality') ? airQualityFixture : forecastFixture),
+    );
+
+// Les appels de prévisions seuls : chaque chargement de la météo appelle aussi l'air.
+export const forecastCalls = (fetchMock: jest.SpyInstance) =>
+  fetchMock.mock.calls.filter(([url]) => String(url).includes('/v1/forecast'));
 
 export const LYON: City = {
   id: 2996944,

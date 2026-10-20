@@ -2,7 +2,13 @@ import { StyleSheet, useColorScheme } from 'react-native';
 
 import { useSettings } from './settings';
 import { createStore } from './store';
-import { describeWeather, type IconName, type WeatherData, type WeatherTheme } from './weather';
+import {
+  airQualityLevel,
+  describeWeather,
+  type IconName,
+  type WeatherData,
+  type WeatherTheme,
+} from './weather';
 
 type Scheme = 'light' | 'dark';
 
@@ -24,6 +30,8 @@ export type Palette = {
   icons: Partial<Record<IconName, string>>;
   // Barres des 7 jours, du froid au chaud : < 0, < 10, < 20, < 28, au-delà (en °C).
   temperatures: readonly [string, string, string, string, string];
+  // Pastilles de la qualité de l'air, du bon à l'extrêmement mauvais (paliers de AIR_LEVELS).
+  airQuality: readonly [string, string, string, string, string, string];
 };
 
 export const PALETTES: Record<Scheme, Palette> = {
@@ -56,6 +64,7 @@ export const PALETTES: Record<Scheme, Palette> = {
       snow: '#0369a1',
     },
     temperatures: ['#2563eb', '#0e7490', '#4d7c0f', '#b45309', '#dc2626'],
+    airQuality: ['#0e7490', '#15803d', '#a16207', '#c2410c', '#b91c1c', '#7e22ce'],
   },
   dark: {
     gradients: {
@@ -86,6 +95,7 @@ export const PALETTES: Record<Scheme, Palette> = {
       snow: '#e0f2fe',
     },
     temperatures: ['#93c5fd', '#67e8f9', '#a3e635', '#fbbf24', '#fecaca'],
+    airQuality: ['#67e8f9', '#86efac', '#fde047', '#fdba74', '#fca5a5', '#d8b4fe'],
   },
 };
 
@@ -147,3 +157,5 @@ export const iconColor = (c: Palette, icon: IconName) => c.icons[icon] ?? c.text
 
 export const temperatureColor = (c: Palette, t: number) =>
   c.temperatures[[0, 10, 20, 28].filter((limit) => t >= limit).length];
+
+export const airQualityColor = (c: Palette, aqi: number) => c.airQuality[airQualityLevel(aqi)];

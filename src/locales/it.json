@@ -14,7 +14,12 @@
     "aujourdhui": "Oggi",
     "jourDetail": "{{day}}, {{weather}}, minima {{min}}, massima {{max}}",
     "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, pioggia {{rain}}%",
-    "pourcent": "{{value}}%"
+    "pourcent": "{{value}}%",
+    "qualiteAir": "Qualità dell'aria",
+    "qualiteAirDetail": "Qualità dell'aria {{index}}, {{level}}",
+    "airHeureDetail": "{{hour}}, qualità dell'aria {{index}}, {{level}}",
+    "polluantDetail_one": "{{name}}, {{count}} microgrammo per metro cubo, {{level}}",
+    "polluantDetail_other": "{{name}}, {{count}} microgrammi per metro cubo, {{level}}"
   },
   "jour": {
     "temperatures": "Temperature",
@@ -23,7 +28,8 @@
     "coucher": "Tramonto {{time}}",
     "courbe": "Minima {{coldest}}, massima {{warmest}}",
     "temperatureA": "{{temperature}} alle {{hour}}",
-    "astuce": "Tocca la curva per i dettagli ora per ora."
+    "astuce": "Tocca la curva per i dettagli ora per ora.",
+    "qualiteAirMax": "Max {{index}} · {{level}} alle {{hour}}"
   },
   "villes": {
     "titre": "Cerca una città",
@@ -67,6 +73,23 @@
     "averses": "Rovesci",
     "aversesNeige": "Rovesci di neve",
     "orage": "Temporale"
+  },
+  "air": {
+    "niveaux": {
+      "bon": "Buona",
+      "correct": "Discreta",
+      "moyen": "Moderata",
+      "mauvais": "Scadente",
+      "tresMauvais": "Molto scadente",
+      "extremementMauvais": "Estremamente scadente"
+    },
+    "polluants": {
+      "pm2_5": "Particolato fine PM2.5",
+      "pm10": "Particolato PM10",
+      "nitrogen_dioxide": "Biossido di azoto",
+      "ozone": "Ozono",
+      "sulphur_dioxide": "Biossido di zolfo"
+    }
   },
   "erreurs": {
     "reseau": "Nessuna connessione a internet. Controlla la rete.",

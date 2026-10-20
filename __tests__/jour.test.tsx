@@ -53,6 +53,19 @@ describe('Écran Détail du jour', () => {
     expect(screen.getByText('Coucher 19:19')).toBeOnTheScreen();
   });
 
+  it("affiche la pire qualité de l'air du jour et son heure", async () => {
+    await renderDay('2026-10-06');
+
+    expect(screen.getByTestId('qualite-air-jour')).toHaveAccessibleName('Max 52 · Moyen à 18 h');
+  });
+
+  it("n'affiche pas la qualité de l'air au-delà de l'horizon de ses prévisions", async () => {
+    await renderDay('2026-10-11');
+
+    expect(screen.getByText('Dimanche')).toBeOnTheScreen();
+    expect(screen.queryByTestId('qualite-air-jour')).not.toBeOnTheScreen();
+  });
+
   it("affiche l'heure et la température là où on touche la courbe, et suit le doigt", async () => {
     await renderDay('2026-10-06');
     const chart = screen.getByTestId('courbe-temperatures');

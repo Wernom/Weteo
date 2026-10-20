@@ -6,6 +6,7 @@ import { useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';
 
+import { DayAirQualityCard } from '../../AirQualityCard';
 import { dayLabel } from '../../DailyList';
 import { formatClock } from '../../i18n';
 import { Screen, useScreenStyles } from '../../Screen';
@@ -72,6 +73,8 @@ export default function DayScreen() {
           <Text style={shared.detail}>{t('jour.lever', { time: formatClock(day.sunrise) })}</Text>
           <Text style={shared.detail}>{t('jour.coucher', { time: formatClock(day.sunset) })}</Text>
         </View>
+
+        <DayAirQualityCard hours={hours} />
       </ScrollView>
     </Screen>
   );

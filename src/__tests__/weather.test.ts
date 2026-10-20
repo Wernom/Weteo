@@ -1,7 +1,9 @@
+import airQualityFixture from '../../__fixtures__/open-meteo-air-quality.json';
 import forecastFixture from '../../__fixtures__/open-meteo-forecast.json';
 import { mockFetch, respond } from '../../jest/helpers';
 import { axisTicks, chartPoints } from '../TemperatureChart';
 import {
+  airQualityLevel,
   ApiError,
   ApiErrorKind,
   describeWeather,
@@ -36,6 +38,16 @@ describe('fetchForecast', () => {
       windSpeed: 14.2,
       weatherCode: 61,
       isDay: true,
+      airQuality: {
+        index: 36,
+        pollutants: [
+          { key: 'pm2_5', value: 6.8, index: 24 },
+          { key: 'pm10', value: 8.7, index: 12 },
+          { key: 'nitrogen_dioxide', value: 22.3, index: 36 },
+          { key: 'ozone', value: 32, index: 11 },
+          { key: 'sulphur_dioxide', value: 1.1, index: 1 },
+        ],
+      },
     });
     expect(forecast.hourly).toHaveLength(7 * 24);
     expect(forecast.hourly[0].time).toBe('2026-10-05T00:00');
@@ -45,6 +57,7 @@ describe('fetchForecast', () => {
       temperature: 15.9,
       rainChance: 80,
       isDay: true,
+      airQuality: 36,
     });
     expect(forecast.hourly[24]).toMatchObject({ time: '2026-10-06T00:00', isDay: false });
     expect(forecast.hourly[167].time).toBe('2026-10-11T23:00');
@@ -71,6 +84,91 @@ describe('fetchForecast', () => {
 
     expect(forecast.hourly[0].rainChance).toBe(0);
     expect(forecast.daily[0].precipitation).toBe(0);
+  });
+});
+
+describe("qualité de l'air", () => {
+  // Réponse de l'air modifiée ; les prévisions restent celles du fixture.
+  const mockAir = (air: unknown) =>
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (url) =>
+        String(url).includes('air-quality') ? (air as Response) : respond(forecastFixture),
+      );
+
+  it('appelle Open-Meteo Air Quality avec la position, sur les jours des prévisions', async () => {
+    const fetchMock = mockFetch();
+
+    await fetchForecast(48.85, 2.35);
+
+    const url = new URL(String(fetchMock.mock.calls[1][0]));
+    expect(url.origin + url.pathname).toBe('https://air-quality-api.open-meteo.com/v1/air-quality');
+    expect(url.searchParams.get('latitude')).toBe('48.85');
+    expect(url.searchParams.get('longitude')).toBe('2.35');
+    expect(url.searchParams.get('current')).toBe(
+      'european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,sulphur_dioxide,european_aqi_pm2_5,european_aqi_pm10,european_aqi_nitrogen_dioxide,european_aqi_ozone,european_aqi_sulphur_dioxide',
+    );
+    expect(url.searchParams.get('hourly')).toBe('european_aqi');
+    expect(url.searchParams.get('timezone')).toBe('auto');
+    expect(url.searchParams.get('forecast_days')).toBe('7');
+  });
+
+  it("associe l'indice à chaque heure, null au-delà de l'horizon", async () => {
+    mockFetch();
+
+    const { hourly } = await fetchForecast(48.85, 2.35);
+
+    expect(hourly.find((h) => h.time === '2026-10-05T15:00')?.airQuality).toBe(41);
+    expect(hourly.find((h) => h.time === '2026-10-05T16:00')?.airQuality).toBeNull();
+    expect(hourly.filter((h) => h.time.startsWith('2026-10-11')).map((h) => h.airQuality)).toEqual(
+      Array(24).fill(null),
+    );
+  });
+
+  it('associe par heure, même si les deux services ne commencent pas pareil', async () => {
+    const data = JSON.parse(JSON.stringify(airQualityFixture));
+    data.hourly.time.shift();
+    data.hourly.european_aqi.shift();
+    mockAir(respond(data));
+
+    const { hourly } = await fetchForecast(48.85, 2.35);
+
+    expect(hourly[0].airQuality).toBeNull();
+    expect(hourly[15].airQuality).toBe(41);
+  });
+
+  it('ignore un polluant sans valeur, et la carte sans indice global', async () => {
+    const data = JSON.parse(JSON.stringify(airQualityFixture));
+    data.current.ozone = null;
+    mockAir(respond(data));
+
+    const { current } = await fetchForecast(48.85, 2.35);
+    expect(current.airQuality?.pollutants.map((p) => p.key)).toEqual([
+      'pm2_5',
+      'pm10',
+      'nitrogen_dioxide',
+      'sulphur_dioxide',
+    ]);
+
+    data.current.european_aqi = null;
+    mockAir(respond(data));
+    expect((await fetchForecast(48.85, 2.35)).current.airQuality).toBeNull();
+  });
+
+  it("garde la météo quand le service de l'air est en panne", async () => {
+    mockAir({ ok: false, status: 500 });
+
+    const forecast = await fetchForecast(48.85, 2.35);
+
+    expect(forecast.current.temperature).toBe(18.4);
+    expect(forecast.current.airQuality).toBeNull();
+    expect(forecast.hourly.every((h) => h.airQuality === null)).toBe(true);
+  });
+
+  it('palier européen : bon ≤ 20, correct ≤ 40, …, extrêmement mauvais > 100', () => {
+    expect([0, 20, 20.1, 40, 60, 80, 100, 101].map(airQualityLevel)).toEqual([
+      0, 0, 1, 1, 2, 3, 4, 5,
+    ]);
   });
 });
 

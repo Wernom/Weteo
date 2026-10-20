@@ -15,6 +15,9 @@ name: Météo de ma position
     timeout: 60000
 - assertVisible: 'Humidité \d+ %'
 - assertVisible: 'Vent .*'
+- scrollUntilVisible:
+    element:
+      text: "Qualité de l'air"
 # Sur un petit écran, les prévisions sont sous le bandeau horaire.
 - scrollUntilVisible:
     element:

@@ -21,6 +21,23 @@ type CurrentWeather = {
   windSpeed: number;
   weatherCode: number;
   isDay: boolean;
+  airQuality: AirQuality | null;
+};
+
+// Polluants de l'indice européen, dans l'ordre d'affichage (noms de l'API Open-Meteo).
+export const POLLUTANTS = [
+  'pm2_5',
+  'pm10',
+  'nitrogen_dioxide',
+  'ozone',
+  'sulphur_dioxide',
+] as const;
+export type Pollutant = (typeof POLLUTANTS)[number];
+
+// Indice européen (EAQI) : le pire des sous-indices de ses polluants. `value` est en µg/m³.
+export type AirQuality = {
+  index: number;
+  pollutants: { key: Pollutant; value: number; index: number }[];
 };
 
 // `sunrise` et `sunset` sont en heure locale du lieu (« 2026-10-05T07:58 »).
@@ -42,6 +59,8 @@ export type HourlyForecast = {
   temperature: number;
   rainChance: number;
   isDay: boolean;
+  // Indice européen ; `null` au-delà de l'horizon des prévisions de l'air (4 à 5 jours).
+  airQuality: number | null;
 };
 
 // `hourly` couvre les 7 jours de `daily`, de 00:00 à 23:00.
@@ -185,6 +204,54 @@ export async function getCity(id: number, language: Language): Promise<City> {
   return toCity(await getJson(`${GEOCODING}/get?${params}`, placeSchema));
 }
 
+// API Air Quality d'Open-Meteo : https://open-meteo.com/en/docs/air-quality-api
+// Heures comme celles des prévisions (heure locale du lieu, 7 jours de 00:00 à 23:00).
+export async function fetchAirQuality(latitude: number, longitude: number) {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    // L'indice global, puis la concentration et le sous-indice de chaque polluant.
+    current: ['european_aqi', ...POLLUTANTS, ...POLLUTANTS.map((p) => `european_aqi_${p}`)].join(),
+    hourly: 'european_aqi',
+    timezone: 'auto',
+    forecast_days: '7',
+  });
+  const data = await getJson(
+    `https://air-quality-api.open-meteo.com/v1/air-quality?${params}`,
+    airQualitySchema,
+  );
+  const { current } = data;
+  const index = current.european_aqi;
+  return {
+    current:
+      index === null
+        ? null
+        : {
+            index,
+            pollutants: POLLUTANTS.flatMap((key) => {
+              const value = current[key];
+              const sub = current[`european_aqi_${key}`];
+              return value === null || sub === null ? [] : [{ key, value, index: sub }];
+            }),
+          },
+    hourly: new Map(data.hourly.time.map((time, i) => [time, data.hourly.european_aqi[i]])),
+  };
+}
+
+// Paliers officiels de l'indice européen : bon (≤ 20), correct, moyen, mauvais, très mauvais
+// (≤ 100), extrêmement mauvais. Rang 0 à 5, qui choisit libellé et couleur.
+export const AIR_LEVELS = [
+  'bon',
+  'correct',
+  'moyen',
+  'mauvais',
+  'tresMauvais',
+  'extremementMauvais',
+] as const;
+
+export const airQualityLevel = (aqi: number) =>
+  [20, 40, 60, 80, 100].filter((limit) => aqi > limit).length;
+
 export async function fetchForecast(latitude: number, longitude: number): Promise<Forecast> {
   const params = new URLSearchParams({
     latitude: String(latitude),
@@ -197,7 +264,11 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
     timezone: 'auto',
     forecast_days: '7',
   });
-  const data = await getJson(`https://api.open-meteo.com/v1/forecast?${params}`, forecastSchema);
+  // L'air est un service à part : en panne, la météo s'affiche quand même, sans sa carte.
+  const [data, air] = await Promise.all([
+    getJson(`https://api.open-meteo.com/v1/forecast?${params}`, forecastSchema),
+    fetchAirQuality(latitude, longitude).catch(() => null),
+  ]);
 
   return {
     current: {
@@ -208,6 +279,7 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       windSpeed: data.current.wind_speed_10m,
       weatherCode: data.current.weather_code,
       isDay: data.current.is_day === 1,
+      airQuality: air?.current ?? null,
     },
     hourly: data.hourly.time.map((time, i) => ({
       time,
@@ -215,6 +287,8 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       temperature: data.hourly.temperature_2m[i],
       rainChance: data.hourly.precipitation_probability[i],
       isDay: data.hourly.is_day[i] === 1,
+      // Associée par l'heure, pas par le rang : les deux services peuvent ne pas commencer pareil.
+      airQuality: air?.hourly.get(time) ?? null,
     })),
     daily: data.daily.time.map((date, i) => ({
       date,
@@ -265,6 +339,25 @@ const forecastSchema = z.object({
     precipitation_sum: maybeNumbers,
     precipitation_probability_max: maybeNumbers,
   }),
+});
+
+// Toute valeur de l'air peut manquer (`null`) : hors couverture d'un polluant, au-delà de l'horizon.
+const maybeNumber = z.number().nullable();
+const airQualitySchema = z.object({
+  current: z.object({
+    european_aqi: maybeNumber,
+    pm2_5: maybeNumber,
+    pm10: maybeNumber,
+    nitrogen_dioxide: maybeNumber,
+    ozone: maybeNumber,
+    sulphur_dioxide: maybeNumber,
+    european_aqi_pm2_5: maybeNumber,
+    european_aqi_pm10: maybeNumber,
+    european_aqi_nitrogen_dioxide: maybeNumber,
+    european_aqi_ozone: maybeNumber,
+    european_aqi_sulphur_dioxide: maybeNumber,
+  }),
+  hourly: z.object({ time: strings, european_aqi: z.array(maybeNumber) }),
 });
 
 // Codes météo WMO : https://open-meteo.com/en/docs#weathervariables

@@ -14,7 +14,12 @@
     "aujourdhui": "Hoy",
     "jourDetail": "{{day}}, {{weather}}, mínima {{min}}, máxima {{max}}",
     "heureDetail": "{{hour}}, {{weather}}, {{temperature}}, lluvia {{rain}} %",
-    "pourcent": "{{value}} %"
+    "pourcent": "{{value}} %",
+    "qualiteAir": "Calidad del aire",
+    "qualiteAirDetail": "Calidad del aire {{index}}, {{level}}",
+    "airHeureDetail": "{{hour}}, calidad del aire {{index}}, {{level}}",
+    "polluantDetail_one": "{{name}}, {{count}} microgramo por metro cúbico, {{level}}",
+    "polluantDetail_other": "{{name}}, {{count}} microgramos por metro cúbico, {{level}}"
   },
   "jour": {
     "temperatures": "Temperaturas",
@@ -23,7 +28,8 @@
     "coucher": "Atardecer {{time}}",
     "courbe": "Mínima {{coldest}}, máxima {{warmest}}",
     "temperatureA": "{{temperature}} a las {{hour}}",
-    "astuce": "Toca la curva para ver el detalle hora por hora."
+    "astuce": "Toca la curva para ver el detalle hora por hora.",
+    "qualiteAirMax": "Máx {{index}} · {{level}} a las {{hour}}"
   },
   "villes": {
     "titre": "Buscar una ciudad",
@@ -67,6 +73,23 @@
     "averses": "Chubascos",
     "aversesNeige": "Chubascos de nieve",
     "orage": "Tormenta"
+  },
+  "air": {
+    "niveaux": {
+      "bon": "Buena",
+      "correct": "Razonable",
+      "moyen": "Moderada",
+      "mauvais": "Mala",
+      "tresMauvais": "Muy mala",
+      "extremementMauvais": "Extremadamente mala"
+    },
+    "polluants": {
+      "pm2_5": "Partículas finas PM2.5",
+      "pm10": "Partículas PM10",
+      "nitrogen_dioxide": "Dióxido de nitrógeno",
+      "ozone": "Ozono",
+      "sulphur_dioxide": "Dióxido de azufre"
+    }
   },
   "erreurs": {
     "reseau": "Sin conexión a internet. Revisa tu red.",

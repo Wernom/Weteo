@@ -45,12 +45,15 @@ describe.each(Object.entries(PALETTES))('thème %s', (_, c) => {
     }
   });
 
-  it('barres de température visibles sur les cartes (≥ 3:1)', () => {
-    const cards = stops.map((s) => rgb(c.surface, s));
-    for (const color of c.temperatures) {
-      expect(worst(color, cards)).toBeGreaterThanOrEqual(3);
-    }
-  });
+  it.each(['temperatures', 'airQuality'] as const)(
+    'pastilles %s visibles sur les cartes (≥ 3:1)',
+    (key) => {
+      const cards = stops.map((s) => rgb(c.surface, s));
+      for (const color of c[key]) {
+        expect(worst(color, cards)).toBeGreaterThanOrEqual(3);
+      }
+    },
+  );
 });
 
 it('couleur de température par palier', () => {

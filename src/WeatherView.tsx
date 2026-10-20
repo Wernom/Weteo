@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AirQualityCard } from './AirQualityCard';
 import { DailyList } from './DailyList';
 import { ErrorScreen } from './ErrorScreen';
 import { HourlyStrip } from './HourlyStrip';
@@ -60,6 +61,7 @@ export function WeatherView({
   const today = daily[0];
   // Le bandeau part de l'heure en cours (« 2026-10-05T14:00 » >= « 2026-10-05T14 »).
   const start = hourly.findIndex((h) => h.time >= current.time.slice(0, 13));
+  const nextHours = hourly.slice(start, start + 48);
 
   return (
     <Screen testID="fond-meteo" colors={gradient}>
@@ -106,9 +108,11 @@ export function WeatherView({
           </Text>
         </View>
 
+        <AirQualityCard air={current.airQuality} hours={nextHours} />
+
         <View style={shared.card}>
           <Text style={shared.cardTitle}>{t('meteo.heureParHeure')}</Text>
-          <HourlyStrip hours={hourly.slice(start, start + 48)} />
+          <HourlyStrip hours={nextHours} />
         </View>
 
         <View style={shared.card}>
