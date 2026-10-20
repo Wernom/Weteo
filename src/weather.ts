@@ -22,6 +22,7 @@ type CurrentWeather = {
   weatherCode: number;
   isDay: boolean;
   airQuality: AirQuality | null;
+  uvIndex: number | null;
 };
 
 // Polluants de l'indice européen, dans l'ordre d'affichage (noms de l'API Open-Meteo).
@@ -50,6 +51,7 @@ export type DailyForecast = {
   sunset: string;
   precipitation: number;
   rainChance: number;
+  uvMax: number | null;
 };
 
 // `time` est l'heure locale du lieu (« 2026-10-05T14:00 »), pas celle du téléphone.
@@ -61,6 +63,7 @@ export type HourlyForecast = {
   isDay: boolean;
   // Indice européen ; `null` au-delà de l'horizon des prévisions de l'air (4 à 5 jours).
   airQuality: number | null;
+  uvIndex: number | null;
 };
 
 // `hourly` couvre les 7 jours de `daily`, de 00:00 à 23:00.
@@ -252,15 +255,22 @@ export const AIR_LEVELS = [
 export const airQualityLevel = (aqi: number) =>
   [20, 40, 60, 80, 100].filter((limit) => aqi > limit).length;
 
+// Paliers de l'OMS de l'indice UV, sur l'indice arrondi : faible (≤ 2), modéré (≤ 5), élevé (≤ 7),
+// très élevé (≤ 10), extrême. Rang 0 à 4, qui choisit libellé et couleur.
+export const UV_LEVELS = ['faible', 'modere', 'eleve', 'tresEleve', 'extreme'] as const;
+
+export const uvLevel = (uv: number) =>
+  [3, 6, 8, 11].filter((limit) => Math.round(uv) >= limit).length;
+
 export async function fetchForecast(latitude: number, longitude: number): Promise<Forecast> {
   const params = new URLSearchParams({
     latitude: String(latitude),
     longitude: String(longitude),
     current:
-      'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day',
-    hourly: 'temperature_2m,weather_code,precipitation_probability,is_day',
+      'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day,uv_index',
+    hourly: 'temperature_2m,weather_code,precipitation_probability,is_day,uv_index',
     daily:
-      'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,precipitation_probability_max',
+      'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,precipitation_probability_max,uv_index_max',
     timezone: 'auto',
     forecast_days: '7',
   });
@@ -280,6 +290,7 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       weatherCode: data.current.weather_code,
       isDay: data.current.is_day === 1,
       airQuality: air?.current ?? null,
+      uvIndex: data.current.uv_index,
     },
     hourly: data.hourly.time.map((time, i) => ({
       time,
@@ -289,6 +300,7 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       isDay: data.hourly.is_day[i] === 1,
       // Associée par l'heure, pas par le rang : les deux services peuvent ne pas commencer pareil.
       airQuality: air?.hourly.get(time) ?? null,
+      uvIndex: data.hourly.uv_index[i],
     })),
     daily: data.daily.time.map((date, i) => ({
       date,
@@ -299,6 +311,7 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
       sunset: data.daily.sunset[i],
       precipitation: data.daily.precipitation_sum[i],
       rainChance: data.daily.precipitation_probability_max[i],
+      uvMax: data.daily.uv_index_max[i],
     })),
   };
 }
@@ -312,6 +325,8 @@ const maybeNumbers = z.array(
     .transform((n) => n ?? 0),
 );
 const strings = z.array(z.string());
+// Toute valeur de l'air ou de l'UV peut manquer (`null`) : hors couverture, au-delà de l'horizon.
+const maybeNumber = z.number().nullable();
 const forecastSchema = z.object({
   current: z.object({
     time: z.string(),
@@ -321,6 +336,7 @@ const forecastSchema = z.object({
     wind_speed_10m: z.number(),
     weather_code: z.number(),
     is_day: z.number(),
+    uv_index: maybeNumber,
   }),
   hourly: z.object({
     time: strings,
@@ -328,6 +344,7 @@ const forecastSchema = z.object({
     weather_code: numbers,
     precipitation_probability: maybeNumbers,
     is_day: numbers,
+    uv_index: z.array(maybeNumber),
   }),
   daily: z.object({
     time: strings,
@@ -338,11 +355,10 @@ const forecastSchema = z.object({
     sunset: strings,
     precipitation_sum: maybeNumbers,
     precipitation_probability_max: maybeNumbers,
+    uv_index_max: z.array(maybeNumber),
   }),
 });
 
-// Toute valeur de l'air peut manquer (`null`) : hors couverture d'un polluant, au-delà de l'horizon.
-const maybeNumber = z.number().nullable();
 const airQualitySchema = z.object({
   current: z.object({
     european_aqi: maybeNumber,

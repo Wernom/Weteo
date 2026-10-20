@@ -10,6 +10,7 @@ import {
   fetchForecast,
   shouldRetry,
   temperatureBar,
+  uvLevel,
 } from '../weather';
 
 describe('fetchForecast', () => {
@@ -23,10 +24,10 @@ describe('fetchForecast', () => {
     expect(url.searchParams.get('latitude')).toBe('48.85');
     expect(url.searchParams.get('longitude')).toBe('2.35');
     expect(url.searchParams.get('hourly')).toBe(
-      'temperature_2m,weather_code,precipitation_probability,is_day',
+      'temperature_2m,weather_code,precipitation_probability,is_day,uv_index',
     );
     expect(url.searchParams.get('daily')).toBe(
-      'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,precipitation_probability_max',
+      'weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_sum,precipitation_probability_max,uv_index_max',
     );
     // Les heures couvrent les 7 jours entiers, pas seulement les 48 prochaines.
     expect(url.searchParams.has('forecast_hours')).toBe(false);
@@ -48,6 +49,7 @@ describe('fetchForecast', () => {
           { key: 'sulphur_dioxide', value: 1.1, index: 1 },
         ],
       },
+      uvIndex: 3.4,
     });
     expect(forecast.hourly).toHaveLength(7 * 24);
     expect(forecast.hourly[0].time).toBe('2026-10-05T00:00');
@@ -58,6 +60,7 @@ describe('fetchForecast', () => {
       rainChance: 80,
       isDay: true,
       airQuality: 36,
+      uvIndex: 4.2,
     });
     expect(forecast.hourly[24]).toMatchObject({ time: '2026-10-06T00:00', isDay: false });
     expect(forecast.hourly[167].time).toBe('2026-10-11T23:00');
@@ -71,6 +74,7 @@ describe('fetchForecast', () => {
       sunset: '2026-10-11T19:09',
       precipitation: 3.8,
       rainChance: 60,
+      uvMax: 11.3,
     });
   });
 
@@ -85,6 +89,26 @@ describe('fetchForecast', () => {
     expect(forecast.hourly[0].rainChance).toBe(0);
     expect(forecast.daily[0].precipitation).toBe(0);
   });
+
+  it("garde l'UV manquant (null)", async () => {
+    const data = JSON.parse(JSON.stringify(forecastFixture));
+    data.current.uv_index = null;
+    data.hourly.uv_index[14] = null;
+    data.daily.uv_index_max[0] = null;
+    mockFetch(respond(data));
+
+    const forecast = await fetchForecast(48.85, 2.35);
+
+    expect(forecast.current.uvIndex).toBeNull();
+    expect(forecast.hourly[14].uvIndex).toBeNull();
+    expect(forecast.daily[0].uvMax).toBeNull();
+  });
+});
+
+it("palier UV de l'OMS, sur l'indice arrondi : faible ≤ 2, modéré ≤ 5, …, extrême ≥ 11", () => {
+  expect([0, 2.4, 2.5, 5, 5.5, 7, 8, 10, 10.5, 11].map(uvLevel)).toEqual([
+    0, 0, 1, 1, 2, 2, 3, 3, 4, 4,
+  ]);
 });
 
 describe("qualité de l'air", () => {

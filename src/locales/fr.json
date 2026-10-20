@@ -19,7 +19,11 @@
     "qualiteAirDetail": "Qualité de l'air {{index}}, {{level}}",
     "airHeureDetail": "{{hour}}, qualité de l'air {{index}}, {{level}}",
     "polluantDetail_one": "{{name}}, {{count}} microgramme par mètre cube, {{level}}",
-    "polluantDetail_other": "{{name}}, {{count}} microgrammes par mètre cube, {{level}}"
+    "polluantDetail_other": "{{name}}, {{count}} microgrammes par mètre cube, {{level}}",
+    "uv": "Indice UV",
+    "uvDetail": "Indice UV {{index}}, {{level}}",
+    "uvHeureDetail": "{{hour}}, indice UV {{index}}, {{level}}",
+    "uvMaxJour": "Max du jour {{index}} · {{level}}"
   },
   "jour": {
     "temperatures": "Températures",
@@ -29,7 +33,8 @@
     "courbe": "Minimum {{coldest}}, maximum {{warmest}}",
     "temperatureA": "{{temperature}} à {{hour}}",
     "astuce": "Touchez la courbe pour le détail heure par heure.",
-    "qualiteAirMax": "Max {{index}} · {{level}} à {{hour}}"
+    "qualiteAirMax": "Max {{index}} · {{level}} à {{hour}}",
+    "uvMax": "Max {{index}} · {{level}}"
   },
   "villes": {
     "titre": "Rechercher une ville",
@@ -89,6 +94,15 @@
       "nitrogen_dioxide": "Dioxyde d'azote",
       "ozone": "Ozone",
       "sulphur_dioxide": "Dioxyde de soufre"
+    }
+  },
+  "uv": {
+    "niveaux": {
+      "faible": "Faible",
+      "modere": "Modéré",
+      "eleve": "Élevé",
+      "tresEleve": "Très élevé",
+      "extreme": "Extrême"
     }
   },
   "erreurs": {

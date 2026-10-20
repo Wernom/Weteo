@@ -19,6 +19,7 @@ import { HourlyStrip } from './HourlyStrip';
 import { Screen, useScreenStyles } from './Screen';
 import { font, gradientFor, iconColor, space, themedStyles, usePalette } from './theme';
 import { useUnits } from './units';
+import { UvCard } from './UvCard';
 import { describeWeather, WeatherData } from './weather';
 
 // Météo d'un lieu (ma position ou une ville) : chargement, erreur avec « Réessayer », puis le détail.
@@ -109,6 +110,7 @@ export function WeatherView({
         </View>
 
         <AirQualityCard air={current.airQuality} hours={nextHours} />
+        <UvCard uv={current.uvIndex} max={today?.uvMax ?? null} hours={nextHours} />
 
         <View style={shared.card}>
           <Text style={shared.cardTitle}>{t('meteo.heureParHeure')}</Text>

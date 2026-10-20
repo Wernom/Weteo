@@ -18,6 +18,9 @@ name: Météo de ma position
 - scrollUntilVisible:
     element:
       text: "Qualité de l'air"
+- scrollUntilVisible:
+    element:
+      text: "Indice UV"
 # Sur un petit écran, les prévisions sont sous le bandeau horaire.
 - scrollUntilVisible:
     element:

@@ -45,7 +45,7 @@ describe.each(Object.entries(PALETTES))('thème %s', (_, c) => {
     }
   });
 
-  it.each(['temperatures', 'airQuality'] as const)(
+  it.each(['temperatures', 'airQuality', 'uv'] as const)(
     'pastilles %s visibles sur les cartes (≥ 3:1)',
     (key) => {
       const cards = stops.map((s) => rgb(c.surface, s));

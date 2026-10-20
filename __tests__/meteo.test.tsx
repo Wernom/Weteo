@@ -217,6 +217,50 @@ describe('Écran Météo', () => {
     expect(screen.queryByText("Qualité de l'air")).not.toBeOnTheScreen();
   });
 
+  it("affiche l'indice UV : actuel, risque en clair et sa couleur, maximum du jour", async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    const uv = within(await screen.findByTestId('uv'));
+    expect(uv.getByText('3')).toBeOnTheScreen();
+    expect(uv.getByText('Modéré')).toBeOnTheScreen();
+    expect(screen.getByTestId('uv')).toHaveAccessibleName('Indice UV 3, Modéré');
+    expect(screen.getByTestId('pastille-uv')).toHaveStyle({
+      backgroundColor: PALETTES.light.uv[1],
+    });
+    expect(screen.getByTestId('uv-max')).toHaveTextContent('Max du jour 4 · Modéré');
+  });
+
+  it("affiche l'indice UV heure par heure, de jour seulement", async () => {
+    allowLocation();
+    mockApi();
+
+    await renderScreen();
+
+    expect(
+      within(await screen.findByTestId('uv-heure-0')).getByText('Maintenant'),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('uv-heure-5')).toHaveAccessibleName('19 h, indice UV 1, Faible');
+    // De 20 h à 7 h, il fait nuit dans le fixture.
+    expect(screen.queryByTestId('uv-heure-6')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('uv-heure-17')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('uv-heure-18')).toBeOnTheScreen();
+  });
+
+  it("n'affiche pas la carte UV sans indice actuel", async () => {
+    allowLocation();
+    const data = JSON.parse(JSON.stringify(forecastFixture));
+    data.current.uv_index = null;
+    mockApi(respond(data));
+
+    await renderScreen();
+
+    expect(await screen.findByText('Paris')).toBeOnTheScreen();
+    expect(screen.queryByText('Indice UV')).not.toBeOnTheScreen();
+  });
+
   it('affiche le fond et la barre d’onglets du temps actuel', async () => {
     allowLocation();
     mockApi(

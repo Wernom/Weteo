@@ -59,6 +59,12 @@ describe('Écran Détail du jour', () => {
     expect(screen.getByTestId('qualite-air-jour')).toHaveAccessibleName('Max 52 · Moyen à 18 h');
   });
 
+  it("affiche l'indice UV maximal du jour et son risque", async () => {
+    await renderDay('2026-10-06');
+
+    expect(screen.getByTestId('uv-jour')).toHaveAccessibleName('Max 7 · Élevé');
+  });
+
   it("n'affiche pas la qualité de l'air au-delà de l'horizon de ses prévisions", async () => {
     await renderDay('2026-10-11');
 

@@ -6,6 +6,7 @@ import {
   airQualityLevel,
   describeWeather,
   type IconName,
+  uvLevel,
   type WeatherData,
   type WeatherTheme,
 } from './weather';
@@ -32,6 +33,8 @@ export type Palette = {
   temperatures: readonly [string, string, string, string, string];
   // Pastilles de la qualité de l'air, du bon à l'extrêmement mauvais (paliers de AIR_LEVELS).
   airQuality: readonly [string, string, string, string, string, string];
+  // Pastilles de l'indice UV, du faible à l'extrême (paliers de UV_LEVELS).
+  uv: readonly [string, string, string, string, string];
 };
 
 export const PALETTES: Record<Scheme, Palette> = {
@@ -65,6 +68,7 @@ export const PALETTES: Record<Scheme, Palette> = {
     },
     temperatures: ['#2563eb', '#0e7490', '#4d7c0f', '#b45309', '#dc2626'],
     airQuality: ['#0e7490', '#15803d', '#a16207', '#c2410c', '#b91c1c', '#7e22ce'],
+    uv: ['#15803d', '#a16207', '#c2410c', '#b91c1c', '#7e22ce'],
   },
   dark: {
     gradients: {
@@ -96,6 +100,7 @@ export const PALETTES: Record<Scheme, Palette> = {
     },
     temperatures: ['#93c5fd', '#67e8f9', '#a3e635', '#fbbf24', '#fecaca'],
     airQuality: ['#67e8f9', '#86efac', '#fde047', '#fdba74', '#fca5a5', '#d8b4fe'],
+    uv: ['#86efac', '#fde047', '#fdba74', '#fca5a5', '#d8b4fe'],
   },
 };
 
@@ -159,3 +164,5 @@ export const temperatureColor = (c: Palette, t: number) =>
   c.temperatures[[0, 10, 20, 28].filter((limit) => t >= limit).length];
 
 export const airQualityColor = (c: Palette, aqi: number) => c.airQuality[airQualityLevel(aqi)];
+
+export const uvColor = (c: Palette, uv: number) => c.uv[uvLevel(uv)];

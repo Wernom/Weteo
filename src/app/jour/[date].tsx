@@ -13,6 +13,7 @@ import { Screen, useScreenStyles } from '../../Screen';
 import { TemperatureChart } from '../../TemperatureChart';
 import { font, iconColor, space, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
+import { DayUvCard } from '../../UvCard';
 import { cityQueryKey, describeWeather, WEATHER_QUERY_KEY, WeatherData } from '../../weather';
 
 export { ErrorBoundary } from '../../ErrorScreen';
@@ -75,6 +76,7 @@ export default function DayScreen() {
         </View>
 
         <DayAirQualityCard hours={hours} />
+        <DayUvCard max={day.uvMax} />
       </ScrollView>
     </Screen>
   );
