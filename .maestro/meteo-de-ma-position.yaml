@@ -6,26 +6,31 @@ name: Météo de ma position
 - setLocation:
     latitude: 48.8566
     longitude: 2.3522
-- launchApp:
-    clearState: true
-    permissions:
-      location: allow
-- extendedWaitUntil:
-    visible: 'Ressenti .*'
-    timeout: 60000
-- assertVisible: 'Humidité \d+ %'
-- assertVisible: 'Vent .*'
-# Sur un petit écran, les prévisions sont sous le bandeau horaire.
-- scrollUntilVisible:
-    element:
-      text: 'Prévisions sur 7 jours'
-- scrollUntilVisible:
-    element:
-      text: "Aujourd'hui"
-# Qualité de l'air et UV sont sous les prévisions sur 7 jours.
-- scrollUntilVisible:
-    element:
-      text: "Qualité de l'air"
-- scrollUntilVisible:
-    element:
-      text: 'Indice UV'
+# L'API de l'air est un service à part : si elle échoue, sa carte est masquée sans nouvel essai.
+# Une panne passagère ne doit pas faire échouer le flow : on relance l'app.
+- retry:
+    maxRetries: 2
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            location: allow
+      - extendedWaitUntil:
+          visible: 'Ressenti .*'
+          timeout: 60000
+      - assertVisible: 'Humidité \d+ %'
+      - assertVisible: 'Vent .*'
+      # Sur un petit écran, les prévisions sont sous le bandeau horaire.
+      - scrollUntilVisible:
+          element:
+            text: 'Prévisions sur 7 jours'
+      - scrollUntilVisible:
+          element:
+            text: "Aujourd'hui"
+      # Qualité de l'air et UV sont sous les prévisions sur 7 jours.
+      - scrollUntilVisible:
+          element:
+            text: "Qualité de l'air"
+      - scrollUntilVisible:
+          element:
+            text: 'Indice UV'
