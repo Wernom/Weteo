@@ -3,10 +3,11 @@ Wétéo affiche la météo de votre position ou de n'importe quelle ville, sans 
 <ul>
 <li>Météo actuelle, prévisions heure par heure et sur 7 jours</li>
 <li>Détail de chaque jour : températures, pluie, lever et coucher du soleil</li>
+<li>Carte radar de la pluie autour de la ville affichée</li>
 <li>Recherche de villes et liste de favoris</li>
 <li>Unités au choix pour la température, le vent et les précipitations</li>
 <li>Thème clair, sombre ou automatique</li>
 <li>En français, anglais, allemand, italien et espagnol</li>
 </ul>
 
-Les données viennent d'<a href="https://open-meteo.com">Open-Meteo</a>, un service libre et gratuit. La position n'est utilisée que pour demander la météo du lieu et n'est jamais stockée.
+Les données viennent d'<a href="https://open-meteo.com">Open-Meteo</a>, un service libre et gratuit. Le radar de pluie vient de <a href="https://www.rainviewer.com">RainViewer</a>, sur une carte <a href="https://openfreemap.org">OpenFreeMap</a> (© contributeurs OpenStreetMap). La position n'est utilisée que pour demander la météo du lieu et n'est jamais stockée.

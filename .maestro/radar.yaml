@@ -1,0 +1,46 @@
+# L'utilisateur ajoute Lyon aux favoris, l'affiche dans l'onglet Météo puis ouvre le Radar :
+# il déplace la carte et la recentre (vraies API Open-Meteo et RainViewer).
+appId: com.wernom.weteo
+name: Carte radar
+---
+- runFlow: localisation-refusee.yaml
+- tapOn:
+    id: recherche-ville
+# Gboard peut proposer d'essayer le stylet au premier champ touché : on ferme.
+- waitForAnimationToEnd
+- tapOn:
+    text: 'Cancel|Annuler'
+    optional: true
+- inputText: 'Lyon'
+- extendedWaitUntil:
+    visible: 'Auvergne-Rhône-Alpes, France'
+    timeout: 20000
+- tapOn:
+    id: etoile-0
+- eraseText
+- hideKeyboard
+
+# Toucher le favori ouvre sa page dans l'onglet Météo : le radar suit ce lieu.
+- tapOn:
+    id: favori-0
+- extendedWaitUntil:
+    visible: 'Page 2 sur 2'
+    timeout: 5000
+
+- tapOn:
+    id: onglet-radar
+- assertVisible:
+    id: onglet-radar
+    selected: true
+- assertVisible: 'Weather data by RainViewer'
+- assertVisible:
+    id: radar-carte
+- swipe:
+    from:
+      id: radar-carte
+    direction: LEFT
+- tapOn:
+    id: radar-recentrer
+- assertVisible: 'Weather data by RainViewer'
+- assertVisible:
+    id: radar-recentrer

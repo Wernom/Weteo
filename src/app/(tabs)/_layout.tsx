@@ -28,6 +28,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="radar"
+        options={{
+          title: t('onglets.radar'),
+          tabBarButtonTestID: 'onglet-radar',
+          tabBarIcon: ({ color, size }) => <Ionicons name="rainy" color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="villes"
         options={{
           title: t('onglets.villes'),

@@ -3,10 +3,11 @@ Wétéo shows the weather for your location or any city, with no ads, no trackin
 <ul>
 <li>Current weather, hourly and 7-day forecasts</li>
 <li>Details for each day: temperatures, rain, sunrise and sunset</li>
+<li>Rain radar map around the displayed city</li>
 <li>City search and a list of favorites</li>
 <li>Your choice of units for temperature, wind and precipitation</li>
 <li>Light, dark or automatic theme</li>
 <li>Available in English, French, German, Italian and Spanish</li>
 </ul>
 
-Data comes from <a href="https://open-meteo.com">Open-Meteo</a>, a free and open service. Your location is only used to request the local weather and is never stored.
+Data comes from <a href="https://open-meteo.com">Open-Meteo</a>, a free and open service. The rain radar comes from <a href="https://www.rainviewer.com">RainViewer</a>, on an <a href="https://openfreemap.org">OpenFreeMap</a> map (© OpenStreetMap contributors). Your location is only used to request the local weather and is never stored.

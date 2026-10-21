@@ -80,13 +80,19 @@ export const WEATHER_QUERY_KEY = ['meteo', 'position'] as const;
 // Clé de traduction, comme les messages d'ApiError.
 export const LOCATION_DENIED = 'erreurs.localisation';
 
-export async function loadWeather(): Promise<WeatherData> {
+// Partagée par la météo et le radar. Jamais stockée : seule la météo du lieu est gardée hors ligne.
+export async function currentCoords() {
   const { granted } = await Location.requestForegroundPermissionsAsync();
   if (!granted) throw new Error(LOCATION_DENIED);
-  // Une position de moins de 10 min suffit à la météo, sans attendre le GPS.
+  // Une position de moins de 10 min suffit, sans attendre le GPS.
   const { coords } =
     (await Location.getLastKnownPositionAsync(TEN_MINUTES)) ??
     (await Location.getCurrentPositionAsync());
+  return coords;
+}
+
+export async function loadWeather(): Promise<WeatherData> {
+  const coords = await currentCoords();
   const [forecast, address] = await Promise.all([
     fetchForecast(coords.latitude, coords.longitude),
     Location.reverseGeocodeAsync(coords.latitude, coords.longitude).catch(() => []),
@@ -209,6 +215,27 @@ export async function getCity(id: number, language: Language): Promise<City> {
 
 // API Air Quality d'Open-Meteo : https://open-meteo.com/en/docs/air-quality-api
 // Heures comme celles des prévisions (heure locale du lieu, 7 jours de 00:00 à 23:00).
+// Images radar RainViewer (gratuit, sans clé) : https://www.rainviewer.com/api/weather-maps-api.html
+const radarSchema = z.object({
+  host: z.string(),
+  radar: z.object({ past: z.array(z.object({ path: z.string() })).min(1) }),
+});
+
+// Modèle d'URL des tuiles de la dernière image : 256 px, couleurs « Universal Blue » (2, la seule
+// de l'offre gratuite), lissées, neige en couleur à part. Pas de tuiles au-delà du zoom 7.
+export const RADAR_MAX_ZOOM = 7;
+export const radarTilesQuery = queryOptions({
+  queryKey: ['radar', 'tuiles'],
+  queryFn: async () => {
+    const { host, radar } = await getJson(
+      'https://api.rainviewer.com/public/weather-maps.json',
+      radarSchema,
+    );
+    return `${host}${radar.past[radar.past.length - 1].path}/256/{z}/{x}/{y}/2/1_1.png`;
+  },
+  staleTime: TEN_MINUTES,
+});
+
 export async function fetchAirQuality(latitude: number, longitude: number) {
   const params = new URLSearchParams({
     latitude: String(latitude),

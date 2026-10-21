@@ -3,6 +3,8 @@ import { renderRouter, screen } from 'expo-router/testing-library';
 import { StyleSheet } from 'react-native';
 
 import { PALETTES, tabBarTheme } from '../src/theme';
+import radarFixture from '../__fixtures__/rainviewer-weather-maps.json';
+import { respond } from '../jest/helpers';
 
 // Les écrans eux-mêmes sont testés à part : ici seule la navigation compte.
 jest.mock('../src/app/(tabs)/index', () => {
@@ -34,6 +36,26 @@ describe('Navigation par onglets', () => {
 
     expect(await screen.findByText('Langue')).toBeOnTheScreen();
     expect(screen.getByTestId('onglet-reglages')).toBeSelected();
+    expect(screen.getByTestId('onglet-meteo')).not.toBeSelected();
+  });
+
+  it("passe à l'onglet Radar, entre Météo et Villes", async () => {
+    const user = userEvent.setup();
+    jest.spyOn(globalThis, 'fetch').mockResolvedValue(respond(radarFixture));
+    await renderRouter('./src/app');
+
+    const tabs = await screen.findAllByTestId(/^onglet-/);
+    expect(tabs.map((tab) => tab.props.testID)).toEqual([
+      'onglet-meteo',
+      'onglet-radar',
+      'onglet-villes',
+      'onglet-reglages',
+    ]);
+
+    await user.press(screen.getByTestId('onglet-radar'));
+
+    expect(await screen.findByText('Weather data by RainViewer')).toBeOnTheScreen();
+    expect(screen.getByTestId('onglet-radar')).toBeSelected();
     expect(screen.getByTestId('onglet-meteo')).not.toBeSelected();
   });
 

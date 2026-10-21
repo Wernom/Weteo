@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 
-import { useFavorites } from '../../favorites';
+import { shownCity, useFavorites } from '../../favorites';
 import { radius, space, tabBarTheme, usePalette, weatherTheme } from '../../theme';
 import {
   City,
@@ -105,6 +105,10 @@ export default function WeatherScreen() {
   useEffect(() => {
     if (theme !== tabBarTheme.read()) tabBarTheme.write(theme);
   }, [theme]);
+  // Le radar se centre sur le lieu affiché.
+  useEffect(() => {
+    if (city?.id !== shownCity.read()?.id) shownCity.write(city ?? null);
+  }, [city]);
 
   useEffect(() => {
     // Sans position, on ouvre directement la recherche de ville (une seule fois).

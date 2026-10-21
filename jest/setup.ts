@@ -19,3 +19,21 @@ jest.mock('../modules/weteo-location', () => ({
     reverseGeocodeAsync: jest.fn(),
   },
 }));
+
+// Carte native absente sous Jest : des vues qui portent leurs props. `flyTo` est partagé par toutes
+// les caméras, pour que les tests vérifient les déplacements.
+jest.mock('@maplibre/maplibre-react-native', () => {
+  const { createElement, useImperativeHandle } = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const flyTo = jest.fn();
+  return {
+    flyTo,
+    Map: (props: object) => createElement(View, props),
+    Camera: ({ ref, ...props }: { ref: unknown }) => {
+      useImperativeHandle(ref, () => ({ flyTo }));
+      return createElement(View, { testID: 'camera', ...props });
+    },
+    RasterSource: (props: object) => createElement(View, { testID: 'radar-source', ...props }),
+    Layer: () => null,
+  };
+});

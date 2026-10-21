@@ -9,6 +9,11 @@ const store = createStore<City[]>('favoris', (stored) => stored ?? []);
 export const useFavorites = store.use;
 export const readFavorites = store.read;
 
+// Lieu de la page affichée dans l'onglet Météo, que le radar suit ; `null` pour ma position.
+export const shownCity = createStore<City | null>('villeAffichee', (stored) => stored ?? null);
+// Nommé `use…` : le React Compiler ne reconnaît pas `shownCity.use()` comme un hook et le mémorise.
+export const useShownCity = shownCity.use;
+
 export const isFavorite = (favorites: City[], id: number) => favorites.some((f) => f.id === id);
 
 export function toggleFavorite(city: City) {

@@ -1,5 +1,14 @@
 {
-  "onglets": { "meteo": "Wetter", "villes": "Städte", "reglages": "Einstellungen" },
+  "onglets": {
+    "meteo": "Wetter",
+    "radar": "Radar",
+    "villes": "Städte",
+    "reglages": "Einstellungen"
+  },
+  "radar": {
+    "recentrer": "Auf den Ort zentrieren",
+    "indisponible": "Radar derzeit nicht verfügbar"
+  },
   "meteo": {
     "maPosition": "Mein Standort",
     "maPositionLieu": "Mein Standort · {{place}}",
