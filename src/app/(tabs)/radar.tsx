@@ -13,7 +13,7 @@ import { RadarSlider } from '../../RadarSlider';
 import { font, radius, space, themedStyles, usePalette, useScheme } from '../../theme';
 import {
   currentCoords,
-  LOCATION_DENIED,
+  noLocation,
   positionWeatherQuery,
   RADAR_MAX_ZOOM,
   RADAR_TILE_SIZE,
@@ -51,8 +51,7 @@ export default function RadarScreen() {
 
   const city = useShownCity();
   // Refus déjà essuyé par l'écran Météo, lu dans son cache : on ne redemande pas la permission.
-  const denied =
-    useQuery({ ...positionWeatherQuery, enabled: false }).error?.message === LOCATION_DENIED;
+  const denied = noLocation(useQuery({ ...positionWeatherQuery, enabled: false }).error);
   // Coordonnées gardées en mémoire seulement. Comme l'écran Météo, un refus ne redemande pas
   // la permission à chaque retour sur l'onglet.
   const position = useQuery({

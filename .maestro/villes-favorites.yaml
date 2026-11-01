@@ -1,6 +1,6 @@
 # L'utilisateur cherche « Lyon », l'ajoute aux favoris avec l'étoile : sans recherche, la ville
-# est listée sous « Ma position » avec sa météo. Elle est toujours là après redémarrage,
-# puis il la supprime (vraie API Open-Meteo).
+# est listée sous « Ma position » avec sa météo. Après redémarrage, sans localisation, l'app
+# s'ouvre sur sa page ; la ville est toujours listée, puis il la supprime (vraie API Open-Meteo).
 appId: com.wernom.weteo
 name: Villes favorites
 ---
@@ -42,14 +42,19 @@ name: Villes favorites
 # Au premier lancement après installation, elle peut mettre plusieurs secondes à venir :
 # on attend l'une ou l'autre avant le tap optionnel, qui n'attend pas assez.
 - extendedWaitUntil:
-    visible: 'Don.t allow|Ne pas autoriser|Rechercher une ville'
+    visible: 'Don.t allow|Ne pas autoriser|Page 2 sur 2'
     timeout: 30000
 - tapOn:
     text: 'Don.t allow|Ne pas autoriser'
     optional: true
 - extendedWaitUntil:
-    visible: 'Rechercher une ville'
+    visible: 'Page 2 sur 2'
     timeout: 20000
+- assertVisible:
+    id: onglet-meteo
+    selected: true
+- tapOn:
+    id: onglet-villes
 - assertVisible:
     id: ma-position
 - assertVisible: 'Auvergne-Rhône-Alpes, France'

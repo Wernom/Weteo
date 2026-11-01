@@ -133,6 +133,7 @@
     "delai": "Il servizio meteo impiega troppo tempo a rispondere.",
     "donnees": "I dati meteo ricevuti non sono validi.",
     "localisation": "Consenti l'accesso alla posizione per vedere il meteo intorno a te.",
+    "localisationCoupee": "Attiva la posizione del telefono per vedere il meteo intorno a te.",
     "chargement": "Impossibile caricare il meteo.",
     "inattendue": "Si è verificato un errore imprevisto.",
     "reessayer": "Riprova"

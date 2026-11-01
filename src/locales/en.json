@@ -133,6 +133,7 @@
     "delai": "The weather service is taking too long to respond.",
     "donnees": "The weather data received is invalid.",
     "localisation": "Allow location access to see the weather around you.",
+    "localisationCoupee": "Turn on your phone's location to see the weather around you.",
     "chargement": "Unable to load the weather.",
     "inattendue": "An unexpected error occurred.",
     "reessayer": "Try again"

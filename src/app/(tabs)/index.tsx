@@ -13,12 +13,12 @@ import {
   View,
 } from 'react-native';
 
-import { shownCity, useFavorites } from '../../favorites';
+import { readFavorites, shownCity, useFavorites } from '../../favorites';
 import { radius, space, tabBarTheme, usePalette, weatherTheme } from '../../theme';
 import {
   City,
   cityWeatherQuery,
-  LOCATION_DENIED,
+  noLocation,
   positionWeatherQuery,
   WeatherData,
 } from '../../weather';
@@ -40,7 +40,7 @@ export default function WeatherScreen() {
     retryOnMount: false,
     refetchOnWindowFocus: (query) => query.state.data !== undefined,
   });
-  const denied = query.error?.message === LOCATION_DENIED;
+  const denied = noLocation(query.error);
 
   const favorites = useFavorites();
   const pages: (City | null)[] = [null, ...favorites];
@@ -59,6 +59,13 @@ export default function WeatherScreen() {
     // Effacé pour qu'un nouveau toucher sur le même favori soit vu.
     if (asked !== undefined) router.setParams({ page: undefined });
   }, [asked]);
+
+  // Sans position : le premier favori, sinon la recherche de ville (plus bas), une seule fois.
+  const [wasDenied, setWasDenied] = useState(false);
+  if (denied !== wasDenied) {
+    setWasDenied(denied);
+    if (denied && favorites.length > 0) setPage(Math.max(page, 1));
+  }
 
   // Le favori affiché a pu être supprimé depuis l'onglet Villes : on recule sur le dernier.
   if (page > favorites.length) setPage(favorites.length);
@@ -111,8 +118,7 @@ export default function WeatherScreen() {
   }, [city]);
 
   useEffect(() => {
-    // Sans position, on ouvre directement la recherche de ville (une seule fois).
-    if (denied) router.navigate('/villes');
+    if (denied && readFavorites().length === 0) router.navigate('/villes');
   }, [denied]);
 
   return (

@@ -133,6 +133,7 @@
     "delai": "Le service météo met trop de temps à répondre.",
     "donnees": "Les données météo reçues sont invalides.",
     "localisation": "Autorisez la localisation pour voir la météo autour de vous.",
+    "localisationCoupee": "Activez la localisation du téléphone pour voir la météo autour de vous.",
     "chargement": "Impossible de charger la météo.",
     "inattendue": "Une erreur inattendue est survenue.",
     "reessayer": "Réessayer"

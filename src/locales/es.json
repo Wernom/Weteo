@@ -133,6 +133,7 @@
     "delai": "El servicio meteorológico tarda demasiado en responder.",
     "donnees": "Los datos meteorológicos recibidos no son válidos.",
     "localisation": "Permite el acceso a la ubicación para ver el tiempo a tu alrededor.",
+    "localisationCoupee": "Activa la ubicación del teléfono para ver el tiempo a tu alrededor.",
     "chargement": "No se puede cargar el tiempo.",
     "inattendue": "Se ha producido un error inesperado.",
     "reessayer": "Reintentar"

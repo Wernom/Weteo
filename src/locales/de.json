@@ -138,6 +138,7 @@
     "delai": "Der Wetterdienst antwortet zu langsam.",
     "donnees": "Die empfangenen Wetterdaten sind ungültig.",
     "localisation": "Erlaube den Standortzugriff, um das Wetter in deiner Nähe zu sehen.",
+    "localisationCoupee": "Aktiviere den Standort deines Telefons, um das Wetter in deiner Nähe zu sehen.",
     "chargement": "Das Wetter kann nicht geladen werden.",
     "inattendue": "Ein unerwarteter Fehler ist aufgetreten.",
     "reessayer": "Erneut versuchen"

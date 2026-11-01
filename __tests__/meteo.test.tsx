@@ -495,6 +495,57 @@ describe('Écran Météo', () => {
       expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 1 sur 3');
     });
 
+    it('localisation refusée : ouvre le premier favori, pas la recherche', async () => {
+      jest.mocked(router.navigate).mockClear();
+      Storage.setItemSync('favoris', JSON.stringify([LYON, NICE]));
+      location.requestForegroundPermissionsAsync.mockResolvedValue({ granted: false });
+      mockApi();
+
+      await renderScreen();
+
+      await waitFor(() =>
+        expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 3'),
+      );
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('localisation coupée sur le téléphone : ouvre aussi le premier favori', async () => {
+      jest.mocked(router.navigate).mockClear();
+      Storage.setItemSync('favoris', JSON.stringify([LYON]));
+      allowLocation();
+      location.getCurrentPositionAsync.mockRejectedValue(
+        Object.assign(new Error('Location services are disabled'), {
+          code: 'ERR_LOCATION_DISABLED',
+        }),
+      );
+      mockApi();
+
+      await renderScreen();
+
+      await waitFor(() =>
+        expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 2'),
+      );
+      expect(router.navigate).not.toHaveBeenCalled();
+      // La permission est accordée : la page de ma position demande d'activer, pas d'autoriser.
+      expect(
+        screen.getByText('Activez la localisation du téléphone pour voir la météo autour de vous.'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText('Autorisez la localisation pour voir la météo autour de vous.'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('ajouter un favori après le refus ne change pas la page affichée', async () => {
+      location.requestForegroundPermissionsAsync.mockResolvedValue({ granted: false });
+      mockApi();
+
+      await renderScreen();
+      await screen.findByText('Réessayer');
+      await act(async () => toggleFavorite(LYON));
+
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 1 sur 2');
+    });
+
     it('seule la page de ma position le précise, même si un favori est la même ville', async () => {
       Storage.setItemSync(
         'favoris',

@@ -79,6 +79,11 @@ export const WEATHER_QUERY_KEY = ['meteo', 'position'] as const;
 
 // Clé de traduction, comme les messages d'ApiError.
 export const LOCATION_DENIED = 'erreurs.localisation';
+const LOCATION_OFF = 'erreurs.localisationCoupee';
+
+// Permission refusée ou localisation coupée sur le téléphone : pas de position sans geste de l'utilisateur.
+export const noLocation = (error: Error | null) =>
+  error?.message === LOCATION_DENIED || error?.message === LOCATION_OFF;
 
 // Partagée par la météo et le radar. Jamais stockée : seule la météo du lieu est gardée hors ligne.
 export async function currentCoords() {
@@ -87,7 +92,9 @@ export async function currentCoords() {
   // Une position de moins de 10 min suffit, sans attendre le GPS.
   const { coords } =
     (await Location.getLastKnownPositionAsync(TEN_MINUTES)) ??
-    (await Location.getCurrentPositionAsync());
+    (await Location.getCurrentPositionAsync().catch((error) => {
+      throw error.code === 'ERR_LOCATION_DISABLED' ? new Error(LOCATION_OFF) : error;
+    }));
   return coords;
 }
 
