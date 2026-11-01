@@ -3,7 +3,7 @@ import { renderRouter, screen } from 'expo-router/testing-library';
 import { StyleSheet } from 'react-native';
 
 import { PALETTES, tabBarTheme } from '../src/theme';
-import radarFixture from '../__fixtures__/rainviewer-weather-maps.json';
+import radarFixture from '../__fixtures__/librewxr-weather-maps.json';
 import { respond } from '../jest/helpers';
 
 // Les écrans eux-mêmes sont testés à part : ici seule la navigation compte.
@@ -54,7 +54,7 @@ describe('Navigation par onglets', () => {
 
     await user.press(screen.getByTestId('onglet-radar'));
 
-    expect(await screen.findByText('Weather data by RainViewer')).toBeOnTheScreen();
+    expect(await screen.findByText('Rain data by LibreWXR (CC BY 4.0)')).toBeOnTheScreen();
     expect(screen.getByTestId('onglet-radar')).toBeSelected();
     expect(screen.getByTestId('onglet-meteo')).not.toBeSelected();
   });

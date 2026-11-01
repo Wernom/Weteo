@@ -11,7 +11,8 @@
     "lecture": "Abspielen",
     "pause": "Pause",
     "chargement": "Radarbilder werden geladen",
-    "curseur": "Uhrzeit des Radarbilds"
+    "curseur": "Uhrzeit des Radarbilds",
+    "prevision": "Prognose"
   },
   "meteo": {
     "maPosition": "Mein Standort",

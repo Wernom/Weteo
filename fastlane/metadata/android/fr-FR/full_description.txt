@@ -10,4 +10,4 @@ Wétéo affiche la météo de votre position ou de n'importe quelle ville, sans 
 <li>En français, anglais, allemand, italien et espagnol</li>
 </ul>
 
-Les données viennent d'<a href="https://open-meteo.com">Open-Meteo</a>, un service libre et gratuit. Le radar de pluie vient de <a href="https://www.rainviewer.com">RainViewer</a>, sur une carte <a href="https://openfreemap.org">OpenFreeMap</a> (© contributeurs OpenStreetMap). La position n'est utilisée que pour demander la météo du lieu et n'est jamais stockée.
+Les données viennent d'<a href="https://open-meteo.com">Open-Meteo</a>, un service libre et gratuit. Le radar de pluie et ses prévisions à une heure viennent de <a href="https://github.com/JoshuaKimsey/LibreWXR">LibreWXR</a> (CC BY 4.0), avec des estimations par satellite ou par modèle hors des zones couvertes par des radars, sur une carte <a href="https://openfreemap.org">OpenFreeMap</a> (© contributeurs OpenStreetMap). La position n'est utilisée que pour demander la météo du lieu et n'est jamais stockée.

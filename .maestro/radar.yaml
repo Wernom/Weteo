@@ -1,5 +1,5 @@
 # L'utilisateur ajoute Lyon aux favoris, l'affiche dans l'onglet Météo puis ouvre le Radar :
-# il déplace la carte, la recentre et lance l'animation (vraies API Open-Meteo et RainViewer).
+# il déplace la carte, la recentre et lance l'animation (vraies API Open-Meteo et LibreWXR).
 appId: com.wernom.weteo
 name: Carte radar
 ---
@@ -32,7 +32,7 @@ name: Carte radar
 - assertVisible:
     id: onglet-radar
     selected: true
-- assertVisible: 'Weather data by RainViewer'
+- assertVisible: 'Rain data by LibreWXR \(CC BY 4\.0\)'
 - assertVisible:
     id: radar-carte
 - swipe:
@@ -41,7 +41,7 @@ name: Carte radar
     direction: LEFT
 - tapOn:
     id: radar-recentrer
-- assertVisible: 'Weather data by RainViewer'
+- assertVisible: 'Rain data by LibreWXR \(CC BY 4\.0\)'
 - assertVisible:
     id: radar-recentrer
 

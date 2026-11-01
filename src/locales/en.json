@@ -6,7 +6,8 @@
     "lecture": "Play",
     "pause": "Pause",
     "chargement": "Loading radar images",
-    "curseur": "Radar image time"
+    "curseur": "Radar image time",
+    "prevision": "Forecast"
   },
   "meteo": {
     "maPosition": "My location",

@@ -10,4 +10,4 @@ Wétéo shows the weather for your location or any city, with no ads, no trackin
 <li>Available in English, French, German, Italian and Spanish</li>
 </ul>
 
-Data comes from <a href="https://open-meteo.com">Open-Meteo</a>, a free and open service. The rain radar comes from <a href="https://www.rainviewer.com">RainViewer</a>, on an <a href="https://openfreemap.org">OpenFreeMap</a> map (© OpenStreetMap contributors). Your location is only used to request the local weather and is never stored.
+Data comes from <a href="https://open-meteo.com">Open-Meteo</a>, a free and open service. The rain radar and its one-hour forecast come from <a href="https://github.com/JoshuaKimsey/LibreWXR">LibreWXR</a> (CC BY 4.0), with satellite or model estimates outside radar coverage, on an <a href="https://openfreemap.org">OpenFreeMap</a> map (© OpenStreetMap contributors). Your location is only used to request the local weather and is never stored.

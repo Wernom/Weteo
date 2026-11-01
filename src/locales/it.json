@@ -6,7 +6,8 @@
     "lecture": "Riproduci",
     "pause": "Pausa",
     "chargement": "Caricamento delle immagini radar",
-    "curseur": "Ora dell'immagine radar"
+    "curseur": "Ora dell'immagine radar",
+    "prevision": "Previsione"
   },
   "meteo": {
     "maPosition": "La mia posizione",

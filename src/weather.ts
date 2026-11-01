@@ -215,38 +215,42 @@ export async function getCity(id: number, language: Language): Promise<City> {
 
 // API Air Quality d'Open-Meteo : https://open-meteo.com/en/docs/air-quality-api
 // Heures comme celles des prévisions (heure locale du lieu, 7 jours de 00:00 à 23:00).
-// Images radar RainViewer (gratuit, sans clé) : https://www.rainviewer.com/api/weather-maps-api.html
+// Images radar LibreWXR (gratuit, sans clé, API de RainViewer) : https://github.com/JoshuaKimsey/LibreWXR
+const radarFramesSchema = z.array(z.object({ time: z.number(), path: z.string() }));
 const radarSchema = z.object({
   host: z.string(),
-  radar: z.object({
-    past: z.array(z.object({ time: z.number(), path: z.string() })).min(1),
-  }),
+  radar: z.object({ past: radarFramesSchema.min(1), nowcast: radarFramesSchema.default([]) }),
 });
 
-// RainViewer limite à 100 requêtes par minute, et chaque tuile compte : l'animation charge toutes
-// ses images d'un coup. D'où des tuiles de 512 px (moins nombreuses à l'écran) et une image sur deux.
-// À 8-10 tuiles par image, 7 ou 8 images restent sous la limite ; à 1800, il n'en reste que 5.
+// Serveur public sans garantie, et l'animation charge toutes ses images d'un coup : des tuiles de
+// 512 px (moins nombreuses à l'écran), une image sur deux et pas de tuiles au-delà du zoom 7.
 const RADAR_STEP = 1200; // secondes
 export const RADAR_TILE_SIZE = 512;
 export const RADAR_MAX_ZOOM = 7;
 
-// Modèles d'URL des tuiles des images, de la plus ancienne à la plus récente : couleurs « Universal
-// Blue » (2, la seule de l'offre gratuite), lissées, neige en couleur à part. Pas de tuiles au-delà
-// du zoom 7. Choisies sur l'heure et non le rang : un rafraîchissement garde les mêmes images, donc
-// leurs tuiles déjà chargées.
+// Modèles d'URL des tuiles des images, observées puis prévues (une heure d'avance au plus), de la
+// plus ancienne à la plus récente : couleurs « Universal Blue » (2), lissées, neige en couleur à
+// part. Choisies sur l'heure et non le rang : un rafraîchissement garde les mêmes images, donc leurs
+// tuiles déjà chargées.
 export const radarFramesQuery = queryOptions({
   queryKey: ['radar', 'images'],
   queryFn: async () => {
     const { host, radar } = await getJson(
-      'https://api.rainviewer.com/public/weather-maps.json',
+      'https://api.librewxr.net/public/weather-maps.json',
       radarSchema,
     );
-    return radar.past
-      .filter((frame, i) => i === radar.past.length - 1 || frame.time % RADAR_STEP < 600)
-      .map(({ time, path }) => ({
-        time,
-        tiles: `${host}${path}/${RADAR_TILE_SIZE}/{z}/{x}/{y}/2/1_1.png`,
-      }));
+    const latest = radar.past[radar.past.length - 1].time;
+    const toFrames = (list: z.infer<typeof radarFramesSchema>, forecast: boolean) =>
+      list
+        .filter((frame, i) => i === list.length - 1 || frame.time % RADAR_STEP < 600)
+        .map(({ time, path }) => ({
+          time,
+          forecast,
+          // L'URL ne dépend que de l'heure : sans `run`, une prévision recalculée ou devenue
+          // observation garderait les tuiles déjà chargées.
+          tiles: `${host}${path}/${RADAR_TILE_SIZE}/{z}/{x}/{y}/2/1_1.png${forecast ? `?run=${latest}` : ''}`,
+        }));
+    return [...toFrames(radar.past, false), ...toFrames(radar.nowcast, true)];
   },
   staleTime: TEN_MINUTES,
 });

@@ -6,7 +6,7 @@ import { Linking } from 'react-native';
 
 import RadarScreen from '../src/app/(tabs)/radar';
 import { shownCity } from '../src/favorites';
-import radarFixture from '../__fixtures__/rainviewer-weather-maps.json';
+import radarFixture from '../__fixtures__/librewxr-weather-maps.json';
 import { LOCATION_DENIED, radarFramesQuery, WEATHER_QUERY_KEY } from '../src/weather';
 import { LYON, newClient, NICE, respond } from '../jest/helpers';
 
@@ -28,11 +28,13 @@ const renderScreen = (client = newClient()) => render(screenWith(client));
 const camera = () => screen.getByTestId('camera').props;
 const carte = () => screen.getByTestId('radar-carte');
 
-// 7 images de la fixture : une toutes les 20 min, de la plus ancienne à la dernière.
-const FRAMES = 7;
+// 10 images de la fixture, une toutes les 20 min : 7 observées, de la plus ancienne à la dernière,
+// puis 3 prévues.
+const FRAMES = 10;
 const OLDEST = 1792596000;
 const LATEST = 1792603200;
 const STEP = 1200;
+const LAST_FORECAST = LATEST + 3 * STEP;
 const heure = (time: number) =>
   new Intl.DateTimeFormat('fr', { hour: '2-digit', minute: '2-digit' }).format(time * 1000);
 
@@ -43,12 +45,12 @@ describe('Écran Radar', () => {
     jest.spyOn(globalThis, 'fetch').mockResolvedValue(respond(radarFixture));
   });
 
-  it('centre la carte sur le favori affiché, zoom libre, avec la dernière image radar', async () => {
+  it('centre la carte sur le favori affiché, zoom libre, avec la dernière image observée', async () => {
     shownCity.write(LYON);
     await renderScreen();
 
     expect(await screen.findByTestId('radar-source')).toHaveProp('tiles', [
-      'https://tilecache.rainviewer.com/v2/radar/ae6cacc279ab/512/{z}/{x}/{y}/2/1_1.png',
+      `https://api.librewxr.net/v2/radar/${LATEST}/512/{z}/{x}/{y}/2/1_1.png`,
     ]);
     expect(camera().initialViewState).toEqual({ center: [LYON.longitude, LYON.latitude], zoom: 6 });
     expect(camera().maxZoom).toBeUndefined();
@@ -110,18 +112,38 @@ describe('Écran Radar', () => {
     expect(location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
   });
 
-  it('ouvre RainViewer depuis la mention', async () => {
+  it('ouvre LibreWXR depuis la mention', async () => {
     const user = userEvent.setup();
     const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
     shownCity.write(LYON);
     await renderScreen();
 
-    await user.press(screen.getByRole('link', { name: 'Weather data by RainViewer' }));
+    await user.press(screen.getByRole('link', { name: 'Rain data by LibreWXR (CC BY 4.0)' }));
 
-    expect(open).toHaveBeenCalledWith('https://www.rainviewer.com/');
+    expect(open).toHaveBeenCalledWith('https://github.com/JoshuaKimsey/LibreWXR');
   });
 
-  it('garde la carte sans radar quand RainViewer ne répond pas', async () => {
+  it('change l’URL des tuiles quand une prévision est recalculée ou devient une observation', async () => {
+    const tilesAt = async (latestIndex: number) => {
+      const { past, nowcast } = radarFixture.radar;
+      const all = [...past, ...nowcast];
+      jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+        respond({
+          ...radarFixture,
+          radar: { past: all.slice(0, latestIndex + 1), nowcast: all.slice(latestIndex + 1) },
+        }),
+      );
+      const frames = await newClient().fetchQuery(radarFramesQuery);
+      return frames.find((frame) => frame.time === LATEST + STEP)?.tiles;
+    };
+    const url = `https://api.librewxr.net/v2/radar/${LATEST + STEP}/512/{z}/{x}/{y}/2/1_1.png`;
+
+    expect(await tilesAt(12)).toBe(`${url}?run=${LATEST}`);
+    expect(await tilesAt(13)).toBe(`${url}?run=${LATEST + 600}`);
+    expect(await tilesAt(14)).toBe(url);
+  });
+
+  it('garde la carte sans radar quand LibreWXR ne répond pas', async () => {
     jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 503 } as Response);
     shownCity.write(LYON);
     await renderScreen();
@@ -156,7 +178,7 @@ describe('Écran Radar', () => {
     });
     afterEach(() => jest.useRealTimers());
 
-    it('s’ouvre en pause sur la dernière image, sans charger les autres', async () => {
+    it('s’ouvre en pause sur la dernière image observée, sans charger les autres', async () => {
       await ouvre();
 
       expect(screen.getAllByTestId('radar-source')).toHaveLength(1);
@@ -227,10 +249,37 @@ describe('Écran Radar', () => {
       expect(visibles()).toHaveLength(1);
 
       await avance(700 * (FRAMES - 2));
-      expectHeure(LATEST);
+      expectHeure(LAST_FORECAST);
 
       await avance(700);
       expectHeure(OLDEST);
+    });
+
+    it('annonce les prévisions à l’écran et au lecteur d’écran, sans changer les observées', async () => {
+      await ouvre();
+      const curseur = screen.getByTestId('radar-curseur');
+      await fireEvent(curseur, 'layout', { nativeEvent: { layout: { width: 900, height: 48 } } });
+      expectHeure(LATEST);
+      expect(screen.queryByText('Prévision')).not.toBeOnTheScreen();
+
+      await fireEvent(curseur, 'responderGrant', { nativeEvent: { locationX: 9999 } });
+
+      expectHeure(LAST_FORECAST);
+      expect(screen.getByText('Prévision')).toBeOnTheScreen();
+      expect(curseur).toHaveAccessibilityValue({ text: `Prévision ${heure(LAST_FORECAST)}` });
+      expect(screen.getByTestId('radar-source').props.tiles[0]).toContain(`?run=${LATEST}`);
+    });
+
+    it('garde les images observées sans prévisions dans la réponse', async () => {
+      const { past } = radarFixture.radar;
+      jest
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(respond({ ...radarFixture, radar: { past } }));
+      await ouvre();
+
+      expectHeure(LATEST);
+      await lance();
+      expect(screen.getAllByTestId('radar-source')).toHaveLength(7);
     });
 
     it('fige l’image en pause et reprend sans recharger', async () => {
@@ -253,8 +302,8 @@ describe('Écran Radar', () => {
       await ouvre();
       await lance();
       const curseur = screen.getByTestId('radar-curseur');
-      // 600 px pour 6 intervalles : 100 px par image.
-      await fireEvent(curseur, 'layout', { nativeEvent: { layout: { width: 600, height: 48 } } });
+      // 900 px pour 9 intervalles : 100 px par image.
+      await fireEvent(curseur, 'layout', { nativeEvent: { layout: { width: 900, height: 48 } } });
 
       await fireEvent(curseur, 'responderGrant', { nativeEvent: { locationX: 110 } });
       expectHeure(OLDEST + STEP);
@@ -265,18 +314,18 @@ describe('Écran Radar', () => {
       expectHeure(OLDEST + STEP);
 
       await fireEvent(curseur, 'responderMove', { nativeEvent: { locationX: 9999 } });
-      expectHeure(LATEST);
+      expectHeure(LAST_FORECAST);
 
       await fireEvent(curseur, 'accessibilityAction', {
         nativeEvent: { actionName: 'decrement' },
       });
-      expectHeure(LATEST - STEP);
+      expectHeure(LAST_FORECAST - STEP);
     });
 
     it('au curseur à l’arrêt, ne charge qu’une image et la lecture attend le chargement', async () => {
       await ouvre();
       const curseur = screen.getByTestId('radar-curseur');
-      await fireEvent(curseur, 'layout', { nativeEvent: { layout: { width: 600, height: 48 } } });
+      await fireEvent(curseur, 'layout', { nativeEvent: { layout: { width: 900, height: 48 } } });
 
       await fireEvent(curseur, 'responderGrant', { nativeEvent: { locationX: 110 } });
       expectHeure(OLDEST + STEP);
@@ -305,7 +354,7 @@ describe('Écran Radar', () => {
       expectHeure(OLDEST + STEP);
     });
 
-    it('revient à la dernière image quand l’image choisie quitte la liste', async () => {
+    it('revient à la dernière image observée quand l’image choisie quitte la liste', async () => {
       const client = newClient();
       await renderScreen(client);
       await screen.findByTestId('radar-lecture');

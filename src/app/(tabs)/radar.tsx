@@ -65,16 +65,17 @@ export default function RadarScreen() {
   });
   const radar = useQuery({ ...radarFramesQuery, subscribed: focused });
   const frames = radar.data ?? [];
-  const last = frames.length - 1;
+  // Les prévisions suivent les images observées.
+  const latest = frames.filter((frame) => !frame.forecast).length - 1;
 
   // « arret » : seule l'image affichée est chargée. Les autres états gardent toutes les images pour
   // ne pas redemander leurs tuiles à chaque boucle.
   const [player, setPlayer] = useState<'arret' | 'chargement' | 'pause' | 'lecture'>('arret');
   // Par l'heure et non le rang : un rafraîchissement garde l'image choisie. Sans image choisie, ou si
-  // elle a quitté la liste : la dernière.
+  // elle a quitté la liste : la dernière observée.
   const [time, setTime] = useState<number | null>(null);
   const chosen = frames.findIndex((frame) => frame.time === time);
-  const shownIndex = chosen === -1 ? last : chosen;
+  const shownIndex = chosen === -1 ? latest : chosen;
   const shown = frames[shownIndex];
 
   useEffect(() => {
@@ -86,7 +87,7 @@ export default function RadarScreen() {
   useEffect(() => {
     const list = radar.data;
     if (player !== 'lecture' || !focused || !list) return;
-    // Rang -1 (la dernière image, par défaut) : on repart bien de la première.
+    // Rang -1 (la dernière observée, par défaut) : on repart bien de la première.
     const next = (current: number | null) =>
       list[(list.findIndex((frame) => frame.time === current) + 1) % list.length].time;
     const interval = setInterval(() => setTime(next), FRAME_DURATION);
@@ -131,10 +132,11 @@ export default function RadarScreen() {
         {/* Zoom libre : au-delà du zoom 7, MapLibre agrandit les tuiles radar (plus floues). */}
         <Camera ref={camera} initialViewState={initial} />
         {(player === 'arret' && shown ? [shown] : frames).map((frame) => (
-          // Une nouvelle image change l'URL : la source est recréée.
+          // Une nouvelle image change l'URL : la source est recréée. L'identifiant suit l'URL : à la
+          // même heure, l'ancienne source et la nouvelle coexistent le temps du remplacement.
           <RasterSource
             key={frame.tiles}
-            id={`radar-${frame.time}`}
+            id={frame.tiles}
             tiles={[frame.tiles]}
             tileSize={RADAR_TILE_SIZE}
             maxzoom={RADAR_MAX_ZOOM}
@@ -142,7 +144,7 @@ export default function RadarScreen() {
             {/* Opacité infime : les tuiles se chargent sans se voir. Sans fondu, pour un défilement net. */}
             <Layer
               type="raster"
-              id={`radar-${frame.time}`}
+              id={frame.tiles}
               paint={{
                 'raster-opacity': frame === shown ? RADAR_OPACITY : RADAR_PRELOAD_OPACITY,
                 'raster-opacity-transition': { duration: 0 },
@@ -154,12 +156,13 @@ export default function RadarScreen() {
       </Map>
       <View style={[styles.top, { top: top + space.s }]} pointerEvents="box-none">
         <Pressable
-          onPress={() => Linking.openURL('https://www.rainviewer.com/')}
+          onPress={() => Linking.openURL('https://github.com/JoshuaKimsey/LibreWXR')}
           accessibilityRole="link"
-          style={styles.chip}
+          style={[styles.chip, styles.creditChip]}
         >
-          {/* Mention demandée par RainViewer : non traduite. */}
-          <Text style={styles.credit}>Weather data by RainViewer</Text>
+          {/* Attribution CC BY du serveur public : non traduite. « Rain » car hors des zones
+              couvertes par des radars, les données viennent de satellites ou d'un modèle. */}
+          <Text style={styles.credit}>Rain data by LibreWXR (CC BY 4.0)</Text>
         </Pressable>
         {known && (
           <Pressable
@@ -175,9 +178,13 @@ export default function RadarScreen() {
       </View>
       <View style={styles.bottom} pointerEvents="box-none">
         {radar.isError && (
-          <Text style={[styles.chip, styles.error]} accessibilityLiveRegion="polite">
+          <Text style={[styles.chip, styles.notice]} accessibilityLiveRegion="polite">
             {t('radar.indisponible')}
           </Text>
+        )}
+        {/* Hors du lecteur : dans sa ligne, ce libellé ferait changer la largeur du curseur. */}
+        {shown?.forecast && (
+          <Text style={[styles.chip, styles.notice]}>{t('radar.prevision')}</Text>
         )}
         {shown && (
           <View style={[styles.chip, styles.player]}>
@@ -213,7 +220,11 @@ export default function RadarScreen() {
               count={frames.length}
               index={shownIndex}
               label={t('radar.curseur')}
-              value={formatTimestamp(shown.time)}
+              value={
+                shown.forecast
+                  ? `${t('radar.prevision')} ${formatTimestamp(shown.time)}`
+                  : formatTimestamp(shown.time)
+              }
               onChange={(i) => {
                 setTime(frames[i].time);
                 // À l'arrêt, une seule image reste chargée : « Lecture » passera par le chargement.
@@ -249,6 +260,8 @@ const useStyles = themedStyles((c) => ({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: c.border,
   },
+  // Avec une grande police, la mention passe à la ligne sans pousser le bouton hors de l'écran.
+  creditChip: { flexShrink: 1 },
   credit: { color: c.text, fontSize: font.size.footnote, textDecorationLine: 'underline' },
   // Cible tactile de 48 dp.
   recenter: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
@@ -259,7 +272,7 @@ const useStyles = themedStyles((c) => ({
     bottom: space.l,
     gap: space.s,
   },
-  error: {
+  notice: {
     alignSelf: 'center',
     color: c.text,
     fontSize: font.size.small,
