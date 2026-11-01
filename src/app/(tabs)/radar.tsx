@@ -31,7 +31,7 @@ const MAP_STYLES = {
 const CITY_ZOOM = 6;
 // Sans lieu connu (localisation refusée, aucun favori) : la France entière.
 const FRANCE = { center: [2.5, 46.5] as [number, number], zoom: 4 };
-const FRAME_DURATION = 700;
+const FRAME_DURATION = 450;
 // La lecture démarre quand même : hors ligne, le chargement pourrait ne jamais finir.
 const LOADING_TIMEOUT = 10_000;
 const RADAR_OPACITY = 0.7;
@@ -68,9 +68,12 @@ export default function RadarScreen() {
   // Les prévisions suivent les images observées.
   const latest = frames.filter((frame) => !frame.forecast).length - 1;
 
-  // « arret » : seule l'image affichée est chargée. Les autres états gardent toutes les images pour
-  // ne pas redemander leurs tuiles à chaque boucle.
-  const [player, setPlayer] = useState<'arret' | 'chargement' | 'pause' | 'lecture'>('arret');
+  // « arret » : la carte bouge, seule l'image affichée est chargée. Les autres états gardent toutes
+  // les images, dès l'ouverture de l'onglet : « prechargement » les charge sans lecture demandée,
+  // « chargement » les charge pour lancer la lecture.
+  const [player, setPlayer] = useState<
+    'arret' | 'prechargement' | 'chargement' | 'pause' | 'lecture'
+  >('prechargement');
   // Par l'heure et non le rang : un rafraîchissement garde l'image choisie. Sans image choisie, ou si
   // elle a quitté la liste : la dernière observée.
   const [time, setTime] = useState<number | null>(null);
@@ -122,12 +125,19 @@ export default function RadarScreen() {
         mapStyle={MAP_STYLES[scheme]}
         logo={false}
         attributionPosition={ATTRIBUTION_POSITION}
-        // Déplacer la carte rechargerait les tuiles de toutes les images : on n'en garde qu'une.
+        // Déplacer la carte rechargerait les tuiles de toutes les images : on n'en garde qu'une, le
+        // temps du déplacement.
         onRegionWillChange={() => setPlayer('arret')}
+        onRegionDidChange={() => setPlayer((p) => (p === 'arret' ? 'prechargement' : p))}
         // « Frame » et non « Map » : l'événement « Map » n'arrive qu'une fois, au chargement du style.
-        onDidFinishRenderingFrameFully={() =>
-          setPlayer((p) => (p === 'chargement' ? 'lecture' : p))
-        }
+        // Sans images, le fond de carte fini ne dit rien du radar.
+        onDidFinishRenderingFrameFully={() => {
+          if (frames.length === 0) return;
+          setPlayer((p) => {
+            if (p === 'chargement') return 'lecture';
+            return p === 'prechargement' ? 'pause' : p;
+          });
+        }}
       >
         {/* Zoom libre : au-delà du zoom 7, MapLibre agrandit les tuiles radar (plus floues). */}
         <Camera ref={camera} initialViewState={initial} />
@@ -192,7 +202,8 @@ export default function RadarScreen() {
               testID="radar-lecture"
               onPress={() =>
                 setPlayer((p) => {
-                  if (p === 'arret') return 'chargement';
+                  if (p === 'arret' || p === 'prechargement') return 'chargement';
+                  if (p === 'chargement') return 'prechargement';
                   return p === 'pause' ? 'lecture' : 'pause';
                 })
               }
@@ -227,8 +238,11 @@ export default function RadarScreen() {
               }
               onChange={(i) => {
                 setTime(frames[i].time);
-                // À l'arrêt, une seule image reste chargée : « Lecture » passera par le chargement.
-                setPlayer((p) => (p === 'arret' ? p : 'pause'));
+                // Images pas encore toutes chargées : « Lecture » passera par le chargement.
+                setPlayer((p) => {
+                  if (p === 'chargement') return 'prechargement';
+                  return p === 'lecture' ? 'pause' : p;
+                });
               }}
             />
             {/* Pas de région annoncée : le lecteur d'écran lirait chaque image de l'animation. */}

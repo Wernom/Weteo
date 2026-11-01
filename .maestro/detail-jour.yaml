@@ -6,13 +6,18 @@ name: Détail d'un jour
 - setLocation:
     latitude: 48.8566
     longitude: 2.3522
-- launchApp:
-    clearState: true
-    permissions:
-      location: allow
-- extendedWaitUntil:
-    visible: 'Ressenti .*'
-    timeout: 60000
+# Android peut tuer le processus en plein démarrage juste après clearState (retour à l'accueil) :
+# on relance une fois.
+- retry:
+    maxRetries: 1
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            location: allow
+      - extendedWaitUntil:
+          visible: 'Ressenti .*'
+          timeout: 60000
 - scrollUntilVisible:
     element:
       id: 'jour-1'

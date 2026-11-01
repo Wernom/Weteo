@@ -215,7 +215,7 @@ export async function getCity(id: number, language: Language): Promise<City> {
 
 // API Air Quality d'Open-Meteo : https://open-meteo.com/en/docs/air-quality-api
 // Heures comme celles des prévisions (heure locale du lieu, 7 jours de 00:00 à 23:00).
-// Images radar LibreWXR (gratuit, sans clé, API de RainViewer) : https://github.com/JoshuaKimsey/LibreWXR
+// Images radar LibreWXR (gratuit, sans clé) : https://github.com/JoshuaKimsey/LibreWXR
 const radarFramesSchema = z.array(z.object({ time: z.number(), path: z.string() }));
 const radarSchema = z.object({
   host: z.string(),
@@ -223,8 +223,7 @@ const radarSchema = z.object({
 });
 
 // Serveur public sans garantie, et l'animation charge toutes ses images d'un coup : des tuiles de
-// 512 px (moins nombreuses à l'écran), une image sur deux et pas de tuiles au-delà du zoom 7.
-const RADAR_STEP = 1200; // secondes
+// 512 px (moins nombreuses à l'écran) et pas de tuiles au-delà du zoom 7.
 export const RADAR_TILE_SIZE = 512;
 export const RADAR_MAX_ZOOM = 7;
 
@@ -241,15 +240,13 @@ export const radarFramesQuery = queryOptions({
     );
     const latest = radar.past[radar.past.length - 1].time;
     const toFrames = (list: z.infer<typeof radarFramesSchema>, forecast: boolean) =>
-      list
-        .filter((frame, i) => i === list.length - 1 || frame.time % RADAR_STEP < 600)
-        .map(({ time, path }) => ({
-          time,
-          forecast,
-          // L'URL ne dépend que de l'heure : sans `run`, une prévision recalculée ou devenue
-          // observation garderait les tuiles déjà chargées.
-          tiles: `${host}${path}/${RADAR_TILE_SIZE}/{z}/{x}/{y}/2/1_1.png${forecast ? `?run=${latest}` : ''}`,
-        }));
+      list.map(({ time, path }) => ({
+        time,
+        forecast,
+        // L'URL ne dépend que de l'heure : sans `run`, une prévision recalculée ou devenue
+        // observation garderait les tuiles déjà chargées.
+        tiles: `${host}${path}/${RADAR_TILE_SIZE}/{z}/{x}/{y}/2/1_1.png${forecast ? `?run=${latest}` : ''}`,
+      }));
     return [...toFrames(radar.past, false), ...toFrames(radar.nowcast, true)];
   },
   staleTime: TEN_MINUTES,

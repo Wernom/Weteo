@@ -3,16 +3,21 @@
 appId: com.wernom.weteo
 name: Localisation refusée
 ---
-- launchApp:
-    clearState: true
-    permissions:
-      location: deny
+# Android peut tuer le processus en plein démarrage juste après clearState (retour à l'accueil) :
+# on relance une fois.
 # La boîte de dialogue système peut apparaître selon la version d'Android.
 # Au premier lancement après installation, elle peut mettre plusieurs secondes à venir :
 # on attend l'une ou l'autre avant le tap optionnel, qui n'attend pas assez.
-- extendedWaitUntil:
-    visible: 'Don.t allow|Ne pas autoriser|Rechercher une ville'
-    timeout: 30000
+- retry:
+    maxRetries: 1
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            location: deny
+      - extendedWaitUntil:
+          visible: 'Don.t allow|Ne pas autoriser|Rechercher une ville'
+          timeout: 30000
 - tapOn:
     text: 'Don.t allow|Ne pas autoriser'
     optional: true
