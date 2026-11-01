@@ -41,7 +41,8 @@ const defaults = (): Settings => ({
   wind: 'kmh',
   precipitation: 'mm',
   theme: 'system',
-  weatherIcon: true,
+  // À activer soi-même : changer d'icône peut fermer l'écran de l'app (voir appIcon.ts).
+  weatherIcon: false,
 });
 
 // Les valeurs par défaut complètent ce qui est stocké : un réglage ajouté dans une

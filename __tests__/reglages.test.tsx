@@ -147,15 +147,15 @@ describe('Choisir le thème', () => {
 });
 
 describe("Choisir l'icône selon la météo", () => {
-  it('est activée par défaut, se coupe et le retient', async () => {
+  it('est coupée par défaut, s’active et le retient', async () => {
     mockFetch(respond({}));
     await openSettings();
-    expect(screen.getByTestId('icone-meteo')).toHaveProp('value', true);
-
-    await fireEvent(screen.getByTestId('icone-meteo'), 'valueChange', false);
-
     expect(screen.getByTestId('icone-meteo')).toHaveProp('value', false);
-    expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({ weatherIcon: false });
+
+    await fireEvent(screen.getByTestId('icone-meteo'), 'valueChange', true);
+
+    expect(screen.getByTestId('icone-meteo')).toHaveProp('value', true);
+    expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({ weatherIcon: true });
   });
 });
 

@@ -31,8 +31,8 @@ describe('syncAppIcon', () => {
   }
 
   beforeEach(() => {
+    setSetting('weatherIcon', true);
     jest.mocked(WeteoIcon.setIcon).mockClear();
-    jest.mocked(WeteoIcon.getIcon).mockReturnValue('soleil');
   });
 
   it("change l'icône au passage en arrière-plan", () => {
@@ -45,19 +45,12 @@ describe('syncAppIcon', () => {
     expect(WeteoIcon.setIcon).not.toHaveBeenCalled();
   });
 
-  it("ne relance pas le changement si l'icône est déjà la bonne", () => {
-    goTo('background', { weatherCode: 0, isDay: true });
-    expect(WeteoIcon.setIcon).not.toHaveBeenCalled();
-  });
-
   it("garde l'icône tant que la météo n'est pas connue", () => {
-    jest.mocked(WeteoIcon.getIcon).mockReturnValue('neige');
     goTo('background');
     expect(WeteoIcon.setIcon).not.toHaveBeenCalled();
   });
 
   it('revient au soleil quand le réglage est coupé', () => {
-    jest.mocked(WeteoIcon.getIcon).mockReturnValue('pluie');
     setSetting('weatherIcon', false);
     goTo('background', { weatherCode: 61, isDay: true });
     expect(WeteoIcon.setIcon).toHaveBeenCalledWith('soleil');

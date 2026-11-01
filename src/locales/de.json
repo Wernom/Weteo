@@ -75,7 +75,7 @@
     "vent": "Wind",
     "precipitations": "Niederschlag",
     "theme": "Design",
-    "iconeMeteo": "Symbol je nach Wetter"
+    "iconeMeteo": "Symbol zeigt das zuletzt gesehene Wetter"
   },
   "themes": { "system": "Wie das Telefon", "light": "Hell", "dark": "Dunkel" },
   "unites": {

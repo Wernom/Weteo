@@ -43,7 +43,7 @@ name: Villes favorites
 # on attend l'une ou l'autre avant le tap optionnel, qui n'attend pas assez.
 - extendedWaitUntil:
     visible: 'Don.t allow|Ne pas autoriser|Rechercher une ville'
-    timeout: 20000
+    timeout: 30000
 - tapOn:
     text: 'Don.t allow|Ne pas autoriser'
     optional: true

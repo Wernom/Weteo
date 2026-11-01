@@ -22,7 +22,7 @@ jest.mock('../modules/weteo-location', () => ({
 
 jest.mock('../modules/weteo-icon', () => ({
   __esModule: true,
-  default: { getIcon: jest.fn(), setIcon: jest.fn() },
+  default: { setIcon: jest.fn() },
 }));
 
 // Carte native absente sous Jest : des vues qui portent leurs props. `flyTo` est partagé par toutes

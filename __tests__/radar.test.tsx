@@ -7,7 +7,7 @@ import { Linking } from 'react-native';
 import RadarScreen from '../src/app/(tabs)/radar';
 import { shownCity } from '../src/favorites';
 import radarFixture from '../__fixtures__/rainviewer-weather-maps.json';
-import { LOCATION_DENIED, WEATHER_QUERY_KEY } from '../src/weather';
+import { LOCATION_DENIED, radarFramesQuery, WEATHER_QUERY_KEY } from '../src/weather';
 import { LYON, newClient, NICE, respond } from '../jest/helpers';
 
 let mockFocused = true;
@@ -137,7 +137,7 @@ describe('Écran Radar', () => {
     const visibles = () =>
       screen
         .getAllByTestId('radar-couche')
-        .filter((couche) => couche.props.paint['raster-opacity'] > 0);
+        .filter((couche) => couche.props.paint['raster-opacity'] > 0.5);
     const expectHeure = (time: number) =>
       expect(screen.getByTestId('radar-heure')).toHaveTextContent(heure(time));
 
@@ -271,6 +271,65 @@ describe('Écran Radar', () => {
         nativeEvent: { actionName: 'decrement' },
       });
       expectHeure(LATEST - STEP);
+    });
+
+    it('au curseur à l’arrêt, ne charge qu’une image et la lecture attend le chargement', async () => {
+      await ouvre();
+      const curseur = screen.getByTestId('radar-curseur');
+      await fireEvent(curseur, 'layout', { nativeEvent: { layout: { width: 600, height: 48 } } });
+
+      await fireEvent(curseur, 'responderGrant', { nativeEvent: { locationX: 110 } });
+      expectHeure(OLDEST + STEP);
+      expect(screen.getAllByTestId('radar-source')).toHaveLength(1);
+
+      await fireEvent.press(screen.getByLabelText('Lecture'));
+      expect(screen.getByLabelText('Chargement des images radar')).toBeOnTheScreen();
+    });
+
+    it('garde l’image en pause quand la liste se rafraîchit', async () => {
+      const client = newClient();
+      await renderScreen(client);
+      await screen.findByTestId('radar-lecture');
+      await lance();
+      await avance(1400);
+      await fireEvent.press(screen.getByLabelText('Pause'));
+      expectHeure(OLDEST + STEP);
+
+      await act(async () => {
+        client.setQueryData(radarFramesQuery.queryKey, (frames) => frames?.slice(1));
+      });
+      // React Query prévient l'écran par une minuterie.
+      await avance(0);
+
+      expect(screen.getAllByTestId('radar-source')).toHaveLength(FRAMES - 1);
+      expectHeure(OLDEST + STEP);
+    });
+
+    it('revient à la dernière image quand l’image choisie quitte la liste', async () => {
+      const client = newClient();
+      await renderScreen(client);
+      await screen.findByTestId('radar-lecture');
+      await lance();
+      await avance(700);
+      await fireEvent.press(screen.getByLabelText('Pause'));
+      expectHeure(OLDEST);
+
+      await act(async () => {
+        client.setQueryData(radarFramesQuery.queryKey, (frames) => frames?.slice(1));
+      });
+      await avance(0);
+
+      expectHeure(LATEST);
+      expect(visibles()).toHaveLength(1);
+    });
+
+    it('précharge les images cachées avec une opacité non nulle', async () => {
+      await ouvre();
+      await lance();
+
+      for (const couche of screen.getAllByTestId('radar-couche')) {
+        expect(couche.props.paint['raster-opacity']).toBeGreaterThan(0);
+      }
     });
 
     it('arrête la lecture et ne garde que l’image affichée quand la carte bouge', async () => {

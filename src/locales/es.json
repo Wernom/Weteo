@@ -70,7 +70,7 @@
     "vent": "Viento",
     "precipitations": "Precipitaciones",
     "theme": "Tema",
-    "iconeMeteo": "Icono según el tiempo"
+    "iconeMeteo": "Icono con el último tiempo visto"
   },
   "themes": { "system": "Como el teléfono", "light": "Claro", "dark": "Oscuro" },
   "unites": {

@@ -35,6 +35,10 @@ const FRAME_DURATION = 700;
 // La lecture démarre quand même : hors ligne, le chargement pourrait ne jamais finir.
 const LOADING_TIMEOUT = 10_000;
 const RADAR_OPACITY = 0.7;
+// Pas 0 : MapLibre Native ne demande pas les tuiles d'une couche raster d'opacité nulle.
+const RADAR_PRELOAD_OPACITY = 0.001;
+// Au-dessus du lecteur, qui couvrirait l'emplacement par défaut : marge, 48 dp, écart.
+const ATTRIBUTION_POSITION = { bottom: space.l + 48 + space.s, left: space.l };
 
 // Radar de pluie centré sur le lieu affiché dans l'onglet Météo.
 export default function RadarScreen() {
@@ -66,9 +70,11 @@ export default function RadarScreen() {
   // « arret » : seule l'image affichée est chargée. Les autres états gardent toutes les images pour
   // ne pas redemander leurs tuiles à chaque boucle.
   const [player, setPlayer] = useState<'arret' | 'chargement' | 'pause' | 'lecture'>('arret');
-  // null : la dernière image, tant qu'on n'a rien choisi.
-  const [index, setIndex] = useState<number | null>(null);
-  const shownIndex = Math.min(index ?? last, last);
+  // Par l'heure et non le rang : un rafraîchissement garde l'image choisie. Sans image choisie, ou si
+  // elle a quitté la liste : la dernière.
+  const [time, setTime] = useState<number | null>(null);
+  const chosen = frames.findIndex((frame) => frame.time === time);
+  const shownIndex = chosen === -1 ? last : chosen;
   const shown = frames[shownIndex];
 
   useEffect(() => {
@@ -77,15 +83,15 @@ export default function RadarScreen() {
     return () => clearTimeout(timeout);
   }, [player]);
 
-  const count = frames.length;
   useEffect(() => {
-    if (player !== 'lecture' || !focused) return;
-    const interval = setInterval(
-      () => setIndex((i) => ((i ?? count - 1) + 1) % count),
-      FRAME_DURATION,
-    );
+    const list = radar.data;
+    if (player !== 'lecture' || !focused || !list) return;
+    // Rang -1 (la dernière image, par défaut) : on repart bien de la première.
+    const next = (current: number | null) =>
+      list[(list.findIndex((frame) => frame.time === current) + 1) % list.length].time;
+    const interval = setInterval(() => setTime(next), FRAME_DURATION);
     return () => clearInterval(interval);
-  }, [player, focused, count]);
+  }, [player, focused, radar.data]);
 
   const lng = city ? city.longitude : position.data?.longitude;
   const lat = city ? city.latitude : position.data?.latitude;
@@ -114,6 +120,7 @@ export default function RadarScreen() {
         style={styles.container}
         mapStyle={MAP_STYLES[scheme]}
         logo={false}
+        attributionPosition={ATTRIBUTION_POSITION}
         // Déplacer la carte rechargerait les tuiles de toutes les images : on n'en garde qu'une.
         onRegionWillChange={() => setPlayer('arret')}
         // « Frame » et non « Map » : l'événement « Map » n'arrive qu'une fois, au chargement du style.
@@ -132,12 +139,12 @@ export default function RadarScreen() {
             tileSize={RADAR_TILE_SIZE}
             maxzoom={RADAR_MAX_ZOOM}
           >
-            {/* Opacité 0 : les tuiles se chargent sans s'afficher. Sans fondu, pour un défilement net. */}
+            {/* Opacité infime : les tuiles se chargent sans se voir. Sans fondu, pour un défilement net. */}
             <Layer
               type="raster"
               id={`radar-${frame.time}`}
               paint={{
-                'raster-opacity': frame === shown ? RADAR_OPACITY : 0,
+                'raster-opacity': frame === shown ? RADAR_OPACITY : RADAR_PRELOAD_OPACITY,
                 'raster-opacity-transition': { duration: 0 },
                 'raster-fade-duration': 0,
               }}
@@ -208,8 +215,9 @@ export default function RadarScreen() {
               label={t('radar.curseur')}
               value={formatTimestamp(shown.time)}
               onChange={(i) => {
-                setIndex(i);
-                setPlayer('pause');
+                setTime(frames[i].time);
+                // À l'arrêt, une seule image reste chargée : « Lecture » passera par le chargement.
+                setPlayer((p) => (p === 'arret' ? p : 'pause'));
               }}
             />
             {/* Pas de région annoncée : le lecteur d'écran lirait chaque image de l'animation. */}

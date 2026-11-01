@@ -5,7 +5,7 @@ import WeteoIcon from '../modules/weteo-icon';
 import { readSettings } from './settings';
 import { describeWeather, WEATHER_QUERY_KEY, WeatherData } from './weather';
 
-export const DEFAULT_ICON = 'soleil';
+const DEFAULT_ICON = 'soleil';
 
 // Les temps à thème propre ont leur icône ; sinon ciel clair (0-1) ou nuageux.
 export function weatherIcon(code: number, isDay: boolean) {
@@ -22,11 +22,14 @@ function wantedIcon(client: QueryClient) {
   return current && weatherIcon(current.weatherCode, current.isDay);
 }
 
-// Changée en arrière-plan seulement : le système peut fermer la tâche de l'alias désactivé.
+// Demandée en arrière-plan seulement : sur Android, cet état couvre aussi la simple pause, et le
+// module attend l'arrêt de l'activité.
+// shortcut: l'icône garde la dernière météo vue de la position (fixe si l'app n'est pas rouverte ou
+// la localisation refusée), passer à une tâche périodique si on la veut à jour.
 export function syncAppIcon(client: QueryClient) {
   AppState.addEventListener('change', (state) => {
     if (state !== 'background') return;
     const wanted = wantedIcon(client);
-    if (wanted && wanted !== WeteoIcon.getIcon()) WeteoIcon.setIcon(wanted);
+    if (wanted) WeteoIcon.setIcon(wanted);
   });
 }

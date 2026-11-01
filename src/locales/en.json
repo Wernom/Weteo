@@ -70,7 +70,7 @@
     "vent": "Wind",
     "precipitations": "Precipitation",
     "theme": "Theme",
-    "iconeMeteo": "Icon follows the weather"
+    "iconeMeteo": "Icon shows the last weather seen"
   },
   "themes": { "system": "Same as phone", "light": "Light", "dark": "Dark" },
   "unites": {

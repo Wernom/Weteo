@@ -1,7 +1,9 @@
-// Génère les PNG de l'icône à partir des SVG de assets/icons : `node scripts/generate-icons.mjs`.
-// Les PNG sont versionnés : à relancer seulement quand un SVG change.
+// Génère les PNG de l'icône à partir des SVG de assets/icons :
+// `npm install --no-save sharp && node scripts/generate-icons.mjs`.
+// Les PNG sont versionnés : à relancer seulement quand un SVG change, d'où sharp hors du projet.
 import { Buffer } from 'node:buffer';
 import { mkdirSync, readFileSync } from 'node:fs';
+// eslint-disable-next-line import/no-unresolved
 import sharp from 'sharp';
 
 const VARIANTS = ['soleil', 'nuages', 'pluie', 'neige', 'orage', 'nuit'];
