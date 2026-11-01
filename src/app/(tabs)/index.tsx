@@ -60,11 +60,12 @@ export default function WeatherScreen() {
     if (asked !== undefined) router.setParams({ page: undefined });
   }, [asked]);
 
-  // Sans position : le premier favori, sinon la recherche de ville (plus bas), une seule fois.
-  const [wasDenied, setWasDenied] = useState(false);
-  if (denied !== wasDenied) {
-    setWasDenied(denied);
-    if (denied && favorites.length > 0) setPage(Math.max(page, 1));
+  // Sans position ni météo gardée : le premier favori, sinon la recherche de ville (plus bas), une
+  // seule fois. Un nouvel essai raté ne déplace plus l'utilisateur.
+  const [redirected, setRedirected] = useState(false);
+  if (denied && !query.data && !redirected) {
+    setRedirected(true);
+    if (favorites.length > 0) setPage(Math.max(page, 1));
   }
 
   // Le favori affiché a pu être supprimé depuis l'onglet Villes : on recule sur le dernier.
@@ -118,8 +119,8 @@ export default function WeatherScreen() {
   }, [city]);
 
   useEffect(() => {
-    if (denied && readFavorites().length === 0) router.navigate('/villes');
-  }, [denied]);
+    if (redirected && readFavorites().length === 0) router.navigate('/villes');
+  }, [redirected]);
 
   return (
     <View style={styles.container}>

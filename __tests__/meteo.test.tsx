@@ -43,6 +43,9 @@ jest.mock('expo-router', () => ({
 
 const location = jest.mocked(Location);
 const coords = { latitude: 48.85, longitude: 2.35 };
+const locationOff = Object.assign(new Error('Location services are disabled'), {
+  code: 'ERR_LOCATION_DISABLED',
+});
 
 function allowLocation() {
   location.requestForegroundPermissionsAsync.mockResolvedValue({
@@ -513,11 +516,7 @@ describe('Écran Météo', () => {
       jest.mocked(router.navigate).mockClear();
       Storage.setItemSync('favoris', JSON.stringify([LYON]));
       allowLocation();
-      location.getCurrentPositionAsync.mockRejectedValue(
-        Object.assign(new Error('Location services are disabled'), {
-          code: 'ERR_LOCATION_DISABLED',
-        }),
-      );
+      location.getCurrentPositionAsync.mockRejectedValue(locationOff);
       mockApi();
 
       await renderScreen();
@@ -533,6 +532,55 @@ describe('Écran Météo', () => {
       expect(
         screen.queryByText('Autorisez la localisation pour voir la météo autour de vous.'),
       ).not.toBeOnTheScreen();
+    });
+
+    it('localisation coupée au rafraîchissement : garde la météo et reste sur la page', async () => {
+      jest.mocked(router.navigate).mockClear();
+      allowLocation();
+      mockApi();
+      await renderScreen();
+      await screen.findByText('Paris');
+      location.getCurrentPositionAsync.mockRejectedValue(locationOff);
+
+      const pull = (RefreshControl as unknown as { latestRef: RefreshControl }).latestRef;
+      await act(async () => pull.props.onRefresh?.());
+
+      expect(await screen.findByTestId('mis-a-jour')).toBeOnTheScreen();
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('un nouvel essai raté reste sur la page de ma position', async () => {
+      const user = userEvent.setup();
+      Storage.setItemSync('favoris', JSON.stringify([LYON]));
+      allowLocation();
+      location.getCurrentPositionAsync.mockRejectedValue(locationOff);
+      mockApi();
+      await renderScreen();
+      await waitFor(() =>
+        expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 2'),
+      );
+      await act(async () =>
+        screen.getByTestId('pages-meteo').props.onMomentumScrollEnd({
+          nativeEvent: { contentOffset: { x: 0 } },
+        }),
+      );
+
+      // L'appel natif prend du temps : l'écran passe par le chargement, sans erreur, avant l'échec.
+      let fail = () => {};
+      location.getCurrentPositionAsync.mockClear();
+      location.getCurrentPositionAsync.mockImplementation(
+        () =>
+          new Promise((_, reject) => {
+            fail = () => reject(locationOff);
+          }),
+      );
+      await user.press(screen.getByText('Réessayer'));
+      await waitFor(() => expect(location.getCurrentPositionAsync).toHaveBeenCalled());
+      await waitFor(() => expect(screen.queryByText('Réessayer')).not.toBeOnTheScreen());
+      await act(async () => fail());
+
+      expect(await screen.findByText('Réessayer')).toBeOnTheScreen();
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 1 sur 2');
     });
 
     it('ajouter un favori après le refus ne change pas la page affichée', async () => {

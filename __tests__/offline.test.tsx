@@ -48,6 +48,23 @@ describe('Hors ligne', () => {
     expect(after.getQueryData(cityQueryKey(String(NICE.id)))).toBeUndefined();
   });
 
+  it('garde la météo de ma position après un rafraîchissement raté', async () => {
+    const data = { forecast: await forecast(), place: 'Paris' };
+    const before = launch();
+    before.setQueryData(WEATHER_QUERY_KEY, data);
+    await before
+      .fetchQuery({
+        queryKey: WEATHER_QUERY_KEY,
+        queryFn: () => Promise.reject(new Error('erreurs.localisationCoupee')),
+      })
+      .catch(() => {});
+
+    // Un favori chargé réécrit le stockage alors que ma position est en erreur.
+    before.setQueryData(cityQueryKey(String(LYON.id)), { ...data, place: 'Lyon' });
+
+    expect(launch().getQueryData(WEATHER_QUERY_KEY)).toEqual(data);
+  });
+
   it('sans réseau, affiche la dernière météo et son âge, sans écran d’erreur', async () => {
     const data = { forecast: await forecast(), place: 'Paris' };
     launch().setQueryData(WEATHER_QUERY_KEY, data, { updatedAt: Date.now() - 2 * HOUR });

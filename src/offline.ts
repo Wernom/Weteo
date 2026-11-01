@@ -10,7 +10,8 @@ const KEY = 'cache-meteo';
 // enregistrement, les recherches de villes n'y entrent pas.
 function kept(query: Query) {
   const keys = [WEATHER_QUERY_KEY, ...readFavorites().map((f) => cityQueryKey(String(f.id)))];
-  return query.state.status === 'success' && keys.some((key) => hashKey(key) === query.queryHash);
+  // Par la donnée et non le statut : un rafraîchissement raté garde la dernière météo.
+  return query.state.data !== undefined && keys.some((key) => hashKey(key) === query.queryHash);
 }
 
 // Dernière météo de chaque lieu gardée sur le téléphone, pour l'afficher sans réseau.
