@@ -65,7 +65,8 @@ export default function WeatherScreen() {
   const [redirected, setRedirected] = useState(false);
   if (denied && !query.data && !redirected) {
     setRedirected(true);
-    if (favorites.length > 0) setPage(Math.max(page, 1));
+    // Par une fonction : un favori touché dans l'onglet Villes a pu demander sa page à ce même rendu.
+    if (favorites.length > 0) setPage((current) => Math.max(current, 1));
   }
 
   // Le favori affiché a pu être supprimé depuis l'onglet Villes : on recule sur le dernier.

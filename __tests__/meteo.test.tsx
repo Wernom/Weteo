@@ -23,7 +23,7 @@ import {
 import WeatherScreen from '../src/app/(tabs)/index';
 import { toggleFavorite } from '../src/favorites';
 import { PALETTES, tabBarTheme } from '../src/theme';
-import { TEN_MINUTES, WEATHER_QUERY_KEY } from '../src/weather';
+import { positionWeatherQuery, TEN_MINUTES, WEATHER_QUERY_KEY } from '../src/weather';
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 import {
   forecastCalls,
@@ -510,6 +510,19 @@ describe('Écran Météo', () => {
         expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 2 sur 3'),
       );
       expect(router.navigate).not.toHaveBeenCalled();
+    });
+
+    it('localisation refusée pendant que l’onglet est quitté : garde le favori touché', async () => {
+      Storage.setItemSync('favoris', JSON.stringify([LYON, NICE]));
+      location.requestForegroundPermissionsAsync.mockResolvedValue({ granted: false });
+      mockApi();
+      const client = newClient();
+      await client.prefetchQuery(positionWeatherQuery);
+      mockParams = { page: '2' };
+
+      await renderScreen(client);
+
+      expect(screen.getByTestId('indicateur')).toHaveAccessibleName('Page 3 sur 3');
     });
 
     it('localisation coupée sur le téléphone : ouvre aussi le premier favori', async () => {

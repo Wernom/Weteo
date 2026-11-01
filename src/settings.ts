@@ -41,7 +41,7 @@ const defaults = (): Settings => ({
   wind: 'kmh',
   precipitation: 'mm',
   theme: 'system',
-  // À activer soi-même : changer d'icône peut fermer l'écran de l'app (voir appIcon.ts).
+  // À activer soi-même : changer d'icône peut fermer l'écran de l'app (voir WeteoIconModule.kt).
   weatherIcon: false,
 });
 

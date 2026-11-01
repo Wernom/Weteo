@@ -27,13 +27,8 @@ class WeteoIconModule : Module() {
       PackageManager.DONT_KILL_APP
     )
 
-  private fun currentIcon() =
-    VARIANTS.firstOrNull {
-      context.packageManager.getComponentEnabledSetting(alias(it)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-    } ?: VARIANTS.first()
-
+  // Sans effet sur un alias déjà dans le bon état : rien ne se ferme si l'icône est déjà la bonne.
   private fun applyIcon(name: String) {
-    if (name == currentIcon()) return
     // La nouvelle d'abord : l'app n'est jamais sans entrée dans le lanceur.
     setEnabled(name, true)
     // Toutes les autres : un changement interrompu ne laisse pas deux entrées pour toujours.
@@ -45,7 +40,8 @@ class WeteoIconModule : Module() {
   private val applyOnStop = object : DefaultLifecycleObserver {
     override fun onStop(owner: LifecycleOwner) {
       owner.lifecycle.removeObserver(this)
-      pending?.let(::applyIcon)
+      // Hors de la promesse, une erreur fermerait l'app pour une simple icône.
+      pending?.let { runCatching { applyIcon(it) } }
       pending = null
     }
   }
