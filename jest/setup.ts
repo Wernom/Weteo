@@ -20,6 +20,11 @@ jest.mock('../modules/weteo-location', () => ({
   },
 }));
 
+jest.mock('../modules/weteo-icon', () => ({
+  __esModule: true,
+  default: { getIcon: jest.fn(), setIcon: jest.fn() },
+}));
+
 // Carte native absente sous Jest : des vues qui portent leurs props. `flyTo` est partagé par toutes
 // les caméras, pour que les tests vérifient les déplacements.
 jest.mock('@maplibre/maplibre-react-native', () => {
@@ -34,6 +39,6 @@ jest.mock('@maplibre/maplibre-react-native', () => {
       return createElement(View, { testID: 'camera', ...props });
     },
     RasterSource: (props: object) => createElement(View, { testID: 'radar-source', ...props }),
-    Layer: () => null,
+    Layer: (props: object) => createElement(View, { testID: 'radar-couche', ...props }),
   };
 });

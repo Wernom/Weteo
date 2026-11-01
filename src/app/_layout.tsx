@@ -6,6 +6,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState } from 'react-native';
 
+import { syncAppIcon } from '../appIcon';
 import { persistWeather } from '../offline';
 import { useScheme } from '../theme';
 import { shouldRetry } from '../weather';
@@ -27,6 +28,8 @@ focusManager.setEventListener((setFocused) => {
   const sub = AppState.addEventListener('change', (state) => setFocused(state === 'active'));
   return () => sub.remove();
 });
+
+syncAppIcon(queryClient);
 
 // Les écrans de détail s'empilent au-dessus des onglets.
 export default function RootLayout() {

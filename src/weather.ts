@@ -218,20 +218,35 @@ export async function getCity(id: number, language: Language): Promise<City> {
 // Images radar RainViewer (gratuit, sans clé) : https://www.rainviewer.com/api/weather-maps-api.html
 const radarSchema = z.object({
   host: z.string(),
-  radar: z.object({ past: z.array(z.object({ path: z.string() })).min(1) }),
+  radar: z.object({
+    past: z.array(z.object({ time: z.number(), path: z.string() })).min(1),
+  }),
 });
 
-// Modèle d'URL des tuiles de la dernière image : 256 px, couleurs « Universal Blue » (2, la seule
-// de l'offre gratuite), lissées, neige en couleur à part. Pas de tuiles au-delà du zoom 7.
+// RainViewer limite à 100 requêtes par minute, et chaque tuile compte : l'animation charge toutes
+// ses images d'un coup. D'où des tuiles de 512 px (moins nombreuses à l'écran) et une image sur deux.
+// À 8-10 tuiles par image, 7 ou 8 images restent sous la limite ; à 1800, il n'en reste que 5.
+const RADAR_STEP = 1200; // secondes
+export const RADAR_TILE_SIZE = 512;
 export const RADAR_MAX_ZOOM = 7;
-export const radarTilesQuery = queryOptions({
-  queryKey: ['radar', 'tuiles'],
+
+// Modèles d'URL des tuiles des images, de la plus ancienne à la plus récente : couleurs « Universal
+// Blue » (2, la seule de l'offre gratuite), lissées, neige en couleur à part. Pas de tuiles au-delà
+// du zoom 7. Choisies sur l'heure et non le rang : un rafraîchissement garde les mêmes images, donc
+// leurs tuiles déjà chargées.
+export const radarFramesQuery = queryOptions({
+  queryKey: ['radar', 'images'],
   queryFn: async () => {
     const { host, radar } = await getJson(
       'https://api.rainviewer.com/public/weather-maps.json',
       radarSchema,
     );
-    return `${host}${radar.past[radar.past.length - 1].path}/256/{z}/{x}/{y}/2/1_1.png`;
+    return radar.past
+      .filter((frame, i) => i === radar.past.length - 1 || frame.time % RADAR_STEP < 600)
+      .map(({ time, path }) => ({
+        time,
+        tiles: `${host}${path}/${RADAR_TILE_SIZE}/{z}/{x}/{y}/2/1_1.png`,
+      }));
   },
   staleTime: TEN_MINUTES,
 });

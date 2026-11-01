@@ -10,13 +10,18 @@ onFlowComplete:
     latitude: 48.8566
     longitude: 2.3522
 - setAirplaneMode: enabled
-- launchApp:
-    clearState: true
-    permissions:
-      location: allow
-- extendedWaitUntil:
-    visible: 'Pas de connexion internet.*'
-    timeout: 30000
+# Android peut tuer le processus en plein démarrage juste après clearState (écran blanc vu en CI) :
+# on relance une fois.
+- retry:
+    maxRetries: 1
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            location: allow
+      - extendedWaitUntil:
+          visible: 'Pas de connexion internet.*'
+          timeout: 30000
 - assertVisible: 'Réessayer'
 - setAirplaneMode: disabled
 # Le réseau peut mettre quelques secondes à revenir : on réessaie jusqu'à voir la météo.

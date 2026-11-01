@@ -2,7 +2,11 @@
   "onglets": { "meteo": "Météo", "radar": "Radar", "villes": "Villes", "reglages": "Réglages" },
   "radar": {
     "recentrer": "Recentrer sur le lieu",
-    "indisponible": "Radar indisponible pour le moment"
+    "indisponible": "Radar indisponible pour le moment",
+    "lecture": "Lecture",
+    "pause": "Pause",
+    "chargement": "Chargement des images radar",
+    "curseur": "Heure de l'image radar"
   },
   "meteo": {
     "maPosition": "Ma position",
@@ -65,7 +69,8 @@
     "temperature": "Température",
     "vent": "Vent",
     "precipitations": "Précipitations",
-    "theme": "Thème"
+    "theme": "Thème",
+    "iconeMeteo": "Icône selon la météo"
   },
   "themes": { "system": "Comme le téléphone", "light": "Clair", "dark": "Sombre" },
   "unites": {

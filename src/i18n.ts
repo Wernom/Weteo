@@ -46,6 +46,7 @@ function createFormats() {
     hour: format({ hour: 'numeric' }),
     clock: format({ hour: '2-digit', minute: '2-digit' }),
     weekday: format({ weekday: 'long' }),
+    timestamp: new Intl.DateTimeFormat(i18n.language, { hour: '2-digit', minute: '2-digit' }),
   };
 }
 let formats = createFormats();
@@ -60,6 +61,9 @@ export const formatHour = (time: string) =>
 
 // « 07:58 » en français, « 07:58 AM » en anglais.
 export const formatClock = (time: string) => formats.clock.format(utc(time));
+
+// Horodatage Unix en secondes, à l'heure du téléphone : un instant, pas une heure locale d'un lieu.
+export const formatTimestamp = (seconds: number) => formats.timestamp.format(seconds * 1000);
 
 // « Mis à jour il y a 3 h » pour un chargement à `updatedAt` (ms). Une minute au moins.
 export function formatAge(updatedAt: number) {

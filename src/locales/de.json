@@ -7,7 +7,11 @@
   },
   "radar": {
     "recentrer": "Auf den Ort zentrieren",
-    "indisponible": "Radar derzeit nicht verfügbar"
+    "indisponible": "Radar derzeit nicht verfügbar",
+    "lecture": "Abspielen",
+    "pause": "Pause",
+    "chargement": "Radarbilder werden geladen",
+    "curseur": "Uhrzeit des Radarbilds"
   },
   "meteo": {
     "maPosition": "Mein Standort",
@@ -70,7 +74,8 @@
     "temperature": "Temperatur",
     "vent": "Wind",
     "precipitations": "Niederschlag",
-    "theme": "Design"
+    "theme": "Design",
+    "iconeMeteo": "Symbol je nach Wetter"
   },
   "themes": { "system": "Wie das Telefon", "light": "Hell", "dark": "Dunkel" },
   "unites": {

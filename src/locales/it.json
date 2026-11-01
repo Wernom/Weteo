@@ -2,7 +2,11 @@
   "onglets": { "meteo": "Meteo", "radar": "Radar", "villes": "Città", "reglages": "Impostazioni" },
   "radar": {
     "recentrer": "Ricentra sul luogo",
-    "indisponible": "Radar al momento non disponibile"
+    "indisponible": "Radar al momento non disponibile",
+    "lecture": "Riproduci",
+    "pause": "Pausa",
+    "chargement": "Caricamento delle immagini radar",
+    "curseur": "Ora dell'immagine radar"
   },
   "meteo": {
     "maPosition": "La mia posizione",
@@ -65,7 +69,8 @@
     "temperature": "Temperatura",
     "vent": "Vento",
     "precipitations": "Precipitazioni",
-    "theme": "Tema"
+    "theme": "Tema",
+    "iconeMeteo": "Icona in base al meteo"
   },
   "themes": { "system": "Come il telefono", "light": "Chiaro", "dark": "Scuro" },
   "unites": {

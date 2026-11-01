@@ -31,6 +31,7 @@ export type Settings = {
   wind: WindUnit;
   precipitation: PrecipitationUnit;
   theme: Theme;
+  weatherIcon: boolean;
 };
 
 // Tant que l'utilisateur n'a pas choisi, la langue suit celle du téléphone.
@@ -40,6 +41,7 @@ const defaults = (): Settings => ({
   wind: 'kmh',
   precipitation: 'mm',
   theme: 'system',
+  weatherIcon: true,
 });
 
 // Les valeurs par défaut complètent ce qui est stocké : un réglage ajouté dans une

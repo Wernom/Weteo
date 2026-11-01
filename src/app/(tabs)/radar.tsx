@@ -4,17 +4,20 @@ import { useQuery } from '@tanstack/react-query';
 import { useIsFocused } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useShownCity } from '../../favorites';
+import { formatTimestamp } from '../../i18n';
+import { RadarSlider } from '../../RadarSlider';
 import { font, radius, space, themedStyles, usePalette, useScheme } from '../../theme';
 import {
   currentCoords,
   LOCATION_DENIED,
   positionWeatherQuery,
   RADAR_MAX_ZOOM,
-  radarTilesQuery,
+  RADAR_TILE_SIZE,
+  radarFramesQuery,
   TEN_MINUTES,
 } from '../../weather';
 
@@ -28,13 +31,17 @@ const MAP_STYLES = {
 const CITY_ZOOM = 6;
 // Sans lieu connu (localisation refusée, aucun favori) : la France entière.
 const FRANCE = { center: [2.5, 46.5] as [number, number], zoom: 4 };
+const FRAME_DURATION = 700;
+// La lecture démarre quand même : hors ligne, le chargement pourrait ne jamais finir.
+const LOADING_TIMEOUT = 10_000;
+const RADAR_OPACITY = 0.7;
 
 // Radar de pluie centré sur le lieu affiché dans l'onglet Météo.
 export default function RadarScreen() {
   const { t } = useTranslation();
   const focused = useIsFocused();
   const styles = useStyles();
-  const { text } = usePalette();
+  const { text, onInverse } = usePalette();
   const scheme = useScheme();
   const { top } = useSafeAreaInsets();
 
@@ -52,7 +59,33 @@ export default function RadarScreen() {
     subscribed: focused,
     retryOnMount: false,
   });
-  const radar = useQuery({ ...radarTilesQuery, subscribed: focused });
+  const radar = useQuery({ ...radarFramesQuery, subscribed: focused });
+  const frames = radar.data ?? [];
+  const last = frames.length - 1;
+
+  // « arret » : seule l'image affichée est chargée. Les autres états gardent toutes les images pour
+  // ne pas redemander leurs tuiles à chaque boucle.
+  const [player, setPlayer] = useState<'arret' | 'chargement' | 'pause' | 'lecture'>('arret');
+  // null : la dernière image, tant qu'on n'a rien choisi.
+  const [index, setIndex] = useState<number | null>(null);
+  const shownIndex = Math.min(index ?? last, last);
+  const shown = frames[shownIndex];
+
+  useEffect(() => {
+    if (player !== 'chargement') return;
+    const timeout = setTimeout(() => setPlayer('lecture'), LOADING_TIMEOUT);
+    return () => clearTimeout(timeout);
+  }, [player]);
+
+  const count = frames.length;
+  useEffect(() => {
+    if (player !== 'lecture' || !focused) return;
+    const interval = setInterval(
+      () => setIndex((i) => ((i ?? count - 1) + 1) % count),
+      FRAME_DURATION,
+    );
+    return () => clearInterval(interval);
+  }, [player, focused, count]);
 
   const lng = city ? city.longitude : position.data?.longitude;
   const lat = city ? city.latitude : position.data?.latitude;
@@ -76,21 +109,41 @@ export default function RadarScreen() {
 
   return (
     <View style={styles.container}>
-      <Map testID="radar-carte" style={styles.container} mapStyle={MAP_STYLES[scheme]} logo={false}>
+      <Map
+        testID="radar-carte"
+        style={styles.container}
+        mapStyle={MAP_STYLES[scheme]}
+        logo={false}
+        // Déplacer la carte rechargerait les tuiles de toutes les images : on n'en garde qu'une.
+        onRegionWillChange={() => setPlayer('arret')}
+        // « Frame » et non « Map » : l'événement « Map » n'arrive qu'une fois, au chargement du style.
+        onDidFinishRenderingFrameFully={() =>
+          setPlayer((p) => (p === 'chargement' ? 'lecture' : p))
+        }
+      >
         {/* Zoom libre : au-delà du zoom 7, MapLibre agrandit les tuiles radar (plus floues). */}
         <Camera ref={camera} initialViewState={initial} />
-        {radar.data && (
+        {(player === 'arret' && shown ? [shown] : frames).map((frame) => (
           // Une nouvelle image change l'URL : la source est recréée.
           <RasterSource
-            key={radar.data}
-            id="radar"
-            tiles={[radar.data]}
-            tileSize={256}
+            key={frame.tiles}
+            id={`radar-${frame.time}`}
+            tiles={[frame.tiles]}
+            tileSize={RADAR_TILE_SIZE}
             maxzoom={RADAR_MAX_ZOOM}
           >
-            <Layer type="raster" id="radar" paint={{ 'raster-opacity': 0.7 }} />
+            {/* Opacité 0 : les tuiles se chargent sans s'afficher. Sans fondu, pour un défilement net. */}
+            <Layer
+              type="raster"
+              id={`radar-${frame.time}`}
+              paint={{
+                'raster-opacity': frame === shown ? RADAR_OPACITY : 0,
+                'raster-opacity-transition': { duration: 0 },
+                'raster-fade-duration': 0,
+              }}
+            />
           </RasterSource>
-        )}
+        ))}
       </Map>
       <View style={[styles.top, { top: top + space.s }]} pointerEvents="box-none">
         <Pressable
@@ -113,11 +166,59 @@ export default function RadarScreen() {
           </Pressable>
         )}
       </View>
-      {radar.isError && (
-        <Text style={[styles.chip, styles.error]} accessibilityLiveRegion="polite">
-          {t('radar.indisponible')}
-        </Text>
-      )}
+      <View style={styles.bottom} pointerEvents="box-none">
+        {radar.isError && (
+          <Text style={[styles.chip, styles.error]} accessibilityLiveRegion="polite">
+            {t('radar.indisponible')}
+          </Text>
+        )}
+        {shown && (
+          <View style={[styles.chip, styles.player]}>
+            <Pressable
+              testID="radar-lecture"
+              onPress={() =>
+                setPlayer((p) => {
+                  if (p === 'arret') return 'chargement';
+                  return p === 'pause' ? 'lecture' : 'pause';
+                })
+              }
+              accessibilityRole="button"
+              accessibilityLabel={t(
+                player === 'chargement'
+                  ? 'radar.chargement'
+                  : player === 'lecture'
+                    ? 'radar.pause'
+                    : 'radar.lecture',
+              )}
+              style={styles.play}
+            >
+              {player === 'chargement' ? (
+                <ActivityIndicator color={onInverse} />
+              ) : (
+                <Ionicons
+                  name={player === 'lecture' ? 'pause' : 'play'}
+                  size={24}
+                  color={onInverse}
+                />
+              )}
+            </Pressable>
+            <RadarSlider
+              count={frames.length}
+              index={shownIndex}
+              label={t('radar.curseur')}
+              value={formatTimestamp(shown.time)}
+              onChange={(i) => {
+                setIndex(i);
+                setPlayer('pause');
+              }}
+            />
+            {/* Pas de région annoncée : le lecteur d'écran lirait chaque image de l'animation. */}
+            <Text testID="radar-heure" style={styles.time}>
+              {formatTimestamp(shown.time)}
+            </Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -143,12 +244,33 @@ const useStyles = themedStyles((c) => ({
   credit: { color: c.text, fontSize: font.size.footnote, textDecorationLine: 'underline' },
   // Cible tactile de 48 dp.
   recenter: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
-  error: {
+  bottom: {
     position: 'absolute',
+    left: space.l,
+    right: space.l,
     bottom: space.l,
+    gap: space.s,
+  },
+  error: {
     alignSelf: 'center',
     color: c.text,
     fontSize: font.size.small,
     overflow: 'hidden',
+  },
+  // Fond plein : les noms de la carte ne doivent pas transparaître sous l'heure.
+  player: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 0,
+    paddingHorizontal: space.xs,
+    backgroundColor: c.inverse,
+  },
+  // Cible tactile de 48 dp.
+  play: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
+  time: {
+    color: c.onInverse,
+    fontSize: font.size.footnote,
+    fontVariant: ['tabular-nums'],
+    marginRight: space.s,
   },
 }));

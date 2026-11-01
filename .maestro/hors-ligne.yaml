@@ -19,16 +19,24 @@ onFlowComplete:
 - setAirplaneMode: enabled
 - stopApp
 # Sans clearState : le cache enregistré sur le téléphone est gardé.
-- launchApp
+# Permission explicite : sinon Maestro relit tout l'APK pour tout autoriser (gel de 9 min vu en CI).
+- launchApp:
+    permissions:
+      location: allow
 - extendedWaitUntil:
     visible: 'Ressenti .*'
     timeout: 15000
 - assertNotVisible: 'Réessayer'
 # Tirer pour rafraîchir : l'appel échoue, la météo reste avec son âge.
-- swipe:
-    start: 50%, 30%
-    end: 50%, 80%
-- extendedWaitUntil:
-    visible: 'Mis à jour il y a .*'
-    timeout: 60000
+# Le geste peut rester sans effet juste après le lancement : on tire une seconde fois.
+# 35 s couvrent les 3 essais de 10 s et leurs pauses.
+- retry:
+    maxRetries: 1
+    commands:
+      - swipe:
+          start: 50%, 30%
+          end: 50%, 80%
+      - extendedWaitUntil:
+          visible: 'Mis à jour il y a .*'
+          timeout: 35000
 - assertVisible: 'Ressenti .*'

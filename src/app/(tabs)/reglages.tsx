@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { translateFavorites } from '../../favorites';
@@ -39,7 +39,7 @@ function chooseLanguage(language: Language) {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const { language, temperature, wind, precipitation, theme } = useSettings();
+  const { language, temperature, wind, precipitation, theme, weatherIcon } = useSettings();
   const styles = useStyles();
   const shared = useScreenStyles();
   const { top } = useSafeAreaInsets();
@@ -90,6 +90,17 @@ export default function SettingsScreen() {
           onChange={(value) => setSetting('theme', value)}
           testID="theme"
         />
+        <View style={[shared.card, styles.card, styles.section]}>
+          <View style={styles.row}>
+            <Text style={styles.name}>{t('reglages.iconeMeteo')}</Text>
+            <Switch
+              testID="icone-meteo"
+              accessibilityLabel={t('reglages.iconeMeteo')}
+              value={weatherIcon}
+              onValueChange={(value) => setSetting('weatherIcon', value)}
+            />
+          </View>
+        </View>
       </ScrollView>
     </Screen>
   );

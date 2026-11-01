@@ -1,6 +1,13 @@
 {
   "onglets": { "meteo": "Weather", "radar": "Radar", "villes": "Cities", "reglages": "Settings" },
-  "radar": { "recentrer": "Recenter on the place", "indisponible": "Radar unavailable right now" },
+  "radar": {
+    "recentrer": "Recenter on the place",
+    "indisponible": "Radar unavailable right now",
+    "lecture": "Play",
+    "pause": "Pause",
+    "chargement": "Loading radar images",
+    "curseur": "Radar image time"
+  },
   "meteo": {
     "maPosition": "My location",
     "maPositionLieu": "My location · {{place}}",
@@ -62,7 +69,8 @@
     "temperature": "Temperature",
     "vent": "Wind",
     "precipitations": "Precipitation",
-    "theme": "Theme"
+    "theme": "Theme",
+    "iconeMeteo": "Icon follows the weather"
   },
   "themes": { "system": "Same as phone", "light": "Light", "dark": "Dark" },
   "unites": {

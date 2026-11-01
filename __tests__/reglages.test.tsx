@@ -1,4 +1,4 @@
-import { userEvent } from '@testing-library/react-native';
+import { fireEvent, userEvent } from '@testing-library/react-native';
 import Storage from 'expo-sqlite/kv-store';
 import { renderRouter, screen } from 'expo-router/testing-library';
 
@@ -143,6 +143,19 @@ describe('Choisir le thème', () => {
     expect(screen.getByTestId('theme-light')).toBeChecked();
     expect(title()).toHaveStyle({ color: PALETTES.light.text });
     expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({ theme: 'light' });
+  });
+});
+
+describe("Choisir l'icône selon la météo", () => {
+  it('est activée par défaut, se coupe et le retient', async () => {
+    mockFetch(respond({}));
+    await openSettings();
+    expect(screen.getByTestId('icone-meteo')).toHaveProp('value', true);
+
+    await fireEvent(screen.getByTestId('icone-meteo'), 'valueChange', false);
+
+    expect(screen.getByTestId('icone-meteo')).toHaveProp('value', false);
+    expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({ weatherIcon: false });
   });
 });
 
