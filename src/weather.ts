@@ -368,6 +368,24 @@ export async function fetchForecast(latitude: number, longitude: number): Promis
   };
 }
 
+// Précipitations (mm) des 2 prochaines heures par tranches de 15 min, de la tranche en cours à la
+// dernière. Vraies tranches de 15 min en Europe de l'Ouest et centrale et en Amérique du Nord,
+// heures interpolées ailleurs. `time` est l'heure locale du lieu (« 2026-10-05T14:15 »).
+export async function fetchRain(latitude: number, longitude: number) {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    minutely_15: 'precipitation',
+    forecast_minutely_15: '8',
+    timezone: 'auto',
+  });
+  const { minutely_15 } = await getJson(
+    `https://api.open-meteo.com/v1/forecast?${params}`,
+    rainSchema,
+  );
+  return minutely_15.time.map((time, i) => ({ time, precipitation: minutely_15.precipitation[i] }));
+}
+
 // Les précipitations peuvent manquer (`null`) sur certaines heures ou certains lieux : 0.
 const numbers = z.array(z.number());
 const maybeNumbers = z.array(
@@ -426,6 +444,10 @@ const airQualitySchema = z.object({
     european_aqi_sulphur_dioxide: maybeNumber,
   }),
   hourly: z.object({ time: strings, european_aqi: z.array(maybeNumber) }),
+});
+
+const rainSchema = z.object({
+  minutely_15: z.object({ time: strings, precipitation: maybeNumbers }),
 });
 
 // Codes météo WMO : https://open-meteo.com/en/docs#weathervariables

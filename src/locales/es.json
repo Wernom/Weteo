@@ -73,8 +73,11 @@
     "theme": "Tema",
     "iconeMeteo": "Icono con el último tiempo visto",
     "alertesPluie": "Avisos de lluvia",
-    "alertesPluieRefusees": "Notificaciones denegadas: permítelas para Wétéo en los ajustes del teléfono."
+    "alertesPluieRefusees": "Notificaciones denegadas: permítelas para Wétéo en los ajustes del teléfono.",
+    "villeAlertes": "Ciudad si la ubicación es desconocida",
+    "aucune": "Ninguna"
   },
+  "alertePluie": { "titre": "Lluvia en camino", "texte": "Lluvia prevista hacia las {{heure}}." },
   "themes": { "system": "Como el teléfono", "light": "Claro", "dark": "Oscuro" },
   "unites": {
     "celsius": "°C",

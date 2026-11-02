@@ -22,7 +22,14 @@ jest.mock('../modules/weteo-location', () => ({
 
 jest.mock('../modules/weteo-notifications', () => ({
   __esModule: true,
-  default: { requestPermissionsAsync: jest.fn() },
+  default: { requestPermissionsAsync: jest.fn(), notify: jest.fn() },
+}));
+
+// WorkManager absent sous Jest : chaque test vérifie l'enregistrement de la tâche des alertes pluie.
+jest.mock('expo-background-task', () => ({
+  ...jest.requireActual('expo-background-task'),
+  registerTaskAsync: jest.fn(),
+  unregisterTaskAsync: jest.fn(),
 }));
 
 jest.mock('../modules/weteo-icon', () => ({

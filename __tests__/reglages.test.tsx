@@ -1,4 +1,5 @@
 import { fireEvent, userEvent } from '@testing-library/react-native';
+import * as BackgroundTask from 'expo-background-task';
 import Storage from 'expo-sqlite/kv-store';
 import { renderRouter, screen } from 'expo-router/testing-library';
 
@@ -11,6 +12,7 @@ import es from '../src/locales/es.json';
 import fr from '../src/locales/fr.json';
 import italian from '../src/locales/it.json';
 import i18n from '../src/i18n';
+import { RAIN_TASK } from '../src/rainAlert';
 import { PALETTES } from '../src/theme';
 import type { City } from '../src/weather';
 
@@ -166,7 +168,10 @@ describe('Activer les alertes pluie', () => {
     fireEvent(screen.getByTestId('alertes-pluie'), 'valueChange', value);
   const stored = () => JSON.parse(Storage.getItemSync('reglages')!);
 
-  afterEach(() => requestPermission.mockReset());
+  afterEach(() => {
+    requestPermission.mockReset();
+    jest.clearAllMocks();
+  });
 
   it('est coupée par défaut, sans demander la permission', async () => {
     mockFetch(respond({}));
@@ -187,6 +192,9 @@ describe('Activer les alertes pluie', () => {
     expect(screen.getByTestId('alertes-pluie')).toHaveProp('value', true);
     expect(screen.queryByTestId('alertes-pluie-refusees')).not.toBeOnTheScreen();
     expect(stored()).toMatchObject({ rainAlerts: true });
+    expect(BackgroundTask.registerTaskAsync).toHaveBeenCalledWith(RAIN_TASK, {
+      minimumInterval: 15,
+    });
   });
 
   it('reste coupée avec une explication si la permission est refusée', async () => {
@@ -201,6 +209,7 @@ describe('Activer les alertes pluie', () => {
       fr.reglages.alertesPluieRefusees,
     );
     expect(stored()).toMatchObject({ rainAlerts: false });
+    expect(BackgroundTask.registerTaskAsync).not.toHaveBeenCalled();
   });
 
   it('se coupe sans redemander la permission', async () => {
@@ -214,6 +223,28 @@ describe('Activer les alertes pluie', () => {
     expect(screen.getByTestId('alertes-pluie')).toHaveProp('value', false);
     expect(requestPermission).not.toHaveBeenCalled();
     expect(stored()).toMatchObject({ rainAlerts: false });
+    expect(BackgroundTask.unregisterTaskAsync).toHaveBeenCalledWith(RAIN_TASK);
+  });
+
+  it('propose un favori à surveiller quand la position est inconnue, et le retient', async () => {
+    Storage.setItemSync('reglages', JSON.stringify({ rainAlerts: true }));
+    Storage.setItemSync('favoris', JSON.stringify([LONDRES]));
+    mockFetch(respond({}));
+    const user = await openSettings();
+    expect(screen.getByTestId('ville-alertes-aucune')).toBeChecked();
+
+    await user.press(screen.getByTestId(`ville-alertes-${LONDRES.id}`));
+
+    expect(screen.getByTestId(`ville-alertes-${LONDRES.id}`)).toBeChecked();
+    expect(stored()).toMatchObject({ rainAlertCity: LONDRES.id });
+  });
+
+  it('ne propose pas de ville si les alertes sont coupées', async () => {
+    Storage.setItemSync('favoris', JSON.stringify([LONDRES]));
+    mockFetch(respond({}));
+    await openSettings();
+
+    expect(screen.queryByTestId('ville-alertes-aucune')).not.toBeOnTheScreen();
   });
 });
 

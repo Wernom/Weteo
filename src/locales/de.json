@@ -78,8 +78,11 @@
     "theme": "Design",
     "iconeMeteo": "Symbol zeigt das zuletzt gesehene Wetter",
     "alertesPluie": "Regenwarnungen",
-    "alertesPluieRefusees": "Benachrichtigungen abgelehnt: Erlaube sie für Wétéo in den Telefoneinstellungen."
+    "alertesPluieRefusees": "Benachrichtigungen abgelehnt: Erlaube sie für Wétéo in den Telefoneinstellungen.",
+    "villeAlertes": "Stadt, wenn der Standort unbekannt ist",
+    "aucune": "Keine"
   },
+  "alertePluie": { "titre": "Regen im Anmarsch", "texte": "Regen erwartet gegen {{heure}}." },
   "themes": { "system": "Wie das Telefon", "light": "Hell", "dark": "Dunkel" },
   "unites": {
     "celsius": "°C",

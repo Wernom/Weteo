@@ -1,0 +1,43 @@
+# Alertes activées, la pluie arrive à ma position : une notification annonce son heure.
+# Pluie simulée par le lien e2e (voir src/app/+native-intent.tsx) : ni réseau ni attente de WorkManager.
+appId: com.wernom.weteo
+name: Être prévenu avant la pluie
+---
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
+- retry:
+    maxRetries: 1
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            location: allow
+            notifications: allow
+      - extendedWaitUntil:
+          visible:
+            id: onglet-reglages
+          timeout: 30000
+- tapOn:
+    id: onglet-reglages
+- scrollUntilVisible:
+    element:
+      id: alertes-pluie
+- tapOn:
+    id: alertes-pluie
+- tapOn:
+    text: 'Allow|Autoriser'
+    optional: true
+- assertVisible:
+    id: alertes-pluie
+    checked: true
+- openLink: weteo://e2e/pluie
+# Volet des notifications : glisser depuis le haut de l'écran.
+- swipe:
+    start: 50%, 0%
+    end: 50%, 70%
+- extendedWaitUntil:
+    visible: 'Pluie prévue vers 14:45.'
+    timeout: 10000
+- assertVisible: 'Pluie en approche'
+- pressKey: back

@@ -34,7 +34,8 @@
       "expo-sqlite",
       "expo-localization",
       "@maplibre/maplibre-react-native",
-      "./plugins/with-weather-icons"
+      "./plugins/with-weather-icons",
+      "expo-background-task"
     ],
     "scheme": "weteo",
     "experiments": {

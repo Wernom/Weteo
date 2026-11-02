@@ -89,8 +89,9 @@ if (!french()) {
 // Sous Windows, certains chemins du build C++ dépassent 260 caractères : il faut les chemins
 // longs activés et ninja ≥ 1.12 dans Android/Sdk/cmake/<version>/bin (1.10 fourni avec 3.22.1).
 const abi = output(`${adb} shell getprop ro.product.cpu.abi`).trim();
+// EXPO_PUBLIC_E2E active le lien de test des alertes pluie (voir src/app/+native-intent.tsx).
 run('npx expo run:android --variant release --no-bundler', {
-  env: { ...process.env, ORG_GRADLE_PROJECT_reactNativeArchitectures: abi },
+  env: { ...process.env, ORG_GRADLE_PROJECT_reactNativeArchitectures: abi, EXPO_PUBLIC_E2E: '1' },
 });
 
 run(`maestro test ${flows.length ? flows.map((f) => `"${f}"`).join(' ') : '.maestro'}`);

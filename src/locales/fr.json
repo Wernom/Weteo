@@ -73,8 +73,11 @@
     "theme": "Thème",
     "iconeMeteo": "Icône selon la dernière météo vue",
     "alertesPluie": "Alertes pluie",
-    "alertesPluieRefusees": "Notifications refusées : autorisez-les pour Wétéo dans les réglages du téléphone."
+    "alertesPluieRefusees": "Notifications refusées : autorisez-les pour Wétéo dans les réglages du téléphone.",
+    "villeAlertes": "Ville si la position est inconnue",
+    "aucune": "Aucune"
   },
+  "alertePluie": { "titre": "Pluie en approche", "texte": "Pluie prévue vers {{heure}}." },
   "themes": { "system": "Comme le téléphone", "light": "Clair", "dark": "Sombre" },
   "unites": {
     "celsius": "°C",

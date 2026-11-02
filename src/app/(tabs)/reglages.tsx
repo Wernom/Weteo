@@ -1,12 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as BackgroundTask from 'expo-background-task';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Notifications from '../../../modules/weteo-notifications';
-import { translateFavorites } from '../../favorites';
+import { translateFavorites, useFavorites } from '../../favorites';
 import { setLanguage } from '../../i18n';
+import { RAIN_TASK } from '../../rainAlert';
 import {
   Language,
   LANGUAGES,
@@ -32,6 +34,9 @@ const LANGUAGE_NAMES: Record<Language, string> = {
   es: 'Español',
 };
 
+// Option « aucune ville » des alertes pluie, à côté des identifiants des favoris.
+const NO_CITY = 'aucune';
+
 // Retoucher la langue affichée ne relance pas la traduction des favoris (un appel par ville).
 function chooseLanguage(language: Language) {
   if (language === readSettings().language) return;
@@ -41,8 +46,17 @@ function chooseLanguage(language: Language) {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const { language, temperature, wind, precipitation, theme, weatherIcon, rainAlerts } =
-    useSettings();
+  const {
+    language,
+    temperature,
+    wind,
+    precipitation,
+    theme,
+    weatherIcon,
+    rainAlerts,
+    rainAlertCity,
+  } = useSettings();
+  const favorites = useFavorites();
   const [alertsDenied, setAlertsDenied] = useState(false);
   const styles = useStyles();
   const shared = useScreenStyles();
@@ -54,7 +68,13 @@ export default function SettingsScreen() {
     const granted = value && (await Notifications.requestPermissionsAsync()).granted;
     setAlertsDenied(value && !granted);
     setSetting('rainAlerts', granted);
+    // Toutes les 15 min au mieux : le minimum de WorkManager.
+    if (granted) await BackgroundTask.registerTaskAsync(RAIN_TASK, { minimumInterval: 15 });
+    else await BackgroundTask.unregisterTaskAsync(RAIN_TASK);
   }
+
+  // Un favori retiré depuis n'est plus surveillé : « Aucune » redevient cochée.
+  const alertCity = favorites.some((f) => f.id === rainAlertCity) ? String(rainAlertCity) : NO_CITY;
 
   return (
     <Screen>
@@ -127,6 +147,20 @@ export default function SettingsScreen() {
             </Text>
           )}
         </View>
+        {rainAlerts && favorites.length > 0 && (
+          <Choices
+            title={t('reglages.villeAlertes')}
+            options={[NO_CITY, ...favorites.map((f) => String(f.id))]}
+            value={alertCity}
+            label={(id) =>
+              id === NO_CITY
+                ? t('reglages.aucune')
+                : favorites.find((f) => String(f.id) === id)!.name
+            }
+            onChange={(id) => setSetting('rainAlertCity', id === NO_CITY ? null : Number(id))}
+            testID="ville-alertes"
+          />
+        )}
       </ScrollView>
     </Screen>
   );

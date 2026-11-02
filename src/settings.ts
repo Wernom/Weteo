@@ -33,6 +33,8 @@ export type Settings = {
   theme: Theme;
   weatherIcon: boolean;
   rainAlerts: boolean;
+  // Favori surveillé quand la position du téléphone est inconnue ; `null` : aucun.
+  rainAlertCity: number | null;
 };
 
 // Tant que l'utilisateur n'a pas choisi, la langue suit celle du téléphone.
@@ -46,6 +48,7 @@ const defaults = (): Settings => ({
   weatherIcon: false,
   // La permission de notification n'est demandée qu'à l'activation (voir reglages.tsx).
   rainAlerts: false,
+  rainAlertCity: null,
 });
 
 // Les valeurs par défaut complètent ce qui est stocké : un réglage ajouté dans une

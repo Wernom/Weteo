@@ -73,8 +73,11 @@
     "theme": "Theme",
     "iconeMeteo": "Icon shows the last weather seen",
     "alertesPluie": "Rain alerts",
-    "alertesPluieRefusees": "Notifications denied: allow them for Wétéo in your phone settings."
+    "alertesPluieRefusees": "Notifications denied: allow them for Wétéo in your phone settings.",
+    "villeAlertes": "City when location is unknown",
+    "aucune": "None"
   },
+  "alertePluie": { "titre": "Rain on the way", "texte": "Rain expected around {{heure}}." },
   "themes": { "system": "Same as phone", "light": "Light", "dark": "Dark" },
   "unites": {
     "celsius": "°C",
