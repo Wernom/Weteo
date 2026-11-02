@@ -4,6 +4,7 @@ import { renderRouter, screen } from 'expo-router/testing-library';
 
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
 import { mockFetch, respond } from '../jest/helpers';
+import Notifications from '../modules/weteo-notifications';
 import de from '../src/locales/de.json';
 import en from '../src/locales/en.json';
 import es from '../src/locales/es.json';
@@ -156,6 +157,63 @@ describe("Choisir l'icône selon la météo", () => {
 
     expect(screen.getByTestId('icone-meteo')).toHaveProp('value', true);
     expect(JSON.parse(Storage.getItemSync('reglages')!)).toMatchObject({ weatherIcon: true });
+  });
+});
+
+describe('Activer les alertes pluie', () => {
+  const requestPermission = jest.mocked(Notifications.requestPermissionsAsync);
+  const toggle = (value: boolean) =>
+    fireEvent(screen.getByTestId('alertes-pluie'), 'valueChange', value);
+  const stored = () => JSON.parse(Storage.getItemSync('reglages')!);
+
+  afterEach(() => requestPermission.mockReset());
+
+  it('est coupée par défaut, sans demander la permission', async () => {
+    mockFetch(respond({}));
+    await openSettings();
+
+    expect(screen.getByTestId('alertes-pluie')).toHaveProp('value', false);
+    expect(requestPermission).not.toHaveBeenCalled();
+  });
+
+  it('demande la permission à l’activation, s’active et le retient', async () => {
+    requestPermission.mockResolvedValue({ granted: true });
+    mockFetch(respond({}));
+    await openSettings();
+
+    await toggle(true);
+
+    expect(requestPermission).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('alertes-pluie')).toHaveProp('value', true);
+    expect(screen.queryByTestId('alertes-pluie-refusees')).not.toBeOnTheScreen();
+    expect(stored()).toMatchObject({ rainAlerts: true });
+  });
+
+  it('reste coupée avec une explication si la permission est refusée', async () => {
+    requestPermission.mockResolvedValue({ granted: false });
+    mockFetch(respond({}));
+    await openSettings();
+
+    await toggle(true);
+
+    expect(screen.getByTestId('alertes-pluie')).toHaveProp('value', false);
+    expect(screen.getByTestId('alertes-pluie-refusees')).toHaveTextContent(
+      fr.reglages.alertesPluieRefusees,
+    );
+    expect(stored()).toMatchObject({ rainAlerts: false });
+  });
+
+  it('se coupe sans redemander la permission', async () => {
+    Storage.setItemSync('reglages', JSON.stringify({ rainAlerts: true }));
+    mockFetch(respond({}));
+    await openSettings();
+    expect(screen.getByTestId('alertes-pluie')).toHaveProp('value', true);
+
+    await toggle(false);
+
+    expect(screen.getByTestId('alertes-pluie')).toHaveProp('value', false);
+    expect(requestPermission).not.toHaveBeenCalled();
+    expect(stored()).toMatchObject({ rainAlerts: false });
   });
 });
 

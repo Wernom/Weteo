@@ -76,7 +76,9 @@
     "vent": "Wind",
     "precipitations": "Niederschlag",
     "theme": "Design",
-    "iconeMeteo": "Symbol zeigt das zuletzt gesehene Wetter"
+    "iconeMeteo": "Symbol zeigt das zuletzt gesehene Wetter",
+    "alertesPluie": "Regenwarnungen",
+    "alertesPluieRefusees": "Benachrichtigungen abgelehnt: Erlaube sie für Wétéo in den Telefoneinstellungen."
   },
   "themes": { "system": "Wie das Telefon", "light": "Hell", "dark": "Dunkel" },
   "unites": {

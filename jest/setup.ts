@@ -20,6 +20,11 @@ jest.mock('../modules/weteo-location', () => ({
   },
 }));
 
+jest.mock('../modules/weteo-notifications', () => ({
+  __esModule: true,
+  default: { requestPermissionsAsync: jest.fn() },
+}));
+
 jest.mock('../modules/weteo-icon', () => ({
   __esModule: true,
   default: { setIcon: jest.fn() },

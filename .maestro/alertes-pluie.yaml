@@ -1,0 +1,72 @@
+# L'utilisateur active les alertes pluie dans Réglages : refusées, l'interrupteur reste coupé
+# avec une explication ; autorisées, elles s'activent puis se coupent.
+# Localisation refusée pour ne pas dépendre du réseau.
+appId: com.wernom.weteo
+name: Activer les alertes pluie
+---
+# Refuser. Même lancement que localisation-refusee.yaml, notifications refusées en plus.
+- retry:
+    maxRetries: 1
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            location: deny
+            notifications: deny
+      - extendedWaitUntil:
+          visible: 'Don.t allow|Ne pas autoriser|Rechercher une ville'
+          timeout: 30000
+- tapOn:
+    text: 'Don.t allow|Ne pas autoriser'
+    optional: true
+- tapOn:
+    id: onglet-reglages
+- scrollUntilVisible:
+    element:
+      id: alertes-pluie
+- tapOn:
+    id: alertes-pluie
+# La boîte de dialogue système peut apparaître selon la version d'Android.
+- tapOn:
+    text: 'Don.t allow|Ne pas autoriser'
+    optional: true
+- assertVisible:
+    id: alertes-pluie-refusees
+- assertVisible:
+    id: alertes-pluie
+    checked: false
+# Activer, puis couper.
+- retry:
+    maxRetries: 1
+    commands:
+      - launchApp:
+          clearState: true
+          permissions:
+            location: deny
+            notifications: allow
+      - extendedWaitUntil:
+          visible: 'Don.t allow|Ne pas autoriser|Rechercher une ville'
+          timeout: 30000
+- tapOn:
+    text: 'Don.t allow|Ne pas autoriser'
+    optional: true
+- tapOn:
+    id: onglet-reglages
+- scrollUntilVisible:
+    element:
+      id: alertes-pluie
+- tapOn:
+    id: alertes-pluie
+- tapOn:
+    text: 'Allow|Autoriser'
+    optional: true
+- assertVisible:
+    id: alertes-pluie
+    checked: true
+- assertNotVisible:
+    id: alertes-pluie-refusees
+- tapOn:
+    id: alertes-pluie
+- assertVisible:
+    id: alertes-pluie
+    checked: false

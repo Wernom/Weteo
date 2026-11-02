@@ -32,6 +32,7 @@ export type Settings = {
   precipitation: PrecipitationUnit;
   theme: Theme;
   weatherIcon: boolean;
+  rainAlerts: boolean;
 };
 
 // Tant que l'utilisateur n'a pas choisi, la langue suit celle du téléphone.
@@ -43,6 +44,8 @@ const defaults = (): Settings => ({
   theme: 'system',
   // À activer soi-même : changer d'icône peut fermer l'écran de l'app (voir WeteoIconModule.kt).
   weatherIcon: false,
+  // La permission de notification n'est demandée qu'à l'activation (voir reglages.tsx).
+  rainAlerts: false,
 });
 
 // Les valeurs par défaut complètent ce qui est stocké : un réglage ajouté dans une

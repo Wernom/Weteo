@@ -71,7 +71,9 @@
     "vent": "Vento",
     "precipitations": "Precipitazioni",
     "theme": "Tema",
-    "iconeMeteo": "Icona con l'ultimo meteo visto"
+    "iconeMeteo": "Icona con l'ultimo meteo visto",
+    "alertesPluie": "Avvisi pioggia",
+    "alertesPluieRefusees": "Notifiche rifiutate: consentile per Wétéo nelle impostazioni del telefono."
   },
   "themes": { "system": "Come il telefono", "light": "Chiaro", "dark": "Scuro" },
   "unites": {

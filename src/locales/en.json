@@ -71,7 +71,9 @@
     "vent": "Wind",
     "precipitations": "Precipitation",
     "theme": "Theme",
-    "iconeMeteo": "Icon shows the last weather seen"
+    "iconeMeteo": "Icon shows the last weather seen",
+    "alertesPluie": "Rain alerts",
+    "alertesPluieRefusees": "Notifications denied: allow them for Wétéo in your phone settings."
   },
   "themes": { "system": "Same as phone", "light": "Light", "dark": "Dark" },
   "unites": {

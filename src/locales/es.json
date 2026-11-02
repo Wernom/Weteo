@@ -71,7 +71,9 @@
     "vent": "Viento",
     "precipitations": "Precipitaciones",
     "theme": "Tema",
-    "iconeMeteo": "Icono con el último tiempo visto"
+    "iconeMeteo": "Icono con el último tiempo visto",
+    "alertesPluie": "Avisos de lluvia",
+    "alertesPluieRefusees": "Notificaciones denegadas: permítelas para Wétéo en los ajustes del teléfono."
   },
   "themes": { "system": "Como el teléfono", "light": "Claro", "dark": "Oscuro" },
   "unites": {

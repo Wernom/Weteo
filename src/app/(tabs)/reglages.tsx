@@ -1,8 +1,10 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import Notifications from '../../../modules/weteo-notifications';
 import { translateFavorites } from '../../favorites';
 import { setLanguage } from '../../i18n';
 import {
@@ -39,11 +41,21 @@ function chooseLanguage(language: Language) {
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
-  const { language, temperature, wind, precipitation, theme, weatherIcon } = useSettings();
+  const { language, temperature, wind, precipitation, theme, weatherIcon, rainAlerts } =
+    useSettings();
+  const [alertsDenied, setAlertsDenied] = useState(false);
   const styles = useStyles();
   const shared = useScreenStyles();
   const { top } = useSafeAreaInsets();
   const unit = (code: string) => t(`unites.${code}`);
+
+  // Couper ne demande rien ; activer demande la permission, et l'interrupteur reste coupé si refusée.
+  async function toggleRainAlerts(value: boolean) {
+    const granted = value && (await Notifications.requestPermissionsAsync()).granted;
+    setAlertsDenied(value && !granted);
+    setSetting('rainAlerts', granted);
+  }
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={[styles.content, { paddingTop: top + space.xxxl }]}>
@@ -100,6 +112,20 @@ export default function SettingsScreen() {
               onValueChange={(value) => setSetting('weatherIcon', value)}
             />
           </View>
+          <View style={styles.row}>
+            <Text style={styles.name}>{t('reglages.alertesPluie')}</Text>
+            <Switch
+              testID="alertes-pluie"
+              accessibilityLabel={t('reglages.alertesPluie')}
+              value={rainAlerts}
+              onValueChange={toggleRainAlerts}
+            />
+          </View>
+          {alertsDenied && (
+            <Text testID="alertes-pluie-refusees" style={styles.hint}>
+              {t('reglages.alertesPluieRefusees')}
+            </Text>
+          )}
         </View>
       </ScrollView>
     </Screen>
@@ -166,4 +192,10 @@ const useStyles = themedStyles((c) => ({
     paddingVertical: space.m,
   },
   name: { color: c.text, fontSize: font.size.body },
+  hint: {
+    color: c.secondary,
+    fontSize: font.size.footnote,
+    paddingHorizontal: space.l,
+    paddingBottom: space.m,
+  },
 }));
