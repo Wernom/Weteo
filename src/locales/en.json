@@ -75,6 +75,7 @@
     "alertesPluie": "Rain alerts",
     "alertesPluieRefusees": "Notifications denied: allow them for Wétéo in your phone settings.",
     "villeAlertes": "City when location is unknown",
+    "villeWidget": "Widget city",
     "aucune": "None"
   },
   "alertePluie": { "titre": "Rain on the way", "texte": "Rain expected around {{heure}}." },

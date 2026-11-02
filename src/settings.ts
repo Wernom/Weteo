@@ -35,6 +35,8 @@ export type Settings = {
   rainAlerts: boolean;
   // Favori surveillé quand la position du téléphone est inconnue ; `null` : aucun.
   rainAlertCity: number | null;
+  // Favori affiché par le widget d'écran d'accueil ; `null` : ma position.
+  widgetCity: number | null;
 };
 
 // Tant que l'utilisateur n'a pas choisi, la langue suit celle du téléphone.
@@ -49,6 +51,7 @@ const defaults = (): Settings => ({
   // La permission de notification n'est demandée qu'à l'activation (voir reglages.tsx).
   rainAlerts: false,
   rainAlertCity: null,
+  widgetCity: null,
 });
 
 // Les valeurs par défaut complètent ce qui est stocké : un réglage ajouté dans une

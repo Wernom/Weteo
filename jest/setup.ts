@@ -32,6 +32,12 @@ jest.mock('expo-background-task', () => ({
   unregisterTaskAsync: jest.fn(),
 }));
 
+// Un widget posé par défaut : chaque test le retire avec jest.mocked(Widget).
+jest.mock('../modules/weteo-widget', () => ({
+  __esModule: true,
+  default: { update: jest.fn(), hasWidgets: jest.fn(() => true) },
+}));
+
 jest.mock('../modules/weteo-icon', () => ({
   __esModule: true,
   default: { setIcon: jest.fn() },

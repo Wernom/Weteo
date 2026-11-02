@@ -75,6 +75,7 @@
     "alertesPluie": "Avvisi pioggia",
     "alertesPluieRefusees": "Notifiche rifiutate: consentile per Wétéo nelle impostazioni del telefono.",
     "villeAlertes": "Città se la posizione è sconosciuta",
+    "villeWidget": "Città del widget",
     "aucune": "Nessuna"
   },
   "alertePluie": { "titre": "Pioggia in arrivo", "texte": "Pioggia prevista verso le {{heure}}." },

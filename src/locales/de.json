@@ -80,6 +80,7 @@
     "alertesPluie": "Regenwarnungen",
     "alertesPluieRefusees": "Benachrichtigungen abgelehnt: Erlaube sie für Wétéo in den Telefoneinstellungen.",
     "villeAlertes": "Stadt, wenn der Standort unbekannt ist",
+    "villeWidget": "Stadt im Widget",
     "aucune": "Keine"
   },
   "alertePluie": { "titre": "Regen im Anmarsch", "texte": "Regen erwartet gegen {{heure}}." },

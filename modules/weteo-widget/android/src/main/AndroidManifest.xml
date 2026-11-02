@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- Sans label : le sélecteur de widgets affiche le nom de l'app. -->
+    <receiver android:name="expo.modules.weteowidget.WeteoWidgetProvider" android:exported="false">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/weteo_widget_info" />
+    </receiver>
+  </application>
+</manifest>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ionicons 7.4 « cloud-outline » (MIT) : le pictogramme de l'app pour ce temps. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="48dp"
+  android:height="48dp"
+  android:viewportWidth="512"
+  android:viewportHeight="512">
+  <path
+    android:pathData="M400 240c-8.89-89.54-71-144-144-144-69 0-113.44 48.2-128 96-60 6-112 43.59-112 112 0 66 54 112 120 112h260c55 0 100-27.44 100-88 0-59.82-53-85.76-96-88z"
+    android:strokeColor="#FFFFFF"
+    android:strokeWidth="32"
+    android:strokeLineJoin="round" />
+</vector>

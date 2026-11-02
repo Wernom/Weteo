@@ -1,8 +1,10 @@
 import { QueryClient } from '@tanstack/react-query';
 import { AppState } from 'react-native';
 
+import { LYON, mockFetch } from '../../jest/helpers';
 import WeteoIcon from '../../modules/weteo-icon';
-import { syncAppIcon, weatherIcon } from '../appIcon';
+import Location from '../../modules/weteo-location';
+import { refreshAppIcon, syncAppIcon, weatherIcon } from '../appIcon';
 import { setSetting } from '../settings';
 import { WEATHER_QUERY_KEY } from '../weather';
 
@@ -54,5 +56,46 @@ describe('syncAppIcon', () => {
     setSetting('weatherIcon', false);
     goTo('background', { weatherCode: 61, isDay: true });
     expect(WeteoIcon.setIcon).toHaveBeenCalledWith('soleil');
+  });
+});
+
+describe('refreshAppIcon', () => {
+  const location = jest.mocked(Location);
+
+  beforeEach(() => {
+    setSetting('weatherIcon', true);
+    jest.clearAllMocks();
+  });
+
+  it('suit la météo de la dernière position connue', async () => {
+    location.getLastKnownPositionAsync.mockResolvedValue({ coords: LYON });
+    const fetchMock = mockFetch();
+
+    await refreshAppIcon();
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain(`latitude=${LYON.latitude}`);
+    // Fixture : pluie (code 61).
+    expect(WeteoIcon.setIcon).toHaveBeenCalledWith('pluie');
+  });
+
+  it('ne fait rien quand le réglage est coupé', async () => {
+    setSetting('weatherIcon', false);
+    location.getLastKnownPositionAsync.mockResolvedValue({ coords: LYON });
+    const fetchMock = mockFetch();
+
+    await refreshAppIcon();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(WeteoIcon.setIcon).not.toHaveBeenCalled();
+  });
+
+  it('ne fait rien sans position connue', async () => {
+    location.getLastKnownPositionAsync.mockResolvedValue(null);
+    const fetchMock = mockFetch();
+
+    await refreshAppIcon();
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(WeteoIcon.setIcon).not.toHaveBeenCalled();
   });
 });

@@ -1,3 +1,4 @@
-// La tâche des alertes pluie doit être définie même quand Android lance l'app sans écran.
+// Les tâches de fond doivent être définies même quand Android lance l'app sans écran.
 import './src/rainAlert';
+import './src/widget';
 import 'expo-router/entry';

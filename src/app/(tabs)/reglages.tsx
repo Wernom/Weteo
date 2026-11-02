@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useQueryClient } from '@tanstack/react-query';
 import * as BackgroundTask from 'expo-background-task';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,7 @@ import {
 } from '../../settings';
 import { Screen, useScreenStyles } from '../../Screen';
 import { font, space, themedStyles, usePalette } from '../../theme';
+import { refreshWidget, showCachedWeather } from '../../widget';
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
@@ -36,6 +38,8 @@ const LANGUAGE_NAMES: Record<Language, string> = {
 
 // Option « aucune ville » des alertes pluie, à côté des identifiants des favoris.
 const NO_CITY = 'aucune';
+// Option « ma position » du widget, à côté des identifiants des favoris.
+const MY_POSITION = 'position';
 
 // Retoucher la langue affichée ne relance pas la traduction des favoris (un appel par ville).
 function chooseLanguage(language: Language) {
@@ -55,8 +59,10 @@ export default function SettingsScreen() {
     weatherIcon,
     rainAlerts,
     rainAlertCity,
+    widgetCity,
   } = useSettings();
   const favorites = useFavorites();
+  const queryClient = useQueryClient();
   const [alertsDenied, setAlertsDenied] = useState(false);
   const styles = useStyles();
   const shared = useScreenStyles();
@@ -75,6 +81,14 @@ export default function SettingsScreen() {
 
   // Un favori retiré depuis n'est plus surveillé : « Aucune » redevient cochée.
   const alertCity = favorites.some((f) => f.id === rainAlertCity) ? String(rainAlertCity) : NO_CITY;
+  // De même, un favori retiré rend le widget à ma position.
+  const widgetPlace = favorites.some((f) => f.id === widgetCity) ? String(widgetCity) : MY_POSITION;
+
+  // Le widget change tout de suite : avec la météo déjà chargée par l'app, sinon depuis le réseau.
+  function chooseWidgetCity(id: string) {
+    setSetting('widgetCity', id === MY_POSITION ? null : Number(id));
+    if (!showCachedWeather(queryClient)) refreshWidget().catch(() => {});
+  }
 
   return (
     <Screen>
@@ -95,7 +109,10 @@ export default function SettingsScreen() {
           options={TEMPERATURE_UNITS}
           value={temperature}
           label={unit}
-          onChange={(value) => setSetting('temperature', value)}
+          onChange={(value) => {
+            setSetting('temperature', value);
+            showCachedWeather(queryClient);
+          }}
           testID="unite"
         />
         <Choices
@@ -159,6 +176,20 @@ export default function SettingsScreen() {
             }
             onChange={(id) => setSetting('rainAlertCity', id === NO_CITY ? null : Number(id))}
             testID="ville-alertes"
+          />
+        )}
+        {favorites.length > 0 && (
+          <Choices
+            title={t('reglages.villeWidget')}
+            options={[MY_POSITION, ...favorites.map((f) => String(f.id))]}
+            value={widgetPlace}
+            label={(id) =>
+              id === MY_POSITION
+                ? t('meteo.maPosition')
+                : favorites.find((f) => String(f.id) === id)!.name
+            }
+            onChange={chooseWidgetCity}
+            testID="ville-widget"
           />
         )}
       </ScrollView>

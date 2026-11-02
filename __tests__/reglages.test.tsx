@@ -1,11 +1,12 @@
-import { fireEvent, userEvent } from '@testing-library/react-native';
+import { fireEvent, userEvent, waitFor } from '@testing-library/react-native';
 import * as BackgroundTask from 'expo-background-task';
 import Storage from 'expo-sqlite/kv-store';
 import { renderRouter, screen } from 'expo-router/testing-library';
 
 import forecastFixture from '../__fixtures__/open-meteo-forecast.json';
-import { mockFetch, respond } from '../jest/helpers';
+import { mockFetch, NICE, respond } from '../jest/helpers';
 import Notifications from '../modules/weteo-notifications';
+import Widget from '../modules/weteo-widget';
 import de from '../src/locales/de.json';
 import en from '../src/locales/en.json';
 import es from '../src/locales/es.json';
@@ -237,6 +238,21 @@ describe('Activer les alertes pluie', () => {
 
     expect(screen.getByTestId(`ville-alertes-${LONDRES.id}`)).toBeChecked();
     expect(stored()).toMatchObject({ rainAlertCity: LONDRES.id });
+  });
+
+  // Nice : aucune autre ville de ce fichier, dont la météo resterait dans le cache de l'app.
+  it('propose un favori pour le widget, le retient et met le widget à jour', async () => {
+    Storage.setItemSync('favoris', JSON.stringify([NICE]));
+    mockFetch();
+    const user = await openSettings();
+    expect(screen.getByTestId('ville-widget-position')).toBeChecked();
+
+    await user.press(screen.getByTestId(`ville-widget-${NICE.id}`));
+
+    expect(screen.getByTestId(`ville-widget-${NICE.id}`)).toBeChecked();
+    expect(stored()).toMatchObject({ widgetCity: NICE.id });
+    // Fixture : 18,4 °C et pluie.
+    await waitFor(() => expect(Widget.update).toHaveBeenCalledWith('Nice', '18°', 'rainy'));
   });
 
   it('ne propose pas de ville si les alertes sont coupées', async () => {

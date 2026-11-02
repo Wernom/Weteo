@@ -2,6 +2,7 @@
 import '../i18n';
 
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import * as BackgroundTask from 'expo-background-task';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState } from 'react-native';
@@ -10,6 +11,7 @@ import { syncAppIcon } from '../appIcon';
 import { persistWeather } from '../offline';
 import { useScheme } from '../theme';
 import { shouldRetry } from '../weather';
+import { syncWidget, WIDGET_TASK } from '../widget';
 
 export { ErrorBoundary } from '../ErrorScreen';
 
@@ -30,6 +32,9 @@ focusManager.setEventListener((setFocused) => {
 });
 
 syncAppIcon(queryClient);
+syncWidget(queryClient);
+// Toujours : un widget peut être posé sans rouvrir l'app, et la tâche s'arrête vite sans widget.
+void BackgroundTask.registerTaskAsync(WIDGET_TASK, { minimumInterval: 15 });
 
 // Les écrans de détail s'empilent au-dessus des onglets.
 export default function RootLayout() {

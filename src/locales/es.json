@@ -75,6 +75,7 @@
     "alertesPluie": "Avisos de lluvia",
     "alertesPluieRefusees": "Notificaciones denegadas: permítelas para Wétéo en los ajustes del teléfono.",
     "villeAlertes": "Ciudad si la ubicación es desconocida",
+    "villeWidget": "Ciudad del widget",
     "aucune": "Ninguna"
   },
   "alertePluie": { "titre": "Lluvia en camino", "texte": "Lluvia prevista hacia las {{heure}}." },

@@ -98,8 +98,13 @@ export async function currentCoords() {
   return coords;
 }
 
-export async function loadWeather(): Promise<WeatherData> {
-  const coords = await currentCoords();
+export const loadWeather = async () => weatherAt(await currentCoords());
+
+// Sans demande de permission : aussi pour la tâche de fond, qui a déjà sa position.
+export async function weatherAt(coords: {
+  latitude: number;
+  longitude: number;
+}): Promise<WeatherData> {
   const [forecast, address] = await Promise.all([
     fetchForecast(coords.latitude, coords.longitude),
     Location.reverseGeocodeAsync(coords.latitude, coords.longitude).catch(() => []),
