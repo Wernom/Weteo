@@ -21,7 +21,7 @@ import { useCitySearch, where } from '../../citySearch';
 import { useShownCity } from '../../favorites';
 import { formatTimestamp } from '../../i18n';
 import { RadarSlider } from '../../RadarSlider';
-import { font, radius, space, themedStyles, usePalette, useScheme } from '../../theme';
+import { font, radius, space, themedStyles, usePalette } from '../../theme';
 import {
   currentCoords,
   noLocation,
@@ -34,11 +34,9 @@ import {
 
 export { ErrorBoundary } from '../../ErrorScreen';
 
-// Fond libre OpenFreeMap (données OpenStreetMap), sans clé ni pistage, au thème de l'app.
-const MAP_STYLES = {
-  light: 'https://tiles.openfreemap.org/styles/liberty',
-  dark: 'https://tiles.openfreemap.org/styles/dark',
-};
+// Fond libre OpenFreeMap (données OpenStreetMap), sans clé ni pistage. Clair aussi en thème sombre :
+// sur le fond sombre, la pluie se voyait mal.
+const MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 const CITY_ZOOM = 6;
 // Sans lieu connu (localisation refusée, aucun favori) : la France entière.
 const FRANCE = { center: [2.5, 46.5] as [number, number], zoom: 4 };
@@ -57,7 +55,6 @@ export default function RadarScreen() {
   const focused = useIsFocused();
   const styles = useStyles();
   const { text, secondary, onInverse } = usePalette();
-  const scheme = useScheme();
   const { top } = useSafeAreaInsets();
 
   const city = useShownCity();
@@ -136,7 +133,7 @@ export default function RadarScreen() {
       <Map
         testID="radar-carte"
         style={styles.container}
-        mapStyle={MAP_STYLES[scheme]}
+        mapStyle={MAP_STYLE}
         logo={false}
         attributionPosition={ATTRIBUTION_POSITION}
         // Sous le bouton « Recentrer », qui couvrirait l'emplacement par défaut : marge, 48 dp, écart.
