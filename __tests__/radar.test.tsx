@@ -6,6 +6,7 @@ import { Linking } from 'react-native';
 
 import RadarScreen from '../src/app/(tabs)/radar';
 import { shownCity } from '../src/favorites';
+import geocodingFixture from '../__fixtures__/open-meteo-geocoding.json';
 import radarFixture from '../__fixtures__/librewxr-weather-maps.json';
 import { LOCATION_DENIED, radarFramesQuery, WEATHER_QUERY_KEY } from '../src/weather';
 import { LYON, newClient, NICE, respond } from '../jest/helpers';
@@ -83,6 +84,28 @@ describe('Écran Radar', () => {
     expect(camera().initialViewState).toEqual({ center: [2.5, 46.5], zoom: 4 });
     expect(await screen.findByLabelText('Recentrer sur le lieu')).toBeOnTheScreen();
     expect(flyTo).toHaveBeenCalledWith({ center: [coords.longitude, coords.latitude], zoom: 6 });
+  });
+
+  it('va sur la ville cherchée et vide le champ', async () => {
+    jest
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (url) =>
+        respond(String(url).includes('geocoding') ? geocodingFixture : radarFixture),
+      );
+    const user = userEvent.setup();
+    shownCity.write(NICE);
+    await renderScreen();
+
+    await user.type(screen.getByLabelText('Nom de la ville'), 'Lyon');
+    // Laisse passer la pause de 300 ms après la frappe.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 300)));
+    const lyon = await screen.findByLabelText('Lyon, Rhône-Alpes, France');
+    expect(screen.getByLabelText('Lyon, Mississippi, États-Unis')).toBeOnTheScreen();
+    await user.press(lyon);
+
+    expect(flyTo).toHaveBeenCalledWith({ center: [LYON.longitude, LYON.latitude] });
+    expect(screen.getByLabelText('Nom de la ville')).toHaveDisplayValue('');
+    expect(screen.queryByLabelText('Lyon, Rhône-Alpes, France')).not.toBeOnTheScreen();
   });
 
   it('recentre sur le lieu quand on touche le bouton', async () => {

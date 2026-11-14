@@ -1,16 +1,16 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useCitySearch, where } from '../../citySearch';
 import { RetryButton } from '../../ErrorScreen';
 import { isFavorite, moveFavorite, toggleFavorite, useFavorites } from '../../favorites';
 import { formatAge } from '../../i18n';
-import { useSettings } from '../../settings';
 import { Screen, useScreenStyles } from '../../Screen';
 import { font, gradientFor, iconColor, radius, space, themedStyles, usePalette } from '../../theme';
 import { useUnits } from '../../units';
@@ -20,7 +20,6 @@ import {
   describeWeather,
   IconName,
   positionWeatherQuery,
-  searchCities,
   WeatherData,
 } from '../../weather';
 
@@ -28,36 +27,13 @@ export { ErrorBoundary } from '../../ErrorScreen';
 
 export default function CitiesScreen() {
   const { t } = useTranslation();
-  const { language } = useSettings();
   const c = usePalette();
   const styles = useStyles();
   const shared = useScreenStyles();
   const { top } = useSafeAreaInsets();
   const [text, setText] = useState('');
-  const [term, setTerm] = useState('');
   const favorites = useFavorites();
-  // On attend une pause dans la frappe avant d'interroger l'API.
-  useEffect(() => {
-    const timer = setTimeout(() => setTerm(text.trim()), 300);
-    return () => clearTimeout(timer);
-  }, [text]);
-
-  // Avec une seule lettre, l'API ne renvoie jamais rien : inutile de l'appeler.
-  const enabled = term.length >= 2;
-  const { data, error, isFetching, refetch } = useQuery({
-    // Une recherche faite dans une autre langue n'est pas resservie.
-    queryKey: ['villes', language, term],
-    queryFn: () => searchCities(term, language),
-    enabled,
-    placeholderData: keepPreviousData,
-    // Les villes ne changent pas : une recherche encore en cache n'est pas relancée.
-    staleTime: Infinity,
-  });
-
-  let message: string | null = null;
-  if (!enabled) message = t('villes.deuxLettres');
-  else if (error) message = t(error.message);
-  else if (data?.length === 0) message = t('villes.aucune', { term });
+  const { term, message, data, error, isFetching, refetch } = useCitySearch(text);
 
   return (
     <Screen style={[styles.container, { paddingTop: top + space.xxxl }]}>
@@ -103,8 +79,6 @@ export default function CitiesScreen() {
     </Screen>
   );
 }
-
-const where = (city: City) => [city.region, city.country].filter(Boolean).join(', ');
 
 function openCity(city: City) {
   router.push({

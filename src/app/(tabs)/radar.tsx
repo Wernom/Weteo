@@ -4,9 +4,20 @@ import { useQuery } from '@tanstack/react-query';
 import { useIsFocused } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Keyboard,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useCitySearch, where } from '../../citySearch';
 import { useShownCity } from '../../favorites';
 import { formatTimestamp } from '../../i18n';
 import { RadarSlider } from '../../RadarSlider';
@@ -45,7 +56,7 @@ export default function RadarScreen() {
   const { t } = useTranslation();
   const focused = useIsFocused();
   const styles = useStyles();
-  const { text, onInverse } = usePalette();
+  const { text, secondary, onInverse } = usePalette();
   const scheme = useScheme();
   const { top } = useSafeAreaInsets();
 
@@ -63,6 +74,10 @@ export default function RadarScreen() {
     retryOnMount: false,
   });
   const radar = useQuery({ ...radarFramesQuery, subscribed: focused });
+  const [searchText, setSearchText] = useState('');
+  const search = useCitySearch(searchText);
+  // Champ vidé : les anciens résultats ne restent pas le temps de la pause de frappe.
+  const searching = searchText.trim() !== '' && search.term !== '';
   const frames = radar.data ?? [];
   // Les prévisions suivent les images observées.
   const latest = frames.filter((frame) => !frame.forecast).length - 1;
@@ -124,6 +139,8 @@ export default function RadarScreen() {
         mapStyle={MAP_STYLES[scheme]}
         logo={false}
         attributionPosition={ATTRIBUTION_POSITION}
+        // Sous le bouton « Recentrer », qui couvrirait l'emplacement par défaut : marge, 48 dp, écart.
+        compassPosition={{ top: top + space.s + 48 + space.s, right: space.l }}
         // Déplacer la carte rechargerait les tuiles de toutes les images : on n'en garde qu'une, le
         // temps du déplacement.
         onRegionWillChange={() => setPlayer('arret')}
@@ -164,6 +181,58 @@ export default function RadarScreen() {
         ))}
       </Map>
       <View style={[styles.top, { top: top + space.s }]} pointerEvents="box-none">
+        <View style={styles.row} pointerEvents="box-none">
+          <TextInput
+            testID="radar-recherche"
+            accessibilityLabel={t('villes.champ')}
+            placeholder={t('villes.exemple')}
+            placeholderTextColor={secondary}
+            style={[styles.chip, styles.input]}
+            value={searchText}
+            onChangeText={setSearchText}
+            autoCorrect={false}
+            returnKeyType="search"
+          />
+          {known && (
+            <Pressable
+              testID="radar-recentrer"
+              onPress={() => camera.current?.flyTo({ center: [lng, lat], zoom: CITY_ZOOM })}
+              accessibilityRole="button"
+              accessibilityLabel={t('radar.recentrer')}
+              style={[styles.chip, styles.recenter]}
+            >
+              <Ionicons name="locate" size={22} color={text} />
+            </Pressable>
+          )}
+        </View>
+        {searching &&
+          (search.message ? (
+            <Text style={[styles.results, styles.message]}>{search.message}</Text>
+          ) : (
+            <FlatList
+              style={styles.results}
+              data={search.data}
+              keyExtractor={(found) => String(found.id)}
+              keyboardShouldPersistTaps="handled"
+              renderItem={({ item, index }) => (
+                <Pressable
+                  testID={`radar-ville-${index}`}
+                  onPress={() => {
+                    // Sans zoom donné : la carte arrive au zoom qu'elle avait au départ.
+                    camera.current?.flyTo({ center: [item.longitude, item.latitude] });
+                    setSearchText('');
+                    Keyboard.dismiss();
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.name}, ${where(item)}`}
+                  style={styles.result}
+                >
+                  <Text style={styles.name}>{item.name}</Text>
+                  <Text style={styles.where}>{where(item)}</Text>
+                </Pressable>
+              )}
+            />
+          ))}
         <Pressable
           onPress={() => Linking.openURL('https://github.com/JoshuaKimsey/LibreWXR')}
           accessibilityRole="link"
@@ -173,17 +242,6 @@ export default function RadarScreen() {
               couvertes par des radars, les données viennent de satellites ou d'un modèle. */}
           <Text style={styles.credit}>Rain data by LibreWXR (CC BY 4.0)</Text>
         </Pressable>
-        {known && (
-          <Pressable
-            testID="radar-recentrer"
-            onPress={() => camera.current?.flyTo({ center: [lng, lat], zoom: CITY_ZOOM })}
-            accessibilityRole="button"
-            accessibilityLabel={t('radar.recentrer')}
-            style={[styles.chip, styles.recenter]}
-          >
-            <Ionicons name="locate" size={22} color={text} />
-          </Pressable>
-        )}
       </View>
       <View style={styles.bottom} pointerEvents="box-none">
         {radar.isError && (
@@ -257,14 +315,8 @@ export default function RadarScreen() {
 
 const useStyles = themedStyles((c) => ({
   container: { flex: 1 },
-  top: {
-    position: 'absolute',
-    left: space.l,
-    right: space.l,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
+  top: { position: 'absolute', left: space.l, right: space.l, gap: space.s },
+  row: { flexDirection: 'row', gap: space.s },
   chip: {
     paddingHorizontal: space.m,
     paddingVertical: space.s,
@@ -273,8 +325,27 @@ const useStyles = themedStyles((c) => ({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: c.border,
   },
-  // Avec une grande police, la mention passe à la ligne sans pousser le bouton hors de l'écran.
-  creditChip: { flexShrink: 1 },
+  input: { flex: 1, minHeight: 48, color: c.text, fontSize: font.size.body },
+  // Les villes trouvées, sans cacher le lecteur sous le clavier.
+  results: {
+    maxHeight: 280,
+    borderRadius: radius.l,
+    backgroundColor: c.surface,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: c.border,
+  },
+  message: { padding: space.m, color: c.secondary, fontSize: font.size.body },
+  // Cible tactile d'au moins 48 dp.
+  result: {
+    minHeight: 48,
+    justifyContent: 'center',
+    paddingHorizontal: space.m,
+    paddingVertical: space.s,
+  },
+  name: { color: c.text, fontSize: font.size.headline, fontWeight: font.weight.semibold },
+  where: { color: c.secondary, fontSize: font.size.subhead },
+  // À gauche de la boussole, placée sous le bouton « Recentrer » ; passe à la ligne avec une grande police.
+  creditChip: { alignSelf: 'flex-start', marginRight: 48 + space.s },
   credit: { color: c.text, fontSize: font.size.footnote, textDecorationLine: 'underline' },
   // Cible tactile de 48 dp.
   recenter: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
