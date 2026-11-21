@@ -50,7 +50,8 @@
     "format:check": "prettier --check .",
     "test": "jest",
     "test:e2e": "node scripts/e2e.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy": "npx expo run:android --variant release --device"
   },
   "private": true,
   "overrides": {
